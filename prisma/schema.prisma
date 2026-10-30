@@ -35,6 +35,7 @@ model Reservation {
   pairing       String   @default("NONE") // NONE | WINE | TEA
   notes         String?
   allergy       String? // vd: "Hải sản"
+  selectedDishes String? // JSON danh sách món và tùy chọn ẩm thực
   status        String   @default("CONFIRMED") // PENDING | CONFIRMED | SEATED | NO_SHOW | CANCELLED
   depositAmount Int // tiền cọc đã nhận (VND)
   source        String   @default("WEB") // WEB | PHONE | ZALO

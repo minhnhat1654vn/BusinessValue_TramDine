@@ -50,3 +50,5 @@ next-env.d.ts
 .agents/
 AGENTS.md
 TramDine_structure.md
+
+/docs

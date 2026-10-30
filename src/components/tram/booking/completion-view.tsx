@@ -1,8 +1,8 @@
 "use client";
 
-// Bước 5 — màn hoàn tất: mã đặt bàn, tóm tắt, dòng thời gian nhắc lịch
+// Bước hoàn tất — màn hoàn tất: mã đặt bàn, tóm tắt, món đã chọn, dòng thời gian nhắc lịch
 // và xem trước nội dung email / tin nhắn Zalo nhắc lịch
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BellRing,
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
   ReceiptText,
   Table2,
   Users,
+  UtensilsCrossed,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,12 @@ function pairingPriceOf(pairing: string): number {
   if (pairing === "WINE") return PRICES.winePairing;
   if (pairing === "TEA") return PRICES.teaPairing;
   return 0;
+}
+
+interface SelectedDishSummary {
+  index: number;
+  name: string;
+  optionName?: string;
 }
 
 interface CompletionViewProps {
@@ -46,7 +53,28 @@ export function CompletionView({ reservation, onGoHome }: CompletionViewProps) {
   const pairingPrice = pairingPriceOf(r.pairing);
   const total = r.partySize * (PRICES.menu + pairingPrice);
 
+  const selectedDishes = useMemo<SelectedDishSummary[] | null>(() => {
+    if (!r.selectedDishes) return null;
+    try {
+      const parsed = JSON.parse(r.selectedDishes);
+      if (Array.isArray(parsed)) return parsed as SelectedDishSummary[];
+      return null;
+    } catch {
+      return null;
+    }
+  }, [r.selectedDishes]);
+
   // Nội dung email nhắc lịch (mô phỏng)
+  const dishLines = selectedDishes
+    ? `\n• Thực đơn 7 món đã chọn:\n` +
+      selectedDishes
+        .map(
+          (d) =>
+            `   ${d.index}. ${d.name}${d.optionName ? ` (${d.optionName})` : ""}`,
+        )
+        .join("\n")
+    : "";
+
   const emailBody = `Kính gửi ${r.customerName},
 
 TRẦM Reserve xin xác nhận lượt đặt bàn của Quý khách:
@@ -55,7 +83,7 @@ TRẦM Reserve xin xác nhận lượt đặt bàn của Quý khách:
 • Thời gian: ${weekday}, ${dateLabel.split(", ")[1]} — khung ${slotTime}
 • Bàn: ${r.table.code} (${r.table.seats} chỗ) · ${r.table.zone}
 • Số khách: ${r.partySize} khách
-• Pairing: ${r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine pairing" : "Tea pairing"}
+• Pairing: ${r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine pairing" : "Tea pairing"}${dishLines}
 • Đặt cọc đã nhận: ${formatVND(r.depositAmount)}
 • Tổng dự kiến: ${formatVND(total)}${r.allergy ? `\n• Lưu ý dị ứng: ${r.allergy} — bếp đã ghi nhận và sẽ điều chỉnh món` : ""}
 
@@ -74,6 +102,7 @@ Chào ${r.customerName}, TRẦM hẹn gặp Quý khách:
 ▪ ${weekday} · ${dateLabel.split(", ")[1]}
 ▪ Khung ${slotTime} · Bàn ${r.table.code}
 ▪ ${r.partySize} khách · Mã ${r.code}
+▪ Menu 7 món "Hành trình vị Việt" (đã lưu vào hệ thống bếp)
 ▪ Cọc đã nhận: ${formatVND(r.depositAmount)}
 
 Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 giờ để được hoàn cọc. Hotline ${RESTAURANT.hotline}.`;
@@ -90,7 +119,7 @@ Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 
             Đặt bàn thành công!
           </CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            Nhà hàng TRẦM đã ghi nhận lượt đặt và nhận cọc của Quý khách.
+            Nhà hàng TRẦM đã ghi nhận lượt đặt, thực đơn đã chọn và nhận cọc của Quý khách.
           </p>
           <div className="mt-3 inline-flex items-center gap-3 rounded-full border border-[#b45309]/35 bg-[#fdf0d5] px-6 py-2.5">
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#92400e]">
@@ -102,7 +131,7 @@ Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2.5 rounded-xl border border-border bg-[#fffdf9] p-4 text-sm">
               <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -197,6 +226,38 @@ Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 
               </p>
             </div>
           </div>
+
+          {/* HIỂN THỊ CÁC MÓN ĐÃ CHỌN LƯU VÀO DB */}
+          {selectedDishes && selectedDishes.length > 0 && (
+            <div className="rounded-xl border border-[#b45309]/30 bg-[#fdf0d5]/40 p-4">
+              <p className="mb-2.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#92400e]">
+                <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
+                Thực đơn 7 món đã chọn (Đã đồng bộ cơ sở dữ liệu)
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {selectedDishes.map((item) => (
+                  <div
+                    key={item.index}
+                    className="flex items-start gap-2 rounded-lg bg-card/80 p-2.5 text-xs shadow-2xs border border-border/60"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#b45309] text-[10px] font-bold text-[#fffbf2]">
+                      {item.index}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-stone-800 truncate">
+                        {item.name}
+                      </p>
+                      {item.optionName && (
+                        <p className="text-[11px] text-[#92400e]">
+                          {item.optionName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

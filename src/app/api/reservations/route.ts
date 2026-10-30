@@ -51,6 +51,7 @@ interface CreateBody {
   pairing?: string;
   notes?: string;
   allergy?: string;
+  selectedDishes?: string | unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -145,6 +146,11 @@ export async function POST(request: NextRequest) {
         pairing: body.pairing ?? "NONE",
         notes: body.notes?.trim() || null,
         allergy: body.allergy?.trim() || null,
+        selectedDishes: body.selectedDishes
+          ? typeof body.selectedDishes === "string"
+            ? body.selectedDishes
+            : JSON.stringify(body.selectedDishes)
+          : null,
         status: "CONFIRMED", // cọc đã "thanh toán" (mô phỏng) → xác nhận luôn
         depositAmount: PRICES.deposit * partySize,
         source: "WEB",

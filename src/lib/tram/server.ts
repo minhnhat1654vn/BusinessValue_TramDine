@@ -23,6 +23,7 @@ type ReservationWithTable = {
   pairing: string;
   notes: string | null;
   allergy: string | null;
+  selectedDishes?: string | null;
   status: string;
   depositAmount: number;
   source: string;
@@ -43,6 +44,7 @@ export function serializeReservation(r: ReservationWithTable): ReservationDTO {
     pairing: r.pairing as Pairing,
     notes: r.notes,
     allergy: r.allergy,
+    selectedDishes: r.selectedDishes ?? null,
     status: r.status as ReservationStatus,
     depositAmount: r.depositAmount,
     source: r.source as ReservationSource,
