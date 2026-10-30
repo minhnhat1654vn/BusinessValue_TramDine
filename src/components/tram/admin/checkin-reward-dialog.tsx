@@ -18,6 +18,7 @@ import {
   Receipt,
   ArrowRight,
   Send,
+  Mail,
   ExternalLink,
   Copy,
   Check,
@@ -31,6 +32,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { TierUpgradeDialog } from "./tier-upgrade-dialog";
 import { formatVND } from "@/lib/tram/format";
 import { formatPoints, LOYALTY_TIERS } from "@/lib/tram/loyalty";
 import type { LoyaltyTier } from "@/lib/tram/types";
@@ -49,6 +52,8 @@ export interface CheckinLoyaltyReward {
   newTier: LoyaltyTier;
   newTierName: string;
   isUpgraded: boolean;
+  upgradeMilestone?: 3 | 6 | null;
+  visitsCount?: number;
   newTotalPoints: number;
 }
 
@@ -65,13 +70,15 @@ export function CheckinRewardDialog({
 }: CheckinRewardDialogProps) {
   const [surveySent, setSurveySent] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showUpgradeLetter, setShowUpgradeLetter] = useState(false);
 
   if (!reward) return null;
 
   const tierConfig = LOYALTY_TIERS[reward.newTier] ?? LOYALTY_TIERS.HUONG;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <>
+      <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md border-amber-900/20 bg-[#faf8f3] p-0 overflow-hidden shadow-2xl [&_[data-slot=dialog-close]]:text-stone-200 [&_[data-slot=dialog-close]]:hover:text-white [&_[data-slot=dialog-close]]:bg-black/30 [&_[data-slot=dialog-close]]:hover:bg-black/55 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:transition-all [&_[data-slot=dialog-close]]:border [&_[data-slot=dialog-close]]:border-white/15">
         <DialogHeader className="sr-only">
           <DialogTitle>Tích điểm thành công cho {reward.customerName}</DialogTitle>
@@ -198,6 +205,39 @@ export function CheckinRewardDialog({
             </div>
           </div>
 
+          {/* FR-26: Chúc mừng lên hạng — Kích hoạt cùng cập nhật hạng tại Check-in (Mốc 3 hoặc 6 lượt) */}
+          {(reward.isUpgraded || Boolean(reward.upgradeMilestone)) && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="rounded-xl border-2 border-amber-400 bg-gradient-to-br from-amber-100/90 via-[#fffbf2] to-amber-100/70 p-3.5 space-y-2.5 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-950">
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                  Vinh Danh Vượt Mốc {reward.upgradeMilestone ?? (reward.newTier === "NAM_TRAM" ? 6 : 3)} Lượt!
+                </span>
+                <span className="rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-xs">
+                  {reward.newTierName}
+                </span>
+              </div>
+
+              <p className="text-xs text-stone-700 leading-relaxed">
+                Thực khách <strong>{reward.customerName}</strong> đã chính thức đạt mốc {reward.upgradeMilestone ?? (reward.newTier === "NAM_TRAM" ? 6 : 3)} lượt dùng bữa và được kích hoạt đầy đủ đặc quyền {reward.newTierName}.
+              </p>
+
+              <Button
+                type="button"
+                onClick={() => setShowUpgradeLetter(true)}
+                className="w-full h-9 rounded-full bg-[#854d0e] hover:bg-[#713f12] text-white font-bold text-xs shadow-sm gap-1.5"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Mở Thư Chúc Mừng Lên Hạng (Email &amp; Zalo)
+              </Button>
+            </motion.div>
+          )}
+
           {/* FR-23: Khảo sát sau bữa ăn — Gửi link thăm dò 5 sao */}
           <div className="rounded-xl border border-amber-300/80 bg-gradient-to-b from-amber-50/70 to-[#fffdf9] p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
@@ -299,5 +339,22 @@ export function CheckinRewardDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* FR-26: Modal Xem trước & Gửi thư chúc mừng thăng hạng */}
+    <TierUpgradeDialog
+      open={showUpgradeLetter}
+      onClose={() => setShowUpgradeLetter(false)}
+      customerName={reward.customerName}
+      phone={reward.phone}
+      currentTier={reward.currentTier}
+      newTier={reward.newTier}
+      milestone={
+        (reward.upgradeMilestone as 3 | 6) ??
+        (reward.newTier === "NAM_TRAM" ? 6 : 3)
+      }
+      visitsCount={reward.visitsCount}
+      points={reward.newTotalPoints}
+    />
+  </>
   );
 }

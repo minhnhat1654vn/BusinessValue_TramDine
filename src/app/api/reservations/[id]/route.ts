@@ -156,8 +156,18 @@ export async function PATCH(
 
       // Tính trạng thái mới sau khi cộng bữa này
       const newSpend = prevSpend + billTotal;
-      const newLoyalty = computeLoyalty(newSpend, prevVisits.length + 1);
+      const prevVisitsCount = prevVisits.length;
+      const newVisitsCount = prevVisitsCount + 1;
+      const newLoyalty = computeLoyalty(newSpend, newVisitsCount);
       const isUpgraded = newLoyalty.tier !== prevLoyalty.tier;
+
+      // FR-26: Mốc thăng hạng 3 lượt (Hương -> Trầm) hoặc 6 lượt (Trầm -> Nam Trầm)
+      let upgradeMilestone: 3 | 6 | null = null;
+      if (prevVisitsCount < 3 && newVisitsCount >= 3) {
+        upgradeMilestone = 3;
+      } else if (prevVisitsCount < 6 && newVisitsCount >= 6) {
+        upgradeMilestone = 6;
+      }
 
       loyaltyInfo = {
         reservationCode: reservation.code,
@@ -173,6 +183,8 @@ export async function PATCH(
         newTier: newLoyalty.tier,
         newTierName: getTierName(newLoyalty.tier),
         isUpgraded,
+        upgradeMilestone,
+        visitsCount: newVisitsCount,
         newTotalPoints: newLoyalty.points,
       };
     }

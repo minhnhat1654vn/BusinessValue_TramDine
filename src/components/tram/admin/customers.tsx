@@ -36,6 +36,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { ReEngagementDialog } from "./re-engagement-dialog";
+import { TierUpgradeDialog } from "./tier-upgrade-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,6 +121,13 @@ export function AdminCustomers() {
   const [filterLapsedOnly, setFilterLapsedOnly] = useState(false);
   const [sentPhones, setSentPhones] = useState<Set<string>>(new Set());
 
+  // FR-26: Quản lý Thư chúc mừng lên hạng khi lượt gần nhất vượt mốc 3 hoặc 6 lượt
+  const [upgradeLetterCustomer, setUpgradeLetterCustomer] = useState<{
+    customer: CustomerProfileDTO;
+    milestone: 3 | 6;
+  } | null>(null);
+  const [filterUpgradedOnly, setFilterUpgradedOnly] = useState(false);
+
   function pairingPriceOf(pairing: string): number {
     if (pairing === "WINE") return PRICES.winePairing;
     if (pairing === "TEA") return PRICES.teaPairing;
@@ -137,6 +145,11 @@ export function AdminCustomers() {
       }))
       .filter((item) => item.days >= 21)
       .sort((a, b) => b.days - a.days);
+  }, [customers]);
+
+  // FR-26: Danh sách khách đã đạt mốc lên hạng (≥ 3 lượt: Hạng Trầm hoặc Nam Trầm)
+  const upgradedList = useMemo(() => {
+    return customers.filter((c) => c.visits >= 3);
   }, [customers]);
 
   // Thống kê tổng quan 3 hạng (FR-21)
@@ -168,7 +181,7 @@ export function AdminCustomers() {
     };
   }, [customers]);
 
-  // Bộ lọc khách hàng (kèm lọc khách ≥ 21 ngày)
+  // Bộ lọc khách hàng (kèm lọc khách ≥ 21 ngày và khách đã thăng hạng mốc 3/6)
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
       const matchSearch =
@@ -176,9 +189,10 @@ export function AdminCustomers() {
         c.phone.includes(search);
       const matchTier = selectedTier === "ALL" || c.tier === selectedTier;
       const matchLapsed = !filterLapsedOnly || getDaysSinceLastVisit(c.lastVisit) >= 21;
-      return matchSearch && matchTier && matchLapsed;
+      const matchUpgraded = !filterUpgradedOnly || c.visits >= 3;
+      return matchSearch && matchTier && matchLapsed && matchUpgraded;
     });
-  }, [customers, search, selectedTier, filterLapsedOnly]);
+  }, [customers, search, selectedTier, filterLapsedOnly, filterUpgradedOnly]);
 
   return (
     <div className="space-y-6">
@@ -523,7 +537,10 @@ export function AdminCustomers() {
 
           {/* Nút lọc nhanh khách cần mời lại ≥ 21 ngày */}
           <button
-            onClick={() => setFilterLapsedOnly(!filterLapsedOnly)}
+            onClick={() => {
+              setFilterLapsedOnly(!filterLapsedOnly);
+              if (!filterLapsedOnly) setFilterUpgradedOnly(false);
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
               filterLapsedOnly
                 ? "bg-amber-800 text-white shadow-xs ring-1 ring-amber-500"
@@ -532,6 +549,22 @@ export function AdminCustomers() {
           >
             <Clock className="h-3.5 w-3.5 text-amber-700" />
             Cần mời lại ({lapsedList.length})
+          </button>
+
+          {/* FR-26: Nút lọc nhanh khách đạt mốc lên hạng (3 hoặc 6 lượt) */}
+          <button
+            onClick={() => {
+              setFilterUpgradedOnly(!filterUpgradedOnly);
+              if (!filterUpgradedOnly) setFilterLapsedOnly(false);
+            }}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              filterUpgradedOnly
+                ? "bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-xs ring-1 ring-amber-400"
+                : "text-amber-900 bg-amber-50/70 border border-amber-300 hover:bg-amber-100"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+            Đã lên hạng (mốc 3/6) ({upgradedList.length})
           </button>
         </div>
 
@@ -805,6 +838,23 @@ export function AdminCustomers() {
                       <Eye className="h-3.5 w-3.5" />
                       Xem Hồ Sơ
                     </button>
+
+                    {/* FR-26: Nút xem Thư chúc mừng lên hạng cho khách đạt mốc 3 hoặc 6 lượt */}
+                    {c.visits >= 3 && (
+                      <button
+                        onClick={() =>
+                          setUpgradeLetterCustomer({
+                            customer: c,
+                            milestone: c.visits >= 6 ? 6 : 3,
+                          })
+                        }
+                        title="Xem Thư chúc mừng lên hạng"
+                        className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50/90 py-2 text-xs font-bold text-amber-900 transition-all hover:bg-amber-100 hover:border-amber-400 shadow-2xs"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                        Thư Chúc Mừng Lên Hạng (Mốc {c.visits >= 6 ? "6" : "3"} Lượt)
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -942,6 +992,23 @@ export function AdminCustomers() {
                           >
                             <Send className="h-3 w-3" />
                             {sentPhones.has(c.phone) ? "Đã gửi" : "Mời lại"}
+                          </button>
+                        )}
+                        {/* FR-26: Nút xem Thư chúc mừng lên hạng trong bảng */}
+                        {c.visits >= 3 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUpgradeLetterCustomer({
+                                customer: c,
+                                milestone: c.visits >= 6 ? 6 : 3,
+                              });
+                            }}
+                            title="Thư chúc mừng lên hạng"
+                            className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-all shadow-2xs"
+                          >
+                            <Sparkles className="h-3 w-3 text-amber-600" />
+                            Thư lên hạng
                           </button>
                         )}
                         <button
@@ -1199,6 +1266,37 @@ export function AdminCustomers() {
                   </p>
                 </div>
 
+                {/* FR-26: Thư vinh danh thăng hạng khi vượt mốc 3 hoặc 6 lượt */}
+                {detail.visits >= 3 && (
+                  <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-50 via-[#fffcf5] to-amber-100/70 p-4 shadow-2xs space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-950">
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                        Thư Vinh Danh Lên Hạng (Vượt Mốc {detail.visits >= 6 ? 6 : 3} Lượt)
+                      </span>
+                      <Badge className="bg-amber-600 text-white font-extrabold text-[10px]">
+                        FR-26
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-stone-700 leading-relaxed">
+                      Quý khách <strong>{detail.name}</strong> đã đạt {detail.visits} lượt đến TRẦM Reserve. Quản lý có thể xem lại hoặc gửi lại Thư vinh danh thăng hạng qua Email/Zalo.
+                    </p>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setUpgradeLetterCustomer({
+                          customer: detail,
+                          milestone: detail.visits >= 6 ? 6 : 3,
+                        })
+                      }
+                      className="h-8.5 rounded-full bg-[#b45309] hover:bg-[#92400e] text-white text-xs font-bold gap-1.5 shadow-2xs"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      Xem &amp; Gửi Thư Chúc Mừng Lên Hạng
+                    </Button>
+                  </div>
+                )}
+
                 {/* Danh sách Đặc Quyền Hội Viên theo Bảng 8 */}
                 <div className="space-y-2.5">
                   <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700">
@@ -1294,6 +1392,29 @@ export function AdminCustomers() {
           setSentPhones((prev) => new Set(prev).add(phone));
         }}
       />
+
+      {/* FR-26: Modal Thư Chúc Mừng Lên Hạng (mốc 3 hoặc 6 lượt) */}
+      {upgradeLetterCustomer && (
+        <TierUpgradeDialog
+          open={upgradeLetterCustomer !== null}
+          onClose={() => setUpgradeLetterCustomer(null)}
+          customerName={upgradeLetterCustomer.customer.name}
+          phone={upgradeLetterCustomer.customer.phone}
+          newTier={
+            upgradeLetterCustomer.customer.tier === "NAM_TRAM"
+              ? "NAM_TRAM"
+              : "TRAM"
+          }
+          currentTier={
+            upgradeLetterCustomer.customer.tier === "NAM_TRAM"
+              ? "TRAM"
+              : "HUONG"
+          }
+          milestone={upgradeLetterCustomer.milestone}
+          visitsCount={upgradeLetterCustomer.customer.visits}
+          points={upgradeLetterCustomer.customer.points}
+        />
+      )}
     </div>
   );
 }
