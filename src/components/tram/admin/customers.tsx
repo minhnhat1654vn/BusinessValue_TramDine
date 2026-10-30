@@ -30,7 +30,12 @@ import {
   Filter,
   TableProperties,
   ShieldCheck,
+  Clock,
+  Send,
+  Mail,
+  MessageCircle,
 } from "lucide-react";
+import { ReEngagementDialog } from "./re-engagement-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +93,15 @@ function TierIcon({
   }
 }
 
+// FR-25: Tính số ngày từ lần ghé thăm gần nhất
+function getDaysSinceLastVisit(lastVisitStr: string): number {
+  if (!lastVisitStr) return 0;
+  const visit = new Date(lastVisitStr);
+  const now = new Date();
+  const diffTime = now.getTime() - visit.getTime();
+  return Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+}
+
 export function AdminCustomers() {
   const { data, loading, error, refresh } = useJson<CustomersResponse>(
     "/api/customers",
@@ -98,6 +112,14 @@ export function AdminCustomers() {
   const [selectedTier, setSelectedTier] = useState<LoyaltyTier | "ALL">("ALL");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
+  // FR-25: Quản lý khách hàng cần mời lại (≥ 21 ngày chưa quay lại)
+  const [reEngageCustomer, setReEngageCustomer] = useState<{
+    customer: CustomerProfileDTO;
+    days: number;
+  } | null>(null);
+  const [filterLapsedOnly, setFilterLapsedOnly] = useState(false);
+  const [sentPhones, setSentPhones] = useState<Set<string>>(new Set());
+
   function pairingPriceOf(pairing: string): number {
     if (pairing === "WINE") return PRICES.winePairing;
     if (pairing === "TEA") return PRICES.teaPairing;
@@ -105,6 +127,17 @@ export function AdminCustomers() {
   }
 
   const customers = data?.customers ?? [];
+
+  // FR-25: Danh sách khách ≥ 21 ngày chưa quay lại
+  const lapsedList = useMemo(() => {
+    return customers
+      .map((c) => ({
+        customer: c,
+        days: getDaysSinceLastVisit(c.lastVisit),
+      }))
+      .filter((item) => item.days >= 21)
+      .sort((a, b) => b.days - a.days);
+  }, [customers]);
 
   // Thống kê tổng quan 3 hạng (FR-21)
   const stats = useMemo(() => {
@@ -135,16 +168,17 @@ export function AdminCustomers() {
     };
   }, [customers]);
 
-  // Bộ lọc khách hàng
+  // Bộ lọc khách hàng (kèm lọc khách ≥ 21 ngày)
   const filteredCustomers = useMemo(() => {
     return customers.filter((c) => {
       const matchSearch =
         c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.phone.includes(search);
       const matchTier = selectedTier === "ALL" || c.tier === selectedTier;
-      return matchSearch && matchTier;
+      const matchLapsed = !filterLapsedOnly || getDaysSinceLastVisit(c.lastVisit) >= 21;
+      return matchSearch && matchTier && matchLapsed;
     });
-  }, [customers, search, selectedTier]);
+  }, [customers, search, selectedTier, filterLapsedOnly]);
 
   return (
     <div className="space-y-6">
@@ -312,6 +346,113 @@ export function AdminCustomers() {
         </motion.div>
       </motion.div>
 
+      {/* FR-25: KHỐI CHIẾN DỊCH MỜI LẠI THỰC KHÁCH (≥ 21 ngày chưa quay lại) */}
+      {lapsedList.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-400/50 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-card p-5 shadow-xs space-y-3.5"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309] text-white shadow-xs">
+                  <Send className="h-4 w-4" />
+                </span>
+                <h3 className="font-heading text-lg font-bold text-[#292524]">
+                  Chiến Dịch Chăm Sóc &amp; Mời Lại Thực Khách
+                </h3>
+                <Badge className="border-amber-400 bg-amber-100 font-bold text-amber-950 text-[11px]">
+                  ≥ 21 ngày chưa quay lại
+                </Badge>
+              </div>
+              <p className="mt-1 text-xs text-stone-600">
+                Phát hiện <strong className="text-amber-900 font-bold">{lapsedList.length} thực khách</strong> đã hơn 3 tuần chưa ghé TRẦM Reserve. Xem trước lời mời Zalo/Email và gửi ngay kèm đặc quyền tri ân.
+              </p>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFilterLapsedOnly(!filterLapsedOnly)}
+              className={`h-9 rounded-full text-xs font-bold transition-all shrink-0 ${
+                filterLapsedOnly
+                  ? "bg-[#b45309] text-white border-[#b45309] hover:bg-[#92400e]"
+                  : "border-amber-400 bg-white text-amber-900 hover:bg-amber-50"
+              }`}
+            >
+              <Filter className="mr-1.5 h-3.5 w-3.5" />
+              {filterLapsedOnly ? "Xem tất cả khách" : `Lọc ${lapsedList.length} khách cần mời lại`}
+            </Button>
+          </div>
+
+          {/* Carousel / Card list of Lapsed Customers */}
+          <div className="tram-scroll flex gap-3 overflow-x-auto pb-1 pt-1">
+            {lapsedList.map(({ customer: c, days }) => {
+              const tierConfig = LOYALTY_TIERS[c.tier] ?? LOYALTY_TIERS.HUONG;
+              const isSent = sentPhones.has(c.phone);
+              return (
+                <div
+                  key={c.phone}
+                  className="min-w-[280px] max-w-[310px] shrink-0 rounded-xl border border-amber-300/70 bg-white p-3.5 shadow-xs space-y-2.5 transition-all hover:border-amber-500 hover:shadow-md"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h4 className="font-heading text-sm font-bold text-stone-900">
+                        {c.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground font-mono">{c.phone}</p>
+                    </div>
+
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${tierConfig.badgeBg} ${tierConfig.badgeText} border ${tierConfig.badgeBorder}`}
+                    >
+                      <TierIcon tier={c.tier} className="h-3 w-3" />
+                      {tierConfig.name}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs border-t border-stone-100 pt-2">
+                    <span className="text-muted-foreground">Chưa quay lại:</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-xs font-extrabold text-amber-900">
+                      <Clock className="h-3 w-3 text-amber-700" />
+                      {days} ngày
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-stone-500">
+                    <span>Lần cuối: {c.lastVisit}</span>
+                    <span>{c.visits} bữa tiệc</span>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    onClick={() => setReEngageCustomer({ customer: c, days })}
+                    className={`w-full h-8.5 rounded-full text-xs font-bold shadow-2xs gap-1.5 transition-all ${
+                      isSent
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                        : "bg-[#b45309] hover:bg-[#92400e] text-white"
+                    }`}
+                  >
+                    {isSent ? (
+                      <>
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Đã gửi lời mời
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-3.5 w-3.5" />
+                        Xem trước Email &amp; Zalo
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
       {/* 2. Controls Bar: Search + Filter 3 Hạng + View Mode */}
       <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-xs md:flex-row md:items-center md:justify-between">
         {/* Search */}
@@ -330,7 +471,7 @@ export function AdminCustomers() {
           <button
             onClick={() => setSelectedTier("ALL")}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-              selectedTier === "ALL"
+              selectedTier === "ALL" && !filterLapsedOnly
                 ? "bg-[#b45309] text-white shadow-xs"
                 : "text-stone-600 hover:bg-stone-100"
             }`}
@@ -338,9 +479,12 @@ export function AdminCustomers() {
             Tất cả ({customers.length})
           </button>
           <button
-            onClick={() => setSelectedTier("NAM_TRAM")}
+            onClick={() => {
+              setSelectedTier("NAM_TRAM");
+              setFilterLapsedOnly(false);
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              selectedTier === "NAM_TRAM"
+              selectedTier === "NAM_TRAM" && !filterLapsedOnly
                 ? "bg-purple-950 text-amber-300 shadow-xs ring-1 ring-amber-400"
                 : "text-purple-900 hover:bg-purple-50"
             }`}
@@ -349,9 +493,12 @@ export function AdminCustomers() {
             Nam Trầm · 6+ lượt ({stats.namTramCount})
           </button>
           <button
-            onClick={() => setSelectedTier("TRAM")}
+            onClick={() => {
+              setSelectedTier("TRAM");
+              setFilterLapsedOnly(false);
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              selectedTier === "TRAM"
+              selectedTier === "TRAM" && !filterLapsedOnly
                 ? "bg-amber-600 text-white shadow-xs"
                 : "text-amber-800 hover:bg-amber-50"
             }`}
@@ -360,15 +507,31 @@ export function AdminCustomers() {
             Trầm · 3–5 lượt ({stats.tramCount})
           </button>
           <button
-            onClick={() => setSelectedTier("HUONG")}
+            onClick={() => {
+              setSelectedTier("HUONG");
+              setFilterLapsedOnly(false);
+            }}
             className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-              selectedTier === "HUONG"
+              selectedTier === "HUONG" && !filterLapsedOnly
                 ? "bg-stone-700 text-white shadow-xs"
                 : "text-stone-600 hover:bg-stone-100"
             }`}
           >
             <Award className="h-3.5 w-3.5 text-stone-500" />
             Hương · 0–2 lượt ({stats.huongCount})
+          </button>
+
+          {/* Nút lọc nhanh khách cần mời lại ≥ 21 ngày */}
+          <button
+            onClick={() => setFilterLapsedOnly(!filterLapsedOnly)}
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+              filterLapsedOnly
+                ? "bg-amber-800 text-white shadow-xs ring-1 ring-amber-500"
+                : "text-amber-900 bg-amber-50 border border-amber-300 hover:bg-amber-100"
+            }`}
+          >
+            <Clock className="h-3.5 w-3.5 text-amber-700" />
+            Cần mời lại ({lapsedList.length})
           </button>
         </div>
 
@@ -581,8 +744,25 @@ export function AdminCustomers() {
                   </div>
                 </div>
 
-                {/* Bottom: Notes/Allergy + Action Button */}
-                <div className="space-y-3">
+                {/* Bottom: Notes/Allergy + Days Lapsed & Action Buttons */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      Lần cuối: {c.lastVisit}
+                    </span>
+                    {getDaysSinceLastVisit(c.lastVisit) >= 21 ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                        <Clock className="h-3 w-3 text-amber-700" />
+                        Đã {getDaysSinceLastVisit(c.lastVisit)} ngày
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-stone-400">
+                        ({getDaysSinceLastVisit(c.lastVisit)} ngày trước)
+                      </span>
+                    )}
+                  </div>
+
                   {c.notes.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {c.notes.slice(0, 2).map((n) => (
@@ -596,13 +776,36 @@ export function AdminCustomers() {
                     </div>
                   )}
 
-                  <button
-                    onClick={() => setDetail(c)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50/70 py-2 text-xs font-semibold text-stone-700 transition-all hover:border-[#b45309] hover:bg-[#b45309] hover:text-white"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    Xem Hồ Sơ & Quyền Lợi Bảng 8
-                  </button>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    {getDaysSinceLastVisit(c.lastVisit) >= 21 ? (
+                      <button
+                        onClick={() =>
+                          setReEngageCustomer({
+                            customer: c,
+                            days: getDaysSinceLastVisit(c.lastVisit),
+                          })
+                        }
+                        className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold transition-all shadow-2xs ${
+                          sentPhones.has(c.phone)
+                            ? "bg-emerald-50 border border-emerald-300 text-emerald-800"
+                            : "bg-[#b45309] text-white hover:bg-[#92400e]"
+                        }`}
+                      >
+                        <Send className="h-3.5 w-3.5" />
+                        {sentPhones.has(c.phone) ? "Đã gửi mời" : "Mời lại"}
+                      </button>
+                    ) : null}
+
+                    <button
+                      onClick={() => setDetail(c)}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50/70 py-2 text-xs font-semibold text-stone-700 transition-all hover:border-[#b45309] hover:bg-[#b45309] hover:text-white ${
+                        getDaysSinceLastVisit(c.lastVisit) < 21 ? "col-span-2" : ""
+                      }`}
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                      Xem Hồ Sơ
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );
@@ -707,20 +910,51 @@ export function AdminCustomers() {
                     </TableCell>
 
                     <TableCell className="text-muted-foreground text-xs">
-                      {formatLongDate(c.lastVisit).split(", ")[1]}
+                      <div>{formatLongDate(c.lastVisit).split(", ")[1]}</div>
+                      {getDaysSinceLastVisit(c.lastVisit) >= 21 ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900 mt-1">
+                          <Clock className="h-2.5 w-2.5 text-amber-700" />
+                          Đã {getDaysSinceLastVisit(c.lastVisit)} ngày
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-stone-400">
+                          ({getDaysSinceLastVisit(c.lastVisit)} ngày trước)
+                        </span>
+                      )}
                     </TableCell>
 
                     <TableCell className="pr-4">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDetail(c);
-                        }}
-                        className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 hover:border-amber-600 hover:text-amber-800"
-                      >
-                        <Eye className="h-3 w-3" />
-                        Chi tiết
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {getDaysSinceLastVisit(c.lastVisit) >= 21 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setReEngageCustomer({
+                                customer: c,
+                                days: getDaysSinceLastVisit(c.lastVisit),
+                              });
+                            }}
+                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold shadow-2xs transition-all ${
+                              sentPhones.has(c.phone)
+                                ? "bg-emerald-50 border border-emerald-300 text-emerald-800"
+                                : "bg-amber-600 text-white hover:bg-amber-700"
+                            }`}
+                          >
+                            <Send className="h-3 w-3" />
+                            {sentPhones.has(c.phone) ? "Đã gửi" : "Mời lại"}
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDetail(c);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 hover:border-amber-600 hover:text-amber-800"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Chi tiết
+                        </button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -1049,6 +1283,17 @@ export function AdminCustomers() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* FR-25: Modal Xem trước Email/Zalo Chiến dịch mời lại */}
+      <ReEngagementDialog
+        customer={reEngageCustomer?.customer ?? null}
+        daysLapsed={reEngageCustomer?.days ?? 0}
+        open={reEngageCustomer !== null}
+        onClose={() => setReEngageCustomer(null)}
+        onSent={(phone) => {
+          setSentPhones((prev) => new Set(prev).add(phone));
+        }}
+      />
     </div>
   );
 }
