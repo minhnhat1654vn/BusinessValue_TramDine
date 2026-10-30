@@ -60,7 +60,8 @@ export async function GET() {
           reservations: c.reservations,
           tier: loyalty.tier,
           points: loyalty.points,
-          nextTierPoints: loyalty.nextTierPoints,
+          nextTierVisits: loyalty.nextTierVisits,
+          nextTierPoints: loyalty.nextTierVisits * 10000,
           nextTierName: loyalty.nextTierName,
           tierProgress: loyalty.tierProgress,
         };

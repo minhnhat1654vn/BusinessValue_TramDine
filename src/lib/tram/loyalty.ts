@@ -1,5 +1,8 @@
-// FR-19 & FR-20: Quản lý hạng thân thiết và tích điểm theo hóa đơn — TRẦM Reserve
-// FR-20: Quy tắc 1.000 đ = 1 điểm; thưởng 5–8% giá trị hóa đơn theo hạng khi khách Đã đến (SEATED)
+// FR-21: Chương trình ba hạng thân thiết — TRẦM Reserve (Đặc tả Bảng 8 nhóm 8)
+// 3 Hạng:
+// 1. Hạng HƯƠNG (0–2 lượt đến)
+// 2. Hạng TRẦM (3–5 lượt đến)
+// 3. Hạng NAM TRẦM (6+ lượt đến)
 
 import type { LoyaltyTier } from "./types";
 
@@ -7,124 +10,168 @@ export interface TierConfig {
   key: LoyaltyTier;
   name: string;
   tagline: string;
-  minPoints: number;
-  maxPoints: number;
-  bonusPercent: number; // Tỷ lệ điểm thưởng theo hạng (FR-20: 5–8%)
+  minVisits: number;
+  maxVisits: number;
+  bonusPercent: number; // Tỷ lệ điểm thưởng theo hạng (FR-20 & FR-21: 0%, 5%, 8%)
   badgeBg: string;
   badgeText: string;
   badgeBorder: string;
   cardGradient: string;
   accentColor: string;
-  iconName: "Award" | "ShieldCheck" | "Crown" | "Gem";
+  iconName: "Award" | "Crown" | "Gem";
   benefits: string[];
 }
 
 export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
-  MEMBER: {
-    key: "MEMBER",
-    name: "Hạng Khởi Sắc",
-    tagline: "Thành viên Thân thiết",
-    minPoints: 0,
-    maxPoints: 10000,
-    bonusPercent: 0, // Điểm cơ bản
+  HUONG: {
+    key: "HUONG",
+    name: "Hạng Hương",
+    tagline: "Khởi sắc phong vị (0–2 lượt)",
+    minVisits: 0,
+    maxVisits: 2,
+    bonusPercent: 0, // Điểm cơ bản 1.000 đ = 1 pt
     badgeBg: "bg-stone-100 dark:bg-stone-800",
-    badgeText: "text-stone-700 dark:text-stone-300",
-    badgeBorder: "border-stone-300 dark:border-stone-700",
-    cardGradient: "from-stone-800 via-stone-700 to-stone-900 text-stone-100",
+    badgeText: "text-stone-800 dark:text-stone-200 font-bold",
+    badgeBorder: "border-stone-400 dark:border-stone-600",
+    cardGradient: "bg-gradient-to-br from-[#292524] via-[#38332f] to-[#1c1917] text-stone-100",
     accentColor: "#a8a29e",
     iconName: "Award",
     benefits: [
-      "Tích lũy 1 điểm cho mỗi 1.000 đ chi tiêu (FR-20)",
-      "Quà chúc mừng sinh nhật từ nhà hàng",
-      "Nhận bản tin thực đơn theo mùa trước công chúng",
+      "Áp dụng cho khách từ 0 đến 2 lượt đến TRẦM Reserve",
+      "Tích lũy 1 điểm cho mỗi 1.000 đ chi tiêu hóa đơn (FR-20)",
+      "Thiệp chúc mừng và quà tặng sinh nhật từ nhà hàng",
+      "Nhận trước thông tin thực đơn tasting theo mùa",
+      "Hỗ trợ đổi ca đặt bàn linh hoạt trước 24 giờ",
     ],
   },
-  SILVER: {
-    key: "SILVER",
-    name: "TRẦM Thanh Nhã",
-    tagline: "Hội viên Bạc",
-    minPoints: 10000,
-    maxPoints: 25000,
-    bonusPercent: 5, // FR-20: Thưởng +5% điểm
-    badgeBg: "bg-slate-100 dark:bg-slate-800",
-    badgeText: "text-slate-800 dark:text-slate-200",
-    badgeBorder: "border-slate-300 dark:border-slate-600",
-    cardGradient: "from-slate-700 via-slate-600 to-slate-800 text-white",
-    accentColor: "#cbd5e1",
-    iconName: "ShieldCheck",
-    benefits: [
-      "Thưởng +5% điểm tích lũy trên mỗi hóa đơn (FR-20)",
-      "Tất cả quyền lợi hạng Khởi Sắc",
-      "Ưu tiên giữ bàn khu cửa sổ khi đặt trước 48h",
-      "Tặng trà chào mừng thượng hạng theo mùa",
-      "Nhận lời mời sự kiện tasting rượu độc quyền",
-    ],
-  },
-  GOLD: {
-    key: "GOLD",
-    name: "TRẦM Hoàng Kim",
-    tagline: "Hội viên Vàng",
-    minPoints: 25000,
-    maxPoints: 50000,
-    bonusPercent: 6.5, // FR-20: Thưởng +6.5% điểm
-    badgeBg: "bg-amber-50 dark:bg-amber-950/50",
-    badgeText: "text-amber-800 dark:text-amber-200",
-    badgeBorder: "border-amber-400 dark:border-amber-600",
-    cardGradient: "from-[#854d0e] via-[#b45309] to-[#78350f] text-amber-50",
+  TRAM: {
+    key: "TRAM",
+    name: "Hạng Trầm",
+    tagline: "Tri kỷ phong vị (3–5 lượt)",
+    minVisits: 3,
+    maxVisits: 5,
+    bonusPercent: 5, // Thưởng thêm 5% giá trị hóa đơn
+    badgeBg: "bg-amber-100 dark:bg-amber-950/70",
+    badgeText: "text-amber-900 dark:text-amber-100 font-bold",
+    badgeBorder: "border-amber-500/60 dark:border-amber-600",
+    cardGradient: "bg-gradient-to-br from-[#78350f] via-[#92400e] to-[#451a03] text-amber-50",
     accentColor: "#fcd34d",
     iconName: "Crown",
     benefits: [
-      "Thưởng +6.5% điểm tích lũy trên mỗi hóa đơn (FR-20)",
-      "Tất cả quyền lợi hạng Thanh Nhã",
-      "Miễn phí phí phục vụ mở rượu (corkage fee)",
-      "Món tráng miệng đặc biệt chế tác riêng từ Bếp trưởng",
-      "Ưu tiên xử lý danh sách chờ (Waitlist Fast-track)",
-      "Giữ bàn vào khung giờ vàng cuối tuần",
+      "Áp dụng cho khách từ 3 đến 5 lượt đến TRẦM Reserve",
+      "Thưởng thêm +5% điểm tích lũy trên mỗi hóa đơn dùng bữa",
+      "Ưu tiên chọn và giữ bàn đẹp (khu vực cửa sổ / trung tâm)",
+      "Tặng trà chào mừng thượng hạng chế tác riêng theo mùa",
+      "Miễn phí phí phục vụ mở rượu (corkage fee) cho 01 chai vang",
+      "Ưu tiên xử lý danh sách chờ (Waitlist Fast-track) khi kín chỗ",
     ],
   },
-  DIAMOND: {
-    key: "DIAMOND",
-    name: "TRẦM Tinh Hoa",
-    tagline: "Thượng khách Kim Cương",
-    minPoints: 50000,
-    maxPoints: Infinity,
-    bonusPercent: 8, // FR-20: Thưởng +8% điểm tối đa
-    badgeBg: "bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-purple-500/15",
-    badgeText: "text-amber-900 dark:text-amber-100",
-    badgeBorder: "border-amber-500/50",
-    cardGradient: "from-[#1e1b18] via-[#292524] to-[#0c0a09] border border-amber-500/40 text-amber-100 shadow-[0_0_25px_rgba(245,158,11,0.2)]",
+  NAM_TRAM: {
+    key: "NAM_TRAM",
+    name: "Hạng Nam Trầm",
+    tagline: "Thượng khách tinh hoa (6+ lượt)",
+    minVisits: 6,
+    maxVisits: Infinity,
+    bonusPercent: 8, // Thưởng tối đa 8% giá trị hóa đơn
+    badgeBg: "bg-gradient-to-r from-amber-500/25 via-rose-500/25 to-purple-500/25",
+    badgeText: "text-amber-950 dark:text-amber-100 font-extrabold",
+    badgeBorder: "border-amber-500/70",
+    cardGradient: "bg-gradient-to-br from-[#12081f] via-[#24133b] to-[#0c0514] border-b border-amber-500/50 text-amber-100 shadow-[0_0_25px_rgba(245,158,11,0.25)]",
     accentColor: "#fbbf24",
     iconName: "Gem",
     benefits: [
-      "Thưởng tối đa +8% điểm tích lũy trên mỗi hóa đơn (FR-20)",
-      "Đặc quyền tối thượng tại TRẦM",
-      "Miễn 100% tiền cọc khi đặt bàn trực tuyến",
-      "Được Bếp trưởng tư vấn thực đơn tasting cá nhân hóa",
-      "Ưu tiên sắp xếp Bàn VIP và không gian riêng tư nhất",
-      "Đường dây nóng chăm sóc thượng khách 24/7",
+      "Áp dụng cho khách từ 6 lượt đến trở lên (Hạng cao nhất)",
+      "Thưởng tối đa +8% điểm tích lũy trên mỗi hóa đơn dùng bữa",
+      "Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến",
+      "Tặng món tasting độc bản sáng tạo riêng từ Bếp trưởng",
+      "Ưu tiên sắp xếp Bàn VIP và không gian riêng tư tối đa",
+      "Đường dây nóng chăm sóc Thượng khách Nam Trầm 24/7",
+      "Thư mời tham dự Dạ tiệc Tasting Rượu & Trà độc quyền hàng quý",
     ],
   },
 };
 
+/**
+ * Đặc tả Bảng 8 nhóm 8: Bảng so sánh 3 hạng và toàn bộ quyền lợi
+ */
+export const BANG_8_TIER_COMPARISON = [
+  {
+    criterion: "Số lượt đến yêu cầu",
+    huong: "0 – 2 lượt",
+    tram: "3 – 5 lượt",
+    namTram: "Từ 6 lượt trở lên",
+    highlight: true,
+  },
+  {
+    criterion: "Tỷ lệ tích điểm cơ bản",
+    huong: "1.000 đ = 1 điểm",
+    tram: "1.000 đ = 1 điểm",
+    namTram: "1.000 đ = 1 điểm",
+    highlight: false,
+  },
+  {
+    criterion: "Thưởng điểm hóa đơn (FR-20)",
+    huong: "0% (Cơ bản)",
+    tram: "+5% điểm hóa đơn",
+    namTram: "+8% điểm hóa đơn (Tối đa)",
+    highlight: true,
+  },
+  {
+    criterion: "Chính sách đặt cọc",
+    huong: "Cọc 300.000 đ/khách",
+    tram: "Cọc 300.000 đ/khách",
+    namTram: "Miễn 100% tiền cọc",
+    highlight: true,
+  },
+  {
+    criterion: "Ưu tiên xếp bàn",
+    huong: "Sắp xếp theo thứ tự",
+    tram: "Ưu tiên khu cửa sổ / trung tâm",
+    namTram: "Bàn VIP & Không gian riêng tư nhất",
+    highlight: false,
+  },
+  {
+    criterion: "Đãi ngộ ẩm thực độc quyền",
+    huong: "Thiệp chúc mừng sinh nhật",
+    tram: "Trà chào mừng + Miễn phí khui vang",
+    namTram: "Món tasting bếp trưởng + Khui vang",
+    highlight: true,
+  },
+  {
+    criterion: "Xử lý danh sách chờ (Waitlist)",
+    huong: "Thứ tự tiêu chuẩn",
+    tram: "Ưu tiên gọi mời khi có bàn hủy",
+    namTram: "Ưu tiên cao nhất (Fast-track)",
+    highlight: false,
+  },
+  {
+    criterion: "Chăm sóc & Đặc quyền riêng",
+    huong: "Bản tin menu theo mùa",
+    tram: "Đổi ca linh hoạt trước 24h",
+    namTram: "Hotline Thượng khách 24/7 + Yến tiệc quý",
+    highlight: true,
+  },
+];
+
 export interface BillPointsReward {
   billTotal: number;
   basePoints: number; // 1.000 đ = 1 điểm
-  bonusPercent: number; // 0%, 5%, 6.5%, 8%
+  bonusPercent: number; // 0%, 5%, 8%
   bonusPoints: number; // Điểm thưởng thêm
   totalEarnedPoints: number; // basePoints + bonusPoints
 }
 
 /**
- * FR-20: Tính điểm tích lũy từ hóa đơn một bữa ăn:
+ * FR-20 & FR-21: Tính điểm tích lũy từ hóa đơn:
  * - 1.000 đ = 1 điểm
- * - Thưởng thêm 5% - 8% giá trị theo hạng thân thiết
+ * - Thưởng thêm theo 3 hạng: Hương (0%), Trầm (5%), Nam Trầm (8%)
  */
 export function calculatePointsFromBill(
   billTotal: number,
-  tier: LoyaltyTier = "MEMBER",
+  tier: LoyaltyTier = "HUONG",
 ): BillPointsReward {
   const basePoints = Math.floor(billTotal / 1000);
-  const bonusPercent = LOYALTY_TIERS[tier].bonusPercent;
+  const bonusPercent = LOYALTY_TIERS[tier]?.bonusPercent ?? 0;
   const bonusPoints = Math.round(basePoints * (bonusPercent / 100));
   const totalEarnedPoints = basePoints + bonusPoints;
 
@@ -138,62 +185,44 @@ export function calculatePointsFromBill(
 }
 
 /**
- * Tính toán điểm tích lũy tổng hợp và xác định hạng thân thiết
- * Quy ước:
- * - 1.000 VNĐ chi tiêu = 1 điểm tích lũy cơ bản
- * - Khách đến từ 8 lần trở lên tự động thăng hạng DIAMOND (>= 50.000 pts)
- * - Khách đến từ 5 lần trở lên tự động tối thiểu hạng GOLD (>= 25.000 pts)
- * - Khách đến từ 2 lần trở lên tự động tối thiểu hạng SILVER (>= 10.000 pts)
+ * FR-21: Xác định hạng thân thiết và tiến độ theo 3 hạng:
+ * - Hạng HƯƠNG: 0 – 2 lượt đến
+ * - Hạng TRẦM: 3 – 5 lượt đến
+ * - Hạng NAM TRẦM: 6+ lượt đến
  */
 export function calculateLoyalty(totalSpend: number, visits: number) {
   const points = Math.floor(totalSpend / 1000);
-  let tier: LoyaltyTier = "MEMBER";
-  let nextTierPoints = 10000;
-  let currentTierMin = 0;
-  let nextTierName = "TRẦM Thanh Nhã (Bạc)";
+  let tier: LoyaltyTier = "HUONG";
+  let nextTierVisits = 3;
+  let nextTierName = "Hạng Trầm";
+  let tierProgress = 0;
 
-  if (points >= 50000 || visits >= 8) {
-    tier = "DIAMOND";
-    currentTierMin = 50000;
-    nextTierPoints = 50000;
-    nextTierName = "Hạng cao nhất";
-  } else if (points >= 25000 || visits >= 5) {
-    tier = "GOLD";
-    currentTierMin = 25000;
-    nextTierPoints = 50000;
-    nextTierName = "TRẦM Tinh Hoa (Kim Cương)";
-  } else if (points >= 10000 || visits >= 2) {
-    tier = "SILVER";
-    currentTierMin = 10000;
-    nextTierPoints = 25000;
-    nextTierName = "TRẦM Hoàng Kim (Vàng)";
+  if (visits >= 6) {
+    tier = "NAM_TRAM";
+    nextTierVisits = 6;
+    nextTierName = "Hạng tối cao";
+    tierProgress = 100;
+  } else if (visits >= 3) {
+    tier = "TRAM";
+    nextTierVisits = 6;
+    nextTierName = "Hạng Nam Trầm";
+    // Tiến độ từ 3 lên 6 lượt: (visits - 3) / (6 - 3)
+    tierProgress = Math.min(100, Math.round(((visits - 3) / 3) * 100));
   } else {
-    tier = "MEMBER";
-    currentTierMin = 0;
-    nextTierPoints = 10000;
-    nextTierName = "TRẦM Thanh Nhã (Bạc)";
+    tier = "HUONG";
+    nextTierVisits = 3;
+    nextTierName = "Hạng Trầm";
+    // Tiến độ từ 0 lên 3 lượt: visits / 3
+    tierProgress = Math.min(100, Math.round((visits / 3) * 100));
   }
-
-  const tierProgress =
-    tier === "DIAMOND"
-      ? 100
-      : Math.min(
-          100,
-          Math.max(
-            5,
-            Math.round(
-              ((points - currentTierMin) / (nextTierPoints - currentTierMin)) *
-                100,
-            ),
-          ),
-        );
 
   return {
     tier,
     points,
-    nextTierPoints,
+    visits,
+    nextTierVisits,
     nextTierName,
-    tierProgress,
+    tierProgress: Math.max(tierProgress, 5), // tối thiểu 5% cho thanh hiển thị đẹp
   };
 }
 

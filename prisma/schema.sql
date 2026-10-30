@@ -1,11 +1,5 @@
--- =============================================================================
--- TRẦM Reserve Database Schema (SQLite)
--- Chuyển đổi từ prisma/schema.prisma
--- =============================================================================
-
 PRAGMA foreign_keys = ON;
 
--- 1. Bảng Bàn ăn (Table) — 12 bàn, 42 chỗ
 CREATE TABLE IF NOT EXISTS "Table" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "code" TEXT NOT NULL,
@@ -15,8 +9,6 @@ CREATE TABLE IF NOT EXISTS "Table" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Table_code_key" ON "Table"("code");
 
-
--- 2. Bảng Lượt đặt bàn (Reservation)
 CREATE TABLE IF NOT EXISTS "Reservation" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "code" TEXT NOT NULL,
@@ -47,7 +39,6 @@ CREATE INDEX IF NOT EXISTS "Reservation_date_slot_idx" ON "Reservation"("date", 
 CREATE INDEX IF NOT EXISTS "Reservation_tableId_date_slot_idx" ON "Reservation"("tableId", "date", "slot");
 
 
--- 3. Bảng Danh sách chờ (WaitlistEntry)
 CREATE TABLE IF NOT EXISTS "WaitlistEntry" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,

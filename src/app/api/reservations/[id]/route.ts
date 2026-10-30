@@ -5,13 +5,12 @@ import { reservationTotal, serializeReservation } from "@/lib/tram/server";
 import { LOYALTY_TIERS } from "@/lib/tram/loyalty";
 import type { LoyaltyTier } from "@/lib/tram/types";
 
-// Helper tính điểm hóa đơn an toàn (FR-20: 1.000 đ = 1 điểm, thưởng 5-8% theo hạng)
-function computeBillPoints(billTotal: number, tier: LoyaltyTier = "MEMBER") {
+// Helper tính điểm hóa đơn an toàn (FR-20 & FR-21: 1.000 đ = 1 điểm, thưởng 5% và 8%)
+function computeBillPoints(billTotal: number, tier: LoyaltyTier = "HUONG") {
   const basePoints = Math.floor(billTotal / 1000);
   let bonusPercent = 0;
-  if (tier === "SILVER") bonusPercent = 5;
-  else if (tier === "GOLD") bonusPercent = 6.5;
-  else if (tier === "DIAMOND") bonusPercent = 8;
+  if (tier === "TRAM") bonusPercent = 5;
+  else if (tier === "NAM_TRAM") bonusPercent = 8;
   const bonusPoints = Math.round(basePoints * (bonusPercent / 100));
   return {
     billTotal,
@@ -22,33 +21,38 @@ function computeBillPoints(billTotal: number, tier: LoyaltyTier = "MEMBER") {
   };
 }
 
-// Helper tính hạng thân thiết
+// Helper tính hạng thân thiết theo 3 hạng (FR-21: Hương 0-2, Trầm 3-5, Nam Trầm 6+)
 function computeLoyalty(totalSpend: number, visits: number) {
   const points = Math.floor(totalSpend / 1000);
-  let tier: LoyaltyTier = "MEMBER";
-  let nextTierPoints = 10000;
-  let nextTierName = "TRẦM Thanh Nhã (Bạc)";
+  let tier: LoyaltyTier = "HUONG";
+  let nextTierVisits = 3;
+  let nextTierName = "Hạng Trầm";
+  let tierProgress = 0;
 
-  if (points >= 50000 || visits >= 8) {
-    tier = "DIAMOND";
-    nextTierPoints = 50000;
-    nextTierName = "Hạng cao nhất";
-  } else if (points >= 25000 || visits >= 5) {
-    tier = "GOLD";
-    nextTierPoints = 50000;
-    nextTierName = "TRẦM Tinh Hoa (Kim Cương)";
-  } else if (points >= 10000 || visits >= 2) {
-    tier = "SILVER";
-    nextTierPoints = 25000;
-    nextTierName = "TRẦM Hoàng Kim (Vàng)";
+  if (visits >= 6) {
+    tier = "NAM_TRAM";
+    nextTierVisits = 6;
+    nextTierName = "Hạng tối cao";
+    tierProgress = 100;
+  } else if (visits >= 3) {
+    tier = "TRAM";
+    nextTierVisits = 6;
+    nextTierName = "Hạng Nam Trầm";
+    tierProgress = Math.min(100, Math.round(((visits - 3) / 3) * 100));
+  } else {
+    tier = "HUONG";
+    nextTierVisits = 3;
+    nextTierName = "Hạng Trầm";
+    tierProgress = Math.min(100, Math.round((visits / 3) * 100));
   }
 
   return {
     tier,
     points,
-    nextTierPoints,
+    visits,
+    nextTierVisits,
     nextTierName,
-    tierProgress: Math.min(100, Math.round((points / nextTierPoints) * 100)),
+    tierProgress: Math.max(tierProgress, 5),
   };
 }
 
@@ -57,14 +61,12 @@ function getTierName(tier: LoyaltyTier): string {
     return LOYALTY_TIERS[tier].name;
   }
   switch (tier) {
-    case "DIAMOND":
-      return "TRẦM Tinh Hoa";
-    case "GOLD":
-      return "TRẦM Hoàng Kim";
-    case "SILVER":
-      return "TRẦM Thanh Nhã";
+    case "NAM_TRAM":
+      return "Hạng Nam Trầm";
+    case "TRAM":
+      return "Hạng Trầm";
     default:
-      return "Hạng Khởi Sắc";
+      return "Hạng Hương";
   }
 }
 
@@ -122,7 +124,7 @@ export async function PATCH(
       );
     }
 
-    let loyaltyInfo = null;
+    let loyaltyInfo: Record<string, unknown> | null = null;
 
     // FR-20: Tích điểm theo hóa đơn khi đánh dấu "Đã đến" (checkin -> SEATED)
     if (action === "checkin") {

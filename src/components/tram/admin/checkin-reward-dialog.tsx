@@ -57,11 +57,11 @@ export function CheckinRewardDialog({
 }: CheckinRewardDialogProps) {
   if (!reward) return null;
 
-  const tierConfig = LOYALTY_TIERS[reward.newTier];
+  const tierConfig = LOYALTY_TIERS[reward.newTier] ?? LOYALTY_TIERS.HUONG;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md border-amber-900/20 bg-[#faf8f3] p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-md border-amber-900/20 bg-[#faf8f3] p-0 overflow-hidden shadow-2xl [&_[data-slot=dialog-close]]:text-stone-200 [&_[data-slot=dialog-close]]:hover:text-white [&_[data-slot=dialog-close]]:bg-black/30 [&_[data-slot=dialog-close]]:hover:bg-black/55 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:transition-all [&_[data-slot=dialog-close]]:border [&_[data-slot=dialog-close]]:border-white/15">
         <DialogHeader className="sr-only">
           <DialogTitle>Tích điểm thành công cho {reward.customerName}</DialogTitle>
           <DialogDescription>

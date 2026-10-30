@@ -70,7 +70,11 @@ export interface AvailabilityResponse {
   tables: TableAvailability[] | null; // chỉ trả về khi có tham số slot
 }
 
-export type LoyaltyTier = "MEMBER" | "SILVER" | "GOLD" | "DIAMOND";
+// FR-21: Chương trình ba hạng thân thiết (Bảng 8 nhóm 8):
+// - Hạng HƯƠNG (0–2 lượt đến)
+// - Hạng TRẦM (3–5 lượt đến)
+// - Hạng NAM TRẦM (6+ lượt đến)
+export type LoyaltyTier = "HUONG" | "TRAM" | "NAM_TRAM";
 
 export interface CustomerProfileDTO {
   name: string;
@@ -80,9 +84,10 @@ export interface CustomerProfileDTO {
   lastVisit: string;
   notes: string[]; // ghi chú / dị ứng gộp
   reservations: ReservationDTO[];
-  tier: LoyaltyTier; // FR-19: Hạng thân thiết
-  points: number; // FR-19: Điểm tích lũy hiện tại
-  nextTierPoints: number; // Điểm cần để lên hạng tiếp theo
+  tier: LoyaltyTier; // FR-21: Hạng thân thiết (HUONG, TRAM, NAM_TRAM)
+  points: number; // FR-20: Điểm tích lũy hiện tại (1.000 đ = 1 pt)
+  nextTierVisits?: number; // FR-21: Lượt cần để lên hạng (0-2 -> 3-5 -> 6+)
+  nextTierPoints?: number; // Điểm cần để lên hạng tiếp theo
   nextTierName: string; // Tên hạng tiếp theo
   tierProgress: number; // 0..100 (%) tiến độ lên hạng
 }
