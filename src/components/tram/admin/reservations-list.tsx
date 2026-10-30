@@ -2,7 +2,7 @@
 
 // 3.3 Danh sách đặt bàn theo ngày — filter khung giờ + trạng thái, dialog chi tiết
 import { useMemo, useState } from "react";
-import { Eye, LogIn } from "lucide-react";
+import { Eye, LogIn, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +49,7 @@ import {
   CheckinRewardDialog,
   type CheckinLoyaltyReward,
 } from "./checkin-reward-dialog";
+import { SurveyDialog } from "../survey/survey-dialog";
 
 interface ListResponse {
   date: string;
@@ -73,6 +74,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
   const [slotFilter, setSlotFilter] = useState<"ALL" | "SLOT_1730" | "SLOT_1945">("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [detail, setDetail] = useState<ReservationDTO | null>(null);
+  const [surveyTarget, setSurveyTarget] = useState<ReservationDTO | null>(null);
   const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
   const [acting, setActing] = useState(false);
 
@@ -261,7 +263,15 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={r.status} />
+                    <div className="flex flex-col gap-1 items-start">
+                      <StatusBadge status={r.status} />
+                      {r.survey && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
+                          <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
+                          {r.survey.rating}/5 ⭐
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="pr-4">
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -400,6 +410,20 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                     Check-in & Tích Điểm Thưởng (FR-20)
                   </Button>
                 )}
+
+                {detail.status === "SEATED" && (
+                  <Button
+                    onClick={() => {
+                      const res = detail;
+                      setDetail(null);
+                      setSurveyTarget(res);
+                    }}
+                    className="w-full mt-3 h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
+                  >
+                    <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
+                    {detail.survey ? `Xem đánh giá 5 sao (${detail.survey.rating}/5 ⭐)` : "Khảo sát sau bữa ăn"}
+                  </Button>
+                )}
               </div>
             </>
           )}
@@ -411,6 +435,17 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
         reward={rewardData}
         open={rewardData !== null}
         onClose={() => setRewardData(null)}
+      />
+
+      {/* FR-23: Pop-up Khảo sát sau bữa ăn */}
+      <SurveyDialog
+        reservation={surveyTarget}
+        open={surveyTarget !== null}
+        onClose={() => setSurveyTarget(null)}
+        onSubmitted={() => {
+          setSurveyTarget(null);
+          refresh();
+        }}
       />
     </div>
   );

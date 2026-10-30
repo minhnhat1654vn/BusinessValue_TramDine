@@ -52,3 +52,24 @@ CREATE TABLE IF NOT EXISTS "WaitlistEntry" (
 );
 
 CREATE INDEX IF NOT EXISTS "WaitlistEntry_date_slot_idx" ON "WaitlistEntry"("date", "slot");
+ 
+CREATE TABLE IF NOT EXISTS "Survey" (
+     "id" TEXT NOT NULL PRIMARY KEY,
+     "reservationId" TEXT NOT NULL UNIQUE,
+     "rating" INTEGER NOT NULL,
+     "foodRating" INTEGER NOT NULL DEFAULT 5,
+     "serviceRating" INTEGER NOT NULL DEFAULT 5,
+     "ambianceRating" INTEGER NOT NULL DEFAULT 5,
+     "pairingRating" INTEGER NOT NULL DEFAULT 5,
+     "comment" TEXT,
+     "recommend" BOOLEAN NOT NULL DEFAULT 1,
+     "bonusPointsGiven" INTEGER NOT NULL DEFAULT 200,
+     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT "Survey_reservationId_fkey" 
+         FOREIGN KEY ("reservationId") 
+         REFERENCES "Reservation" ("id") 
+         ON DELETE CASCADE 
+         ON UPDATE CASCADE
+ );
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Survey_reservationId_key" ON "Survey"("reservationId");

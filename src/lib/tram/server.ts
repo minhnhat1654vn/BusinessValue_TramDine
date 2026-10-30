@@ -28,6 +28,19 @@ type ReservationWithTable = {
   source: string;
   createdAt: Date;
   table: { id: string; code: string; seats: number; zone: string };
+  survey?: {
+    id: string;
+    reservationId: string;
+    rating: number;
+    foodRating: number;
+    serviceRating: number;
+    ambianceRating: number;
+    pairingRating: number;
+    comment: string | null;
+    recommend: boolean;
+    bonusPointsGiven: number;
+    createdAt: Date;
+  } | null;
 };
 
 export function serializeReservation(r: ReservationWithTable): ReservationDTO {
@@ -48,6 +61,21 @@ export function serializeReservation(r: ReservationWithTable): ReservationDTO {
     source: r.source as ReservationSource,
     createdAt: r.createdAt.toISOString(),
     table: r.table,
+    survey: r.survey
+      ? {
+          id: r.survey.id,
+          reservationId: r.survey.reservationId,
+          rating: r.survey.rating,
+          foodRating: r.survey.foodRating,
+          serviceRating: r.survey.serviceRating,
+          ambianceRating: r.survey.ambianceRating,
+          pairingRating: r.survey.pairingRating,
+          comment: r.survey.comment,
+          recommend: r.survey.recommend,
+          bonusPointsGiven: r.survey.bonusPointsGiven,
+          createdAt: r.survey.createdAt.toISOString(),
+        }
+      : null,
   };
 }
 

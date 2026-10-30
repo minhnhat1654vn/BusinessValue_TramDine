@@ -36,6 +36,7 @@ export interface ReservationDTO {
   source: ReservationSource;
   createdAt: string;
   table: TableDTO;
+  survey?: SurveyDTO | null;
 }
 
 export interface WaitlistEntryDTO {
@@ -119,3 +120,35 @@ export interface AdminStats {
   waitlistWeekend: WaitlistEntryDTO[];
   windowLabel: string; // mô tả khoảng thời gian thống kê
 }
+
+// FR-23: Khảo sát sau bữa ăn — Thăm dò 5 sao gắn với lượt đã phục vụ
+export interface SurveyDTO {
+  id: string;
+  reservationId: string;
+  rating: number; // 1..5 sao tổng quan
+  foodRating: number; // 1..5 sao món ăn
+  serviceRating: number; // 1..5 sao phục vụ
+  ambianceRating: number; // 1..5 sao không gian
+  pairingRating: number; // 1..5 sao đồ uống
+  comment: string | null;
+  recommend: boolean;
+  bonusPointsGiven: number;
+  createdAt: string;
+}
+
+export interface SurveyStatsDTO {
+  totalSurveys: number;
+  averageRating: number;
+  avgFood: number;
+  avgService: number;
+  avgAmbiance: number;
+  avgPairing: number;
+  recommendPercent: number;
+  recentSurveys: (SurveyDTO & {
+    reservationCode: string;
+    customerName: string;
+    phone: string;
+    date: string;
+  })[];
+}
+

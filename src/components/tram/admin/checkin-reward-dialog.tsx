@@ -3,7 +3,9 @@
 // FR-20: Hộp thoại chúc mừng tích điểm theo hóa đơn khi Check-in — TRẦM Reserve
 // 1.000 đ = 1 điểm; thưởng 5–8% giá trị hóa đơn theo hạng thành viên
 
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   Sparkles,
   Crown,
@@ -15,6 +17,11 @@ import {
   TrendingUp,
   Receipt,
   ArrowRight,
+  Send,
+  ExternalLink,
+  Copy,
+  Check,
+  MessageSquareHeart,
 } from "lucide-react";
 import {
   Dialog,
@@ -29,6 +36,7 @@ import { formatPoints, LOYALTY_TIERS } from "@/lib/tram/loyalty";
 import type { LoyaltyTier } from "@/lib/tram/types";
 
 export interface CheckinLoyaltyReward {
+  reservationCode?: string;
   customerName: string;
   phone: string;
   billTotal: number;
@@ -55,6 +63,9 @@ export function CheckinRewardDialog({
   open,
   onClose,
 }: CheckinRewardDialogProps) {
+  const [surveySent, setSurveySent] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   if (!reward) return null;
 
   const tierConfig = LOYALTY_TIERS[reward.newTier] ?? LOYALTY_TIERS.HUONG;
@@ -187,12 +198,103 @@ export function CheckinRewardDialog({
             </div>
           </div>
 
+          {/* FR-23: Khảo sát sau bữa ăn — Gửi link thăm dò 5 sao */}
+          <div className="rounded-xl border border-amber-300/80 bg-gradient-to-b from-amber-50/70 to-[#fffdf9] p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-xs font-bold text-amber-950 uppercase tracking-wider">
+                <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                Khảo sát sau bữa ăn
+              </span>
+              <span className="text-[10px] rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 font-bold text-amber-900">
+                Tặng +200 pts
+              </span>
+            </div>
+
+            <p className="text-xs text-stone-600 leading-relaxed">
+              Gửi lời mời thăm dò 5 sao đến thực khách <strong>{reward.customerName}</strong> để lắng nghe cảm nhận và tặng thêm +200 điểm thưởng.
+            </p>
+
+            {reward.reservationCode && (
+              <div className="space-y-2 pt-1">
+                {surveySent ? (
+                  <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-2.5 text-xs text-emerald-800 space-y-1.5">
+                    <p className="flex items-center gap-1.5 font-bold">
+                      <Check className="h-3.5 w-3.5 text-emerald-600" />
+                      Đã gửi lời mời Zalo/SMS tới {reward.phone}!
+                    </p>
+                    <p className="text-[11px] text-emerald-700 font-mono break-all">
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/survey/${reward.reservationCode}`
+                        : `/survey/${reward.reservationCode}`}
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={surveySent ? "outline" : "default"}
+                    onClick={() => {
+                      setSurveySent(true);
+                      toast.success(`Đã gửi link khảo sát 5 sao đến SĐT ${reward.phone}!`);
+                    }}
+                    className={
+                      surveySent
+                        ? "h-9 rounded-full text-xs"
+                        : "h-9 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs"
+                    }
+                  >
+                    <Send className="mr-1.5 h-3.5 w-3.5" />
+                    {surveySent ? "Gửi lại lời mời Zalo" : "Gửi link khảo sát 5 sao"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const url = `${window.location.origin}/survey/${reward.reservationCode}`;
+                      navigator.clipboard.writeText(url);
+                      setCopied(true);
+                      toast.success("Đã sao chép link khảo sát!");
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="h-9 rounded-full text-xs border-stone-300"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
+                        Đã chép
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="mr-1.5 h-3.5 w-3.5" />
+                        Sao chép link
+                      </>
+                    )}
+                  </Button>
+
+                  <a
+                    href={`/survey/${reward.reservationCode}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 hover:text-amber-800 transition-colors"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                    Mở khảo sát
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+
           <Button
             onClick={onClose}
             className="w-full h-11 rounded-full bg-[#b45309] font-semibold text-white shadow-md hover:bg-[#92400e]"
           >
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
-            Đã ghi nhận tích điểm
+            Đã hoàn tất
           </Button>
         </div>
       </DialogContent>

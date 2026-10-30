@@ -23,7 +23,9 @@ import { AdminTableMap } from "./table-map";
 import { AdminReservationsList } from "./reservations-list";
 import { AdminCustomers } from "./customers";
 import { AdminWaitlist } from "./waitlist-manager";
+import { AdminSurveys } from "./surveys-view";
 import { LoadingBlock, useToday } from "./admin-shared";
+import { Star } from "lucide-react";
 
 const SESSION_KEY = "tram_admin_ok";
 
@@ -172,6 +174,13 @@ export function AdminView() {
             <CalendarRange className="mr-1.5 h-4 w-4" aria-hidden />
             Waitlist
           </TabsTrigger>
+          <TabsTrigger
+            value="surveys"
+            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
+          >
+            <Star className="mr-1.5 h-4 w-4 fill-current" aria-hidden />
+            Khảo sát 5★
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
@@ -188,6 +197,9 @@ export function AdminView() {
         </TabsContent>
         <TabsContent value="waitlist">
           <AdminWaitlist />
+        </TabsContent>
+        <TabsContent value="surveys">
+          <AdminSurveys />
         </TabsContent>
       </Tabs>
     </main>

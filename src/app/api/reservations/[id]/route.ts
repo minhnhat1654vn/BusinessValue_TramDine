@@ -160,6 +160,7 @@ export async function PATCH(
       const isUpgraded = newLoyalty.tier !== prevLoyalty.tier;
 
       loyaltyInfo = {
+        reservationCode: reservation.code,
         customerName: reservation.customerName,
         phone: reservation.phone,
         billTotal,

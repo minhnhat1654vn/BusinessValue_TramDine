@@ -41,8 +41,26 @@ model Reservation {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  survey        Survey?
+
   @@index([date, slot])
   @@index([tableId, date, slot])
+}
+
+// Khảo sát sau bữa ăn (FR-23)
+model Survey {
+  id               String      @id @default(cuid())
+  reservationId    String      @unique
+  reservation      Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  rating           Int         // Điểm tổng quan 1..5 sao
+  foodRating       Int         @default(5) // Món ăn & hương vị 1..5
+  serviceRating    Int         @default(5) // Phục vụ & chu đáo 1..5
+  ambianceRating   Int         @default(5) // Không gian & âm nhạc 1..5
+  pairingRating    Int         @default(5) // Pairing đồ uống 1..5
+  comment          String?     // Nhận xét chi tiết của khách
+  recommend        Boolean     @default(true) // Sẵn sàng giới thiệu TRẦM
+  bonusPointsGiven Int         @default(200) // Tặng điểm thưởng tri ân
+  createdAt        DateTime    @default(now())
 }
 
 // Danh sách chờ (waitlist)
@@ -59,3 +77,4 @@ model WaitlistEntry {
 
   @@index([date, slot])
 }
+

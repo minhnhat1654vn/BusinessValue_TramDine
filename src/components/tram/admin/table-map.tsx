@@ -10,6 +10,7 @@ import {
   LogIn,
   UserX,
   UtensilsCrossed,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +40,7 @@ import {
   CheckinRewardDialog,
   type CheckinLoyaltyReward,
 } from "./checkin-reward-dialog";
+import { SurveyDialog } from "../survey/survey-dialog";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -86,6 +88,7 @@ export function AdminTableMap({ today }: TableMapProps) {
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [acting, setActing] = useState(false);
   const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
+  const [surveyTarget, setSurveyTarget] = useState<ReservationDTO | null>(null);
 
   const { data, loading, refresh } = useJson<AvailResp>(
     `/api/availability?date=${date}&slot=${slot}&partySize=2`,
@@ -315,6 +318,24 @@ export function AdminTableMap({ today }: TableMapProps) {
                       </Button>
                     </div>
                   )}
+
+                  {selectedReservation.status === "SEATED" && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => {
+                          const res = selectedReservation;
+                          setSelected(null);
+                          setSurveyTarget(res);
+                        }}
+                        className="w-full h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
+                      >
+                        <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
+                        {selectedReservation.survey
+                          ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 ⭐`
+                          : "Khảo sát sau bữa ăn"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3 py-2 text-center">
@@ -368,6 +389,17 @@ export function AdminTableMap({ today }: TableMapProps) {
         reward={rewardData}
         open={rewardData !== null}
         onClose={() => setRewardData(null)}
+      />
+
+      {/* FR-23: Pop-up Khảo sát sau bữa ăn */}
+      <SurveyDialog
+        reservation={surveyTarget}
+        open={surveyTarget !== null}
+        onClose={() => setSurveyTarget(null)}
+        onSubmitted={() => {
+          setSurveyTarget(null);
+          void refresh();
+        }}
       />
     </div>
   );

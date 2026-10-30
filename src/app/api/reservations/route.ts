@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
     const reservations = await db.reservation.findMany({
       where: { date: { gte: dayStart, lte: dayEnd } },
-      include: { table: true },
+      include: { table: true, survey: true },
       orderBy: [{ slot: "asc" }, { createdAt: "asc" }],
     });
     return NextResponse.json({
