@@ -1,0 +1,205 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-heading);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Bảng màu TRẦM — "trầm hương": nền kem, nâu đồng/hổ phách, đỏ gạch cho cảnh báo.
+ * Không dùng indigo/blue. Chỉ chủ đề sáng (brand cố định cho fine dining).
+ */
+:root {
+  --radius: 0.5rem;
+
+  /* Nền & chữ */
+  --background: #faf8f3; /* kem ấm */
+  --foreground: #292524; /* stone-800 */
+  --card: #fffdf9;
+  --card-foreground: #292524;
+  --popover: #fffdf9;
+  --popover-foreground: #292524;
+
+  /* Nâu đồng / hổ phách — màu chính */
+  --primary: #b45309; /* amber-700 */
+  --primary-foreground: #fffbf2;
+  --secondary: #f5efe4; /* rơm nhạt */
+  --secondary-foreground: #57534e;
+  --muted: #f0ebe0;
+  --muted-foreground: #78716c; /* stone-500 */
+  --accent: #fdf0d5; /* hổ phách rất nhạt */
+  --accent-foreground: #92400e; /* amber-800 */
+
+  /* Đỏ gạch — chỉ cho cảnh báo / dị ứng */
+  --destructive: #b3261e;
+  --destructive-foreground: #fef2f2;
+
+  --border: #e7e1d3;
+  --input: #ddd5c4;
+  --ring: #d97706; /* amber-600 */
+
+  /* Biểu đồ — ấm, không xanh dương */
+  --chart-1: #b45309; /* đồng */
+  --chart-2: #d97706; /* hổ phách */
+  --chart-3: #a8a29e; /* stone */
+  --chart-4: #854d0e; /* nâu đậm */
+  --chart-5: #c2a37a; /* be */
+
+  --sidebar: #faf8f3;
+  --sidebar-foreground: #292524;
+  --sidebar-primary: #b45309;
+  --sidebar-primary-foreground: #fffbf2;
+  --sidebar-accent: #f5efe4;
+  --sidebar-accent-foreground: #57534e;
+  --sidebar-border: #e7e1d3;
+  --sidebar-ring: #d97706;
+}
+
+.dark {
+  /* Dự phòng nếu bật dark — vẫn giữ tông trầm */
+  --background: #1c1917;
+  --foreground: #f5f0e6;
+  --card: #292524;
+  --card-foreground: #f5f0e6;
+  --popover: #292524;
+  --popover-foreground: #f5f0e6;
+  --primary: #d97706;
+  --primary-foreground: #fffbf2;
+  --secondary: #33302b;
+  --secondary-foreground: #e7e1d3;
+  --muted: #33302b;
+  --muted-foreground: #a8a29e;
+  --accent: #3b2f1c;
+  --accent-foreground: #fbbf24;
+  --destructive: #dc8a7a;
+  --destructive-foreground: #2a0d08;
+  --border: rgba(231, 225, 211, 0.15);
+  --input: rgba(231, 225, 211, 0.25);
+  --ring: #d97706;
+}
+
+/* Font hệ thống — không tải font ngoài */
+@theme {
+  --font-heading: Georgia, "Times New Roman", "Noto Serif", "Liberation Serif",
+    serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+  h1,
+  h2,
+  h3,
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+}
+
+/* Thanh cuộn mảnh, ấm màu theo brand */
+.tram-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.tram-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tram-scroll::-webkit-scrollbar-thumb {
+  background: #d6cdb8;
+  border-radius: 999px;
+}
+.tram-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b45309;
+}
+
+/* Vân giấy nhẹ cho hero */
+.tram-texture {
+  background-image:
+    radial-gradient(
+      ellipse 80% 60% at 70% 10%,
+      rgba(180, 83, 9, 0.16),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 20% 80%,
+      rgba(120, 72, 20, 0.12),
+      transparent
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 90% 70%,
+      rgba(179, 38, 30, 0.06),
+      transparent
+    ),
+    repeating-linear-gradient(
+      45deg,
+      rgba(180, 83, 9, 0.025) 0 2px,
+      transparent 2px 12px
+    );
+}
+
+/* Gạch trang trí dưới tiêu đề */
+.tram-underline {
+  position: relative;
+}
+.tram-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.6rem;
+  width: 3.5rem;
+  height: 2px;
+  background: linear-gradient(to right, #b45309, rgba(180, 83, 9, 0.15));
+}
+.tram-underline-center::after {
+  left: 50%;
+  transform: translateX(-50%);
+}

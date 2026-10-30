@@ -1,0 +1,61 @@
+// Prisma schema — TRẦM Reserve (demo đồ án Business Value)
+// Lưu ý: SQLite không hỗ trợ enum của Prisma nên các trường "enum" dùng String
+// với tập giá trị cố định, được kiểm soát ở tầng ứng dụng (xem src/lib/tram/types.ts)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Bàn ăn — 12 bàn, 42 chỗ
+model Table {
+  id           String        @id @default(cuid())
+  code         String        @unique // B01..B12
+  seats        Int // 2 | 4 | 6
+  zone         String        @default("Phòng chính")
+  reservations Reservation[]
+}
+
+// Lượt đặt bàn
+model Reservation {
+  id            String   @id @default(cuid())
+  code          String   @unique // TRM-XXXX
+  customerName  String
+  phone         String
+  email         String?
+  partySize     Int
+  tableId       String
+  table         Table    @relation(fields: [tableId], references: [id])
+  date          DateTime // chỉ phần ngày (00:00 UTC), không mang giờ
+  slot          String // SLOT_1730 | SLOT_1945
+  pairing       String   @default("NONE") // NONE | WINE | TEA
+  notes         String?
+  allergy       String? // vd: "Hải sản"
+  status        String   @default("CONFIRMED") // PENDING | CONFIRMED | SEATED | NO_SHOW | CANCELLED
+  depositAmount Int // tiền cọc đã nhận (VND)
+  source        String   @default("WEB") // WEB | PHONE | ZALO
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([date, slot])
+  @@index([tableId, date, slot])
+}
+
+// Danh sách chờ (waitlist)
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  partySize Int
+  date      DateTime // chỉ phần ngày
+  slot      String // SLOT_1730 | SLOT_1945
+  position  Int // vị trí trong danh sách chờ của (date, slot)
+  status    String   @default("WAITING") // WAITING | INVITED
+  createdAt DateTime @default(now())
+
+  @@index([date, slot])
+}
