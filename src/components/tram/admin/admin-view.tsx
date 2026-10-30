@@ -168,18 +168,18 @@ export function AdminView() {
             Khách hàng
           </TabsTrigger>
           <TabsTrigger
+            value="surveys"
+            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
+          >
+            <Star className="mr-1.5 h-4 w-4 fill-current" aria-hidden />
+            Thống kê khảo sát
+          </TabsTrigger>
+          <TabsTrigger
             value="waitlist"
             className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
           >
             <CalendarRange className="mr-1.5 h-4 w-4" aria-hidden />
             Waitlist
-          </TabsTrigger>
-          <TabsTrigger
-            value="surveys"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <Star className="mr-1.5 h-4 w-4 fill-current" aria-hidden />
-            Khảo sát 5★
           </TabsTrigger>
         </TabsList>
 
@@ -195,11 +195,11 @@ export function AdminView() {
         <TabsContent value="customers">
           <AdminCustomers />
         </TabsContent>
-        <TabsContent value="waitlist">
-          <AdminWaitlist />
-        </TabsContent>
         <TabsContent value="surveys">
           <AdminSurveys />
+        </TabsContent>
+        <TabsContent value="waitlist">
+          <AdminWaitlist />
         </TabsContent>
       </Tabs>
     </main>

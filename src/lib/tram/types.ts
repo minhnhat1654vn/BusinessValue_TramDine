@@ -136,6 +136,13 @@ export interface SurveyDTO {
   createdAt: string;
 }
 
+// FR-24: Phân bố sao đánh giá (5★ -> 1★)
+export interface StarDistributionItem {
+  star: number; // 5, 4, 3, 2, 1
+  count: number;
+  percent: number; // 0..100 (%)
+}
+
 export interface SurveyStatsDTO {
   totalSurveys: number;
   averageRating: number;
@@ -144,6 +151,7 @@ export interface SurveyStatsDTO {
   avgAmbiance: number;
   avgPairing: number;
   recommendPercent: number;
+  starDistribution: StarDistributionItem[];
   recentSurveys: (SurveyDTO & {
     reservationCode: string;
     customerName: string;

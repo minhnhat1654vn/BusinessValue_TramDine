@@ -167,6 +167,13 @@ export async function GET(req: Request) {
         avgAmbiance: 5.0,
         avgPairing: 5.0,
         recommendPercent: 100,
+        starDistribution: [
+          { star: 5, count: 0, percent: 0 },
+          { star: 4, count: 0, percent: 0 },
+          { star: 3, count: 0, percent: 0 },
+          { star: 2, count: 0, percent: 0 },
+          { star: 1, count: 0, percent: 0 },
+        ],
         recentSurveys: [],
       };
       return NextResponse.json(emptyStats);
@@ -179,6 +186,13 @@ export async function GET(req: Request) {
     const sumPairing = surveys.reduce((s: number, r: any) => s + r.pairingRating, 0);
     const recommendCount = surveys.filter((s: any) => s.recommend).length;
 
+    // FR-24: Tính phân bố sao 5★ -> 1★
+    const starDistribution = [5, 4, 3, 2, 1].map((star) => {
+      const count = surveys.filter((s: any) => Math.round(s.rating) === star).length;
+      const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+      return { star, count, percent };
+    });
+
     const stats: SurveyStatsDTO = {
       totalSurveys: total,
       averageRating: Number((sumRating / total).toFixed(1)),
@@ -187,7 +201,8 @@ export async function GET(req: Request) {
       avgAmbiance: Number((sumAmbiance / total).toFixed(1)),
       avgPairing: Number((sumPairing / total).toFixed(1)),
       recommendPercent: Math.round((recommendCount / total) * 100),
-      recentSurveys: surveys.slice(0, 15).map((s: any) => ({
+      starDistribution,
+      recentSurveys: surveys.slice(0, 50).map((s: any) => ({
         id: s.id,
         reservationId: s.reservationId,
         rating: s.rating,
