@@ -13,6 +13,8 @@ import {
   ReceiptText,
   Table2,
   Users,
+  Gem,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +40,7 @@ export function CompletionView({ reservation, onGoHome }: CompletionViewProps) {
   const [preview, setPreview] = useState<"email" | "zalo">("email");
 
   const r = reservation;
+  const isDepositExempt = r.depositAmount === 0;
   const slotTime = SLOT_LABELS[r.slot] ?? r.slot;
   const weekday = WEEKDAY_FULL_LABELS[weekdayOf(r.date)];
   const dateLabel = formatLongDate(r.date);
@@ -56,10 +59,10 @@ TRẦM Reserve xin xác nhận lượt đặt bàn của Quý khách:
 • Bàn: ${r.table.code} (${r.table.seats} chỗ) · ${r.table.zone}
 • Số khách: ${r.partySize} khách
 • Pairing: ${r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine pairing" : "Tea pairing"}
-• Đặt cọc đã nhận: ${formatVND(r.depositAmount)}
+• Đặt cọc đã nhận: ${isDepositExempt ? "0 đ (Đặc quyền Miễn cọc Thượng khách Nam Trầm — FR-22)" : formatVND(r.depositAmount)}
 • Tổng dự kiến: ${formatVND(total)}${r.allergy ? `\n• Lưu ý dị ứng: ${r.allergy} — bếp đã ghi nhận và sẽ điều chỉnh món` : ""}
 
-Chính sách: hoàn cọc nếu Quý khách hủy trước 48 giờ so với giờ đến.
+${isDepositExempt ? "Đặc quyền VIP: Quý khách được miễn 100% tiền cọc khi đặt bàn trực tuyến." : "Chính sách: hoàn cọc nếu Quý khách hủy trước 48 giờ so với giờ đến."}
 Quý khách vui lòng đến trước khung giờ 10 phút để được hướng dẫn chỗ ngồi.
 
 Trân trọng,
@@ -74,9 +77,9 @@ Chào ${r.customerName}, TRẦM hẹn gặp Quý khách:
 ▪ ${weekday} · ${dateLabel.split(", ")[1]}
 ▪ Khung ${slotTime} · Bàn ${r.table.code}
 ▪ ${r.partySize} khách · Mã ${r.code}
-▪ Cọc đã nhận: ${formatVND(r.depositAmount)}
+▪ Cọc: ${isDepositExempt ? "0 đ (Miễn cọc VIP Nam Trầm)" : formatVND(r.depositAmount)}
 
-Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 giờ để được hoàn cọc. Hotline ${RESTAURANT.hotline}.`;
+${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc VIP Nam Trầm." : "Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 giờ để được hoàn cọc."} Hotline ${RESTAURANT.hotline}.`;
 
   return (
     <div className="space-y-6">
@@ -84,14 +87,26 @@ Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 
       <Card className="border-[#b45309]/30 bg-card shadow-md">
         <CardHeader className="items-center text-center">
           <div className="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
-            <CheckCircle2 className="h-9 w-9" aria-hidden />
+            {isDepositExempt ? (
+              <Gem className="h-9 w-9 text-[#b45309]" aria-hidden />
+            ) : (
+              <CheckCircle2 className="h-9 w-9" aria-hidden />
+            )}
           </div>
           <CardTitle className="font-heading text-2xl text-[#292524] sm:text-3xl">
             Đặt bàn thành công!
           </CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            Nhà hàng TRẦM đã ghi nhận lượt đặt và nhận cọc của Quý khách.
+            {isDepositExempt
+              ? "Nhà hàng TRẦM đã ghi nhận lượt đặt. Quý khách được áp dụng đặc quyền Miễn cọc Hạng Nam Trầm (FR-22)."
+              : "Nhà hàng TRẦM đã ghi nhận lượt đặt và nhận cọc của Quý khách."}
           </p>
+          {isDepositExempt && (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-purple-500/15 px-3.5 py-1 text-xs font-extrabold text-amber-950">
+              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+              Đặc quyền Thượng khách Nam Trầm: Miễn 100% Cọc (FR-22)
+            </div>
+          )}
           <div className="mt-3 inline-flex items-center gap-3 rounded-full border border-[#b45309]/35 bg-[#fdf0d5] px-6 py-2.5">
             <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#92400e]">
               Mã đặt bàn
@@ -188,12 +203,19 @@ Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 
               <p className="flex justify-between gap-2">
                 <span className="text-muted-foreground">Đặt cọc đã nhận</span>
                 <span className="font-medium text-[#b45309]">
-                  {formatVND(r.depositAmount)}
+                  {isDepositExempt ? (
+                    <span className="rounded-full border border-emerald-300 bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
+                      0 đ (Miễn cọc VIP Nam Trầm)
+                    </span>
+                  ) : (
+                    formatVND(r.depositAmount)
+                  )}
                 </span>
               </p>
               <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
-                Cổng thanh toán mô phỏng — không có giao dịch thật. Phần còn lại
-                thanh toán tại nhà hàng.
+                {isDepositExempt
+                  ? "Áp dụng đặc quyền Hạng Nam Trầm (FR-22): Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc."
+                  : "Cổng thanh toán mô phỏng — không có giao dịch thật. Phần còn lại thanh toán tại nhà hàng."}
               </p>
             </div>
           </div>

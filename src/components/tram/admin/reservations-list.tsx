@@ -360,8 +360,14 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                 </p>
                 <p className="flex justify-between gap-2">
                   <span className="text-muted-foreground">Đặt cọc</span>
-                  <span className="text-[#292524]">
-                    {formatVND(detail.depositAmount)}
+                  <span className="text-[#292524] font-medium">
+                    {detail.depositAmount === 0 ? (
+                      <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-800">
+                        0 đ (Miễn cọc Nam Trầm)
+                      </span>
+                    ) : (
+                      formatVND(detail.depositAmount)
+                    )}
                   </span>
                 </p>
                 <p className="flex justify-between gap-2">

@@ -268,8 +268,14 @@ export function AdminTableMap({ today }: TableMapProps) {
                     </p>
                     <p className="flex justify-between gap-2">
                       <span className="text-muted-foreground">Đặt cọc</span>
-                      <span className="text-[#292524]">
-                        {formatVND(selectedReservation.depositAmount)}
+                      <span className="text-[#292524] font-medium">
+                        {selectedReservation.depositAmount === 0 ? (
+                          <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-800">
+                            0 đ (Miễn cọc Nam Trầm)
+                          </span>
+                        ) : (
+                          formatVND(selectedReservation.depositAmount)
+                        )}
                       </span>
                     </p>
                     {selectedReservation.notes && (
