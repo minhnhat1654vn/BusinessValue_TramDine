@@ -44,3 +44,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# agent workflow & local docs
+.agents/
+AGENTS.md
+TramDine_structure.md
