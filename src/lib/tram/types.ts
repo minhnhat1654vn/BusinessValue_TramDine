@@ -70,6 +70,8 @@ export interface AvailabilityResponse {
   tables: TableAvailability[] | null; // chỉ trả về khi có tham số slot
 }
 
+export type LoyaltyTier = "MEMBER" | "SILVER" | "GOLD" | "DIAMOND";
+
 export interface CustomerProfileDTO {
   name: string;
   phone: string;
@@ -78,6 +80,11 @@ export interface CustomerProfileDTO {
   lastVisit: string;
   notes: string[]; // ghi chú / dị ứng gộp
   reservations: ReservationDTO[];
+  tier: LoyaltyTier; // FR-19: Hạng thân thiết
+  points: number; // FR-19: Điểm tích lũy hiện tại
+  nextTierPoints: number; // Điểm cần để lên hạng tiếp theo
+  nextTierName: string; // Tên hạng tiếp theo
+  tierProgress: number; // 0..100 (%) tiến độ lên hạng
 }
 
 export interface OccupancyPoint {

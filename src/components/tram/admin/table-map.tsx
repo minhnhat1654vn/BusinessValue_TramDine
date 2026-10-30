@@ -35,6 +35,10 @@ import { DayStrip, LoadingBlock, SlotToggle, StatusBadge, useJson } from "./admi
 import { formatLongDate, formatVND } from "@/lib/tram/format";
 import { PAIRING_LABELS } from "@/lib/tram/constants";
 import type { AvailabilityResponse, ReservationDTO, Slot, TableAvailability } from "@/lib/tram/types";
+import {
+  CheckinRewardDialog,
+  type CheckinLoyaltyReward,
+} from "./checkin-reward-dialog";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -81,6 +85,7 @@ export function AdminTableMap({ today }: TableMapProps) {
   const [selected, setSelected] = useState<TableAvailability | null>(null);
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [acting, setActing] = useState(false);
+  const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
 
   const { data, loading, refresh } = useJson<AvailResp>(
     `/api/availability?date=${date}&slot=${slot}&partySize=2`,
@@ -105,6 +110,9 @@ export function AdminTableMap({ today }: TableMapProps) {
         return;
       }
       toast.success(body.message ?? "Đã cập nhật trạng thái.");
+      if (action === "checkin" && body.loyalty) {
+        setRewardData(body.loyalty);
+      }
       setConfirmNoShow(false);
       setSelected(null);
       refresh();
@@ -348,6 +356,13 @@ export function AdminTableMap({ today }: TableMapProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* FR-20: Pop-up chúc mừng tích điểm và thăng hạng khi Check-in */}
+      <CheckinRewardDialog
+        reward={rewardData}
+        open={rewardData !== null}
+        onClose={() => setRewardData(null)}
+      />
     </div>
   );
 }

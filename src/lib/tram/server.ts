@@ -110,3 +110,9 @@ export const ACTIVE_STATUSES = [
   "SEATED",
   "NO_SHOW",
 ] as const;
+
+export {
+  calculatePointsFromBill,
+  calculateLoyalty,
+  LOYALTY_TIERS,
+} from "./loyalty";

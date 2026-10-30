@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reservationTotal, serializeReservation } from "@/lib/tram/server";
+import { calculateLoyalty } from "@/lib/tram/loyalty";
 import type { CustomerProfileDTO, ReservationDTO } from "@/lib/tram/types";
 
 export async function GET() {
@@ -47,6 +48,8 @@ export async function GET() {
               .filter((n): n is string => Boolean(n && n.trim())),
           ),
         );
+        const loyalty = calculateLoyalty(totalSpend, visits);
+
         return {
           name: c.name,
           phone: c.phone,
@@ -55,9 +58,14 @@ export async function GET() {
           lastVisit,
           notes,
           reservations: c.reservations,
+          tier: loyalty.tier,
+          points: loyalty.points,
+          nextTierPoints: loyalty.nextTierPoints,
+          nextTierName: loyalty.nextTierName,
+          tierProgress: loyalty.tierProgress,
         };
       })
-      .sort((a, b) => b.totalSpend - a.totalSpend);
+      .sort((a, b) => b.points - a.points);
 
     return NextResponse.json({ customers });
   } catch (error) {

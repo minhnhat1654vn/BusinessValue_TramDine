@@ -2,7 +2,8 @@
 
 // 3.3 Danh sách đặt bàn theo ngày — filter khung giờ + trạng thái, dialog chi tiết
 import { useMemo, useState } from "react";
-import { Eye } from "lucide-react";
+import { Eye, LogIn } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +45,10 @@ import {
   STATUS_LABELS,
 } from "@/lib/tram/constants";
 import type { ReservationDTO } from "@/lib/tram/types";
+import {
+  CheckinRewardDialog,
+  type CheckinLoyaltyReward,
+} from "./checkin-reward-dialog";
 
 interface ListResponse {
   date: string;
@@ -68,10 +73,40 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
   const [slotFilter, setSlotFilter] = useState<"ALL" | "SLOT_1730" | "SLOT_1945">("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [detail, setDetail] = useState<ReservationDTO | null>(null);
+  const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
+  const [acting, setActing] = useState(false);
 
   const { data, loading, error, refresh } = useJson<ListResponse>(
     `/api/reservations?date=${date}`,
   );
+
+  async function handleCheckin(id: string) {
+    setActing(true);
+    try {
+      const res = await fetch(`/api/reservations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "checkin" }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        toast.error(body.error ?? "Không thể check-in.");
+        return;
+      }
+      toast.success(body.message ?? "Check-in thành công.");
+      if (body.loyalty) {
+        setRewardData(body.loyalty);
+      }
+      if (detail && detail.id === id) {
+        setDetail(body.reservation);
+      }
+      refresh();
+    } catch {
+      toast.error("Lỗi kết nối — vui lòng thử lại.");
+    } finally {
+      setActing(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     const list = data?.reservations ?? [];
@@ -236,6 +271,21 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                           {r.notes}
                         </span>
                       )}
+                      {(r.status === "CONFIRMED" || r.status === "PENDING") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7.5 gap-1 rounded-full border-emerald-600/40 bg-emerald-50 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void handleCheckin(r.id);
+                          }}
+                          disabled={acting}
+                        >
+                          <LogIn className="h-3 w-3" />
+                          Check-in
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -333,11 +383,29 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                   Tạo lúc {new Date(detail.createdAt).toLocaleString("vi-VN")} ·
                   Ngày đến: {relativeDayLabel(detail.date, today)}
                 </p>
+
+                {(detail.status === "CONFIRMED" || detail.status === "PENDING") && (
+                  <Button
+                    onClick={() => void handleCheckin(detail.id)}
+                    disabled={acting}
+                    className="w-full mt-3 h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
+                  >
+                    <LogIn className="mr-1.5 h-4 w-4" />
+                    Check-in & Tích Điểm Thưởng (FR-20)
+                  </Button>
+                )}
               </div>
             </>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* FR-20: Pop-up chúc mừng tích điểm và thăng hạng khi Check-in */}
+      <CheckinRewardDialog
+        reward={rewardData}
+        open={rewardData !== null}
+        onClose={() => setRewardData(null)}
+      />
     </div>
   );
 }
