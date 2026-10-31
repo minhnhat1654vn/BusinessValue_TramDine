@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     const finalNotes = isNamTram
       ? [
         body.notes?.trim(),
-        "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc (FR-22)]",
+        "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc]",
       ]
         .filter(Boolean)
         .join(" · ")

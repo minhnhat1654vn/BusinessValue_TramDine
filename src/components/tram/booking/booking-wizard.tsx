@@ -1197,7 +1197,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                           ({loyaltyProfile.visits} lượt đến · {loyaltyProfile.points.toLocaleString("vi-VN")} pts)
                           {loyaltyProfile.tier === "NAM_TRAM" && (
                             <span className="block mt-0.5 text-emerald-800 font-bold">
-                              ✨ Đặc quyền FR-22: Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến!
+                              ✨ Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền đặt cọc!
                             </span>
                           )}
                         </span>
@@ -1207,15 +1207,15 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
 
-              {/* Thanh chọn nhanh thử nghiệm FR-22 */}
+              {/* Thanh chọn nhanh thử nghiệm phân hạng */}
               <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-bold text-amber-900">
-                      ⚡ Thử nghiệm nhanh tính năng FR-22 (Miễn cọc Nam Trầm):
+                      ⚡ Chọn nhanh số điện thoại mẫu (Trải nghiệm phân hạng):
                     </p>
                     <p className="text-[11px] text-amber-800/80">
-                      Bấm vào số mẫu để tự động điền &amp; kích hoạt luồng miễn cọc
+                      Bấm vào số mẫu để tự động điền &amp; kích hoạt đặc quyền thành viên
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">

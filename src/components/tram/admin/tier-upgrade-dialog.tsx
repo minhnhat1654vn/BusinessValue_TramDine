@@ -96,7 +96,7 @@ Hôm nay, TRẦM Reserve xin trân trọng vinh danh và thông báo Quý khách
 ★ ${newTierConfig.name.toUpperCase()} ★
 ${newTierConfig.tagline}
 
-CÁC ĐẶC QUYỀN MỚI CHÍNH THỨC ĐƯỢC KÍCH HOẠT (THEO ĐẶC TẢ BẢNG 8):
+CÁC ĐẶC QUYỀN MỚI CHÍNH THỨC ĐƯỢC KÍCH HOẠT:
 ${newTierConfig.benefits.map((b, i) => `${i + 1}. ${b}`).join("\n")}
 
 ${
@@ -263,7 +263,6 @@ Kính chúc Quý khách luôn có những bữa tiệc trọn vẹn thi vị!`;
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 px-3.5 py-1 text-xs font-black uppercase tracking-wider text-stone-950 shadow-md">
               <Sparkles className="h-3.5 w-3.5 text-stone-950" />
               <span>VINH DANH VƯỢT MỐC {milestone} LƯỢT</span>
-              <span className="text-[10px] opacity-80">· FR-26</span>
             </div>
 
             <h3 className="font-heading text-2xl font-bold tracking-tight text-white sm:text-3xl">
@@ -396,7 +395,7 @@ Kính chúc Quý khách luôn có những bữa tiệc trọn vẹn thi vị!`;
                   <div className="flex items-center justify-between border-b border-stone-800 pb-2">
                     <span className="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
                       <ShieldCheck className="h-4 w-4 text-amber-400" />
-                      Đặc quyền mới kích hoạt ngay hôm nay (Bảng 8)
+                      Đặc quyền mới kích hoạt ngay hôm nay
                     </span>
                     <span className="text-[10px] text-stone-400">
                       Điểm tích lũy: <strong className="text-amber-400">{formatPoints(points)} pts</strong>
@@ -416,7 +415,7 @@ Kính chúc Quý khách luôn có những bữa tiệc trọn vẹn thi vị!`;
                     <div className="mt-3 rounded-lg border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-amber-500/10 p-2.5 text-xs text-amber-200 flex items-center gap-2">
                       <Sparkles className="h-4 w-4 shrink-0 text-amber-400" />
                       <span>
-                        <strong>Đặc quyền cao nhất:</strong> Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến và ưu tiên bàn VIP riêng tư tuyệt đối (FR-22).
+                        <strong>Đặc quyền cao nhất:</strong> Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến và ưu tiên bàn VIP riêng tư tuyệt đối.
                       </span>
                     </div>
                   )}

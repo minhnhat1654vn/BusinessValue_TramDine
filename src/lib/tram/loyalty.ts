@@ -38,7 +38,7 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
     iconName: "Award",
     benefits: [
       "Áp dụng cho khách từ 0 đến 2 lượt đến TRẦM Reserve",
-      "Tích lũy 1 điểm cho mỗi 1.000 đ chi tiêu hóa đơn (FR-20)",
+      "Tích lũy 1 điểm cho mỗi 1.000 đ chi tiêu hóa đơn",
       "Thiệp chúc mừng và quà tặng sinh nhật từ nhà hàng",
       "Nhận trước thông tin thực đơn tasting theo mùa",
       "Hỗ trợ đổi ca đặt bàn linh hoạt trước 24 giờ",
@@ -110,7 +110,7 @@ export const BANG_8_TIER_COMPARISON = [
     highlight: false,
   },
   {
-    criterion: "Thưởng điểm hóa đơn (FR-20)",
+    criterion: "Thưởng điểm hóa đơn",
     huong: "0% (Cơ bản)",
     tram: "+5% điểm hóa đơn",
     namTram: "+8% điểm hóa đơn (Tối đa)",

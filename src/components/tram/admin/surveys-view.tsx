@@ -561,10 +561,10 @@ export function AdminSurveys() {
           <div>
             <p className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-              Thử nghiệm nhanh tính năng khảo sát (Chọn bàn đã Check-in để đánh giá thử):
+              Khảo sát nhanh cho bàn đã phục vụ:
             </p>
             <p className="text-[11px] text-stone-600">
-              Bấm vào bất kỳ lượt đặt đã phục vụ nào dưới đây để mở form khảo sát và quan sát phân bố sao cập nhật trực tiếp:
+              Chọn lượt đặt bàn bên dưới để gửi hoặc ghi nhận đánh giá trải nghiệm thực khách:
             </p>
           </div>
         </div>

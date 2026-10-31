@@ -407,7 +407,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                     className="w-full mt-3 h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
                   >
                     <LogIn className="mr-1.5 h-4 w-4" />
-                    Check-in & Tích Điểm Thưởng (FR-20)
+                    Check-in & Tích Điểm Thưởng
                   </Button>
                 )}
 

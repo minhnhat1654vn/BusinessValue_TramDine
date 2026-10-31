@@ -131,7 +131,7 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
           {isDepositExempt && (
             <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-purple-500/15 px-3.5 py-1 text-xs font-extrabold text-amber-950">
               <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-              Đặc quyền Thượng khách Nam Trầm: Miễn 100% Cọc (FR-22)
+              Đặc quyền Thượng khách Nam Trầm: Miễn 100% Cọc
             </div>
           )}
           <div className="mt-3 inline-flex items-center gap-3 rounded-full border border-[#b45309]/35 bg-[#fdf0d5] px-6 py-2.5">
@@ -241,7 +241,7 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
               </p>
               <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
                 {isDepositExempt
-                  ? "Áp dụng đặc quyền Hạng Nam Trầm (FR-22): Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc."
+                  ? "Áp dụng đặc quyền Hạng Nam Trầm: Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc."
                   : "Cổng thanh toán mô phỏng — không có giao dịch thật. Phần còn lại thanh toán tại nhà hàng."}
               </p>
             </div>
@@ -252,7 +252,7 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
             <div className="rounded-xl border border-[#b45309]/30 bg-[#fdf0d5]/40 p-4">
               <p className="mb-2.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#92400e]">
                 <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
-                Thực đơn 7 món đã chọn (Đã đồng bộ cơ sở dữ liệu)
+                Thực đơn đã chọn cho bữa tiệc
               </p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {selectedDishes.map((item) => (

@@ -212,18 +212,7 @@ export function AdminCustomers() {
               <h2 className="font-heading text-lg font-bold text-[#292524] md:text-xl">
                 Chương Trình Ba Hạng Thân Thiết
               </h2>
-              <Badge
-                variant="outline"
-                className="border-amber-600/40 bg-amber-100 font-semibold text-amber-900"
-              >
-                FR-21 · Đặc tả Bảng 8 (Must)
-              </Badge>
             </div>
-            <p className="text-xs text-stone-600 md:text-sm">
-              Gồm 3 hạng: <strong className="text-stone-800">Hương</strong> (0–2 lượt),{" "}
-              <strong className="text-[#b45309]">Trầm</strong> (3–5 lượt),{" "}
-              <strong className="text-purple-900">Nam Trầm</strong> (6+ lượt) kèm quyền lợi riêng biệt.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -232,7 +221,7 @@ export function AdminCustomers() {
               className="h-9.5 gap-1.5 rounded-full bg-[#b45309] text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
             >
               <TableProperties className="h-4 w-4" />
-              Xem Đặc Tả Bảng 8 Nhóm 8
+              Chính Sách Đặc Quyền 3 Hạng
             </Button>
           </div>
         </div>
@@ -241,15 +230,15 @@ export function AdminCustomers() {
         <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-900/10 pt-3 text-xs">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-300 bg-purple-50 px-3 py-1 font-semibold text-purple-950">
             <Gem className="h-3.5 w-3.5 text-purple-700" />
-            Hạng Nam Trầm (6+ lượt): {stats.namTramCount} khách
+            Nam Trầm: {stats.namTramCount} khách
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-3 py-1 font-semibold text-amber-950">
             <Crown className="h-3.5 w-3.5 text-amber-700" />
-            Hạng Trầm (3–5 lượt): {stats.tramCount} khách
+            Trầm: {stats.tramCount} khách
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-stone-50 px-3 py-1 font-semibold text-stone-800">
             <Award className="h-3.5 w-3.5 text-stone-600" />
-            Hạng Hương (0–2 lượt): {stats.huongCount} khách
+            Hương: {stats.huongCount} khách
           </span>
         </div>
       </motion.div>
@@ -286,7 +275,7 @@ export function AdminCustomers() {
             {stats.totalCustomers}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Khách đã dùng bữa (SEATED)
+            Khách đã hoàn tất dùng bữa
           </p>
         </motion.div>
 
@@ -309,7 +298,7 @@ export function AdminCustomers() {
             {stats.vipCount}
           </p>
           <p className="mt-1 text-xs text-amber-800">
-            Hạng Trầm (3-5) & Nam Trầm (6+)
+            Hạng Trầm & Nam Trầm
           </p>
         </motion.div>
 
@@ -332,7 +321,7 @@ export function AdminCustomers() {
             {formatPoints(stats.totalPoints)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            1.000 đ = 1 pt (FR-20)
+            1.000 đ tích lũy 1 điểm
           </p>
         </motion.div>
 
@@ -374,15 +363,9 @@ export function AdminCustomers() {
                   <Send className="h-4 w-4" />
                 </span>
                 <h3 className="font-heading text-lg font-bold text-[#292524]">
-                  Chiến Dịch Chăm Sóc &amp; Mời Lại Thực Khách
+                  Chăm Sóc &amp; Mời Lại Thực Khách
                 </h3>
-                <Badge className="border-amber-400 bg-amber-100 font-bold text-amber-950 text-[11px]">
-                  ≥ 21 ngày chưa quay lại
-                </Badge>
               </div>
-              <p className="mt-1 text-xs text-stone-600">
-                Phát hiện <strong className="text-amber-900 font-bold">{lapsedList.length} thực khách</strong> đã hơn 3 tuần chưa ghé TRẦM Reserve. Xem trước lời mời Zalo/Email và gửi ngay kèm đặc quyền tri ân.
-              </p>
             </div>
 
             <Button
@@ -564,7 +547,7 @@ export function AdminCustomers() {
             }`}
           >
             <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-            Đã lên hạng (mốc 3/6) ({upgradedList.length})
+            Đã lên hạng ({upgradedList.length})
           </button>
         </div>
 
@@ -635,7 +618,7 @@ export function AdminCustomers() {
                   visible: { opacity: 1, scale: 1, y: 0 },
                 }}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-stone-200/90 bg-card p-4.5 shadow-xs transition-all hover:border-amber-500/50 hover:shadow-lg"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-stone-200/90 bg-card p-4.5 shadow-xs transition-all hover:border-amber-500/50 hover:shadow-lg"
               >
                 {/* Decorative Tier Ribbon Top-Right */}
                 <div className="absolute -right-12 top-6 rotate-45">
@@ -657,7 +640,7 @@ export function AdminCustomers() {
                 </div>
 
                 {/* Card Top: Avatar & Name */}
-                <div className="pr-14">
+                <div className="pr-14 min-h-[78px] flex flex-col justify-between">
                   <div className="flex items-center gap-3">
                     <div
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-heading text-lg font-bold shadow-xs ${
@@ -670,8 +653,8 @@ export function AdminCustomers() {
                     >
                       {c.name.slice(0, 1)}
                     </div>
-                    <div>
-                      <h4 className="font-heading text-base font-bold text-[#292524] transition-colors group-hover:text-[#b45309]">
+                    <div className="min-w-0">
+                      <h4 className="font-heading text-base font-bold text-[#292524] truncate transition-colors group-hover:text-[#b45309]">
                         {c.name}
                       </h4>
                       <p className="text-xs text-muted-foreground">{c.phone}</p>
@@ -679,7 +662,7 @@ export function AdminCustomers() {
                   </div>
 
                   {/* Tier Badge Pill */}
-                  <div className="mt-3 flex items-center gap-1.5">
+                  <div className="mt-2.5 flex items-center gap-1.5">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-semibold ${tierConfig.badgeBg} ${tierConfig.badgeText} ${tierConfig.badgeBorder}`}
                     >
@@ -695,45 +678,50 @@ export function AdminCustomers() {
                   </div>
                 </div>
 
-                {/* Middle: Điểm tích lũy & Tiến độ theo lượt (FR-21) */}
-                <div className="my-4 rounded-xl border border-stone-100 bg-[#fffdfa] p-3">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <span className="text-[11px] font-medium text-stone-500">
-                        Điểm tích lũy (1.000đ = 1 pt)
+                {/* Middle: Điểm tích lũy & Tiến độ theo lượt */}
+                <div className="mt-3.5 rounded-xl border border-stone-200/60 bg-[#fffdfa] p-3 space-y-2.5">
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Cột trái: Điểm tích lũy */}
+                    <div className="space-y-1">
+                      <span className="block text-[11px] font-medium text-stone-500">
+                        Điểm tích lũy
                       </span>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                        <span className="text-xl font-extrabold text-[#92400e]">
+                      <div className="flex h-6 items-center gap-1">
+                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 shrink-0" />
+                        <span className="text-base font-bold text-[#92400e]">
                           {formatPoints(c.points)}
                         </span>
                         <span className="text-xs font-medium text-amber-700/80">
                           pts
                         </span>
                         {tierConfig.bonusPercent > 0 && (
-                          <span className="ml-1 rounded-md bg-amber-100 px-1.5 py-0.2 text-[10px] font-bold text-amber-800">
+                          <span className="ml-0.5 rounded-md bg-amber-100 px-1 py-0.2 text-[10px] font-bold text-amber-800">
                             +{tierConfig.bonusPercent}%
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[11px] font-medium text-stone-500">
+
+                    {/* Cột phải: Tổng chi tiêu */}
+                    <div className="space-y-1 text-right">
+                      <span className="block text-[11px] font-medium text-stone-500">
                         Tổng chi tiêu
                       </span>
-                      <p className="text-xs font-bold text-stone-800">
-                        {formatVND(c.totalSpend)}
-                      </p>
+                      <div className="flex h-6 items-center justify-end">
+                        <span className="text-base font-bold text-stone-800">
+                          {formatVND(c.totalSpend)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Progress bar to next tier */}
-                  <div className="mt-2.5 space-y-1">
-                    <div className="flex justify-between text-[10px] text-stone-500">
+                  <div className="space-y-1.5 pt-2 border-t border-stone-100">
+                    <div className="flex items-center justify-between text-[10px] text-stone-500">
                       <span>Tiến độ thăng hạng</span>
                       <span className="font-semibold text-stone-700">
                         {c.tier === "NAM_TRAM"
-                          ? "Hạng tối cao (6+ lượt)"
+                          ? "Hạng tối cao"
                           : `${c.tierProgress}%`}
                       </span>
                     </div>
@@ -751,34 +739,11 @@ export function AdminCustomers() {
                         }`}
                       />
                     </div>
-                    <p className="text-[10px] text-stone-500">
-                      {c.tier === "NAM_TRAM" ? (
-                        <span className="text-purple-900 font-semibold">
-                          Thượng khách Kim Cương Độc Bản của TRẦM
-                        </span>
-                      ) : c.tier === "TRAM" ? (
-                        <>
-                          Cần thêm{" "}
-                          <strong className="text-amber-800">
-                            {Math.max(0, 6 - c.visits)} lượt đến
-                          </strong>{" "}
-                          để thăng hạng <span className="font-semibold">Nam Trầm</span>
-                        </>
-                      ) : (
-                        <>
-                          Cần thêm{" "}
-                          <strong className="text-amber-800">
-                            {Math.max(0, 3 - c.visits)} lượt đến
-                          </strong>{" "}
-                          để thăng hạng <span className="font-semibold">Hạng Trầm</span>
-                        </>
-                      )}
-                    </p>
                   </div>
                 </div>
 
-                {/* Bottom: Notes/Allergy + Days Lapsed & Action Buttons */}
-                <div className="space-y-2.5">
+                {/* Bottom: Days Lapsed & Action Buttons */}
+                <div className="mt-auto pt-3.5 space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3.5 w-3.5" />
@@ -795,19 +760,6 @@ export function AdminCustomers() {
                       </span>
                     )}
                   </div>
-
-                  {c.notes.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {c.notes.slice(0, 2).map((n) => (
-                        <span
-                          key={n}
-                          className="max-w-[200px] truncate rounded-md bg-stone-100 px-2 py-0.5 text-[11px] text-stone-600"
-                        >
-                          {n}
-                        </span>
-                      ))}
-                    </div>
-                  )}
 
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     {getDaysSinceLastVisit(c.lastVisit) >= 21 ? (
@@ -839,22 +791,35 @@ export function AdminCustomers() {
                       Xem Hồ Sơ
                     </button>
 
-                    {/* FR-26: Nút xem Thư chúc mừng lên hạng cho khách đạt mốc 3 hoặc 6 lượt */}
-                    {c.visits >= 3 && (
-                      <button
-                        onClick={() =>
+                    {/* Nút Thư chúc mừng lên hạng: Hiển thị ở mọi thẻ, khóa cứng nếu chưa đạt hạng Trầm (dưới 3 lượt) */}
+                    <button
+                      disabled={c.visits < 3}
+                      onClick={() => {
+                        if (c.visits >= 3) {
                           setUpgradeLetterCustomer({
                             customer: c,
                             milestone: c.visits >= 6 ? 6 : 3,
-                          })
+                          });
                         }
-                        title="Xem Thư chúc mừng lên hạng"
-                        className="col-span-2 flex items-center justify-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50/90 py-2 text-xs font-bold text-amber-900 transition-all hover:bg-amber-100 hover:border-amber-400 shadow-2xs"
-                      >
-                        <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                        Thư Chúc Mừng Lên Hạng (Mốc {c.visits >= 6 ? "6" : "3"} Lượt)
-                      </button>
-                    )}
+                      }}
+                      title={
+                        c.visits >= 3
+                          ? "Xem Thư chúc mừng lên hạng"
+                          : `Chưa đạt hạng Trầm (Cần thêm ${Math.max(0, 3 - c.visits)} lượt đến)`
+                      }
+                      className={`col-span-2 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all shadow-2xs border ${
+                        c.visits >= 3
+                          ? "border-amber-300 bg-amber-50/90 text-amber-900 hover:bg-amber-100 hover:border-amber-400 cursor-pointer"
+                          : "border-stone-200/80 bg-stone-100/70 text-stone-400 cursor-not-allowed opacity-70"
+                      }`}
+                    >
+                      <Sparkles
+                        className={`h-3.5 w-3.5 ${
+                          c.visits >= 3 ? "text-amber-600" : "text-stone-400"
+                        }`}
+                      />
+                      Thư Chúc Mừng Lên Hạng
+                    </button>
                   </div>
                 </div>
               </motion.div>
@@ -876,7 +841,7 @@ export function AdminCustomers() {
                   Khách hàng
                 </TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Hạng Thân Thiết (FR-21)
+                  Hạng Thân Thiết
                 </TableHead>
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
                   Số Lần Đến
@@ -1040,7 +1005,7 @@ export function AdminCustomers() {
                 <TableProperties className="h-4 w-4" />
               </span>
               <DialogTitle className="font-heading text-xl font-bold text-[#292524]">
-                Đặc Tả Bảng 8 Nhóm 8: Chương Trình Ba Hạng Thân Thiết
+                Chính Sách Chương Trình Ba Hạng Thân Thiết
               </DialogTitle>
             </div>
             <DialogDescription className="text-xs text-stone-600">
@@ -1272,10 +1237,10 @@ export function AdminCustomers() {
                     <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-950">
                         <Sparkles className="h-4 w-4 text-amber-600" />
-                        Thư Vinh Danh Lên Hạng (Vượt Mốc {detail.visits >= 6 ? 6 : 3} Lượt)
+                        Thư Vinh Danh Lên Hạng ({detail.visits >= 6 ? "Nam Trầm" : "Trầm"})
                       </span>
                       <Badge className="bg-amber-600 text-white font-extrabold text-[10px]">
-                        FR-26
+                        Vinh danh
                       </Badge>
                     </div>
                     <p className="text-xs text-stone-700 leading-relaxed">
@@ -1297,11 +1262,11 @@ export function AdminCustomers() {
                   </div>
                 )}
 
-                {/* Danh sách Đặc Quyền Hội Viên theo Bảng 8 */}
+                {/* Danh sách Đặc Quyền Hội Viên */}
                 <div className="space-y-2.5">
                   <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700">
                     <Gift className="h-4 w-4 text-amber-600" />
-                    Đặc Quyền Hội Viên Của {LOYALTY_TIERS[detail.tier]?.name ?? "Hạng Hương"} (Bảng 8)
+                    Đặc Quyền Hội Viên Của {LOYALTY_TIERS[detail.tier]?.name ?? "Hạng Hương"}
                   </h4>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {(LOYALTY_TIERS[detail.tier]?.benefits ?? LOYALTY_TIERS.HUONG.benefits).map((b, i) => (

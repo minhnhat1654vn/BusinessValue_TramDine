@@ -83,7 +83,7 @@ export function CheckinRewardDialog({
         <DialogHeader className="sr-only">
           <DialogTitle>Tích điểm thành công cho {reward.customerName}</DialogTitle>
           <DialogDescription>
-            Cộng điểm theo hóa đơn theo quy tắc FR-20 (1.000 đ = 1 điểm, thưởng theo hạng).
+            Cộng điểm hóa đơn (1.000 đ = 1 điểm, thưởng theo hạng).
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +135,7 @@ export function CheckinRewardDialog({
             className="rounded-xl border border-amber-300/80 bg-gradient-to-b from-amber-50 to-[#fffdf9] p-4 text-center shadow-xs"
           >
             <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-800">
-              Điểm thưởng tích lũy đợt này (FR-20)
+              Điểm thưởng tích lũy đợt này
             </span>
             <div className="mt-1 flex items-center justify-center gap-2">
               <Star className="h-6 w-6 fill-amber-500 text-amber-500" />
