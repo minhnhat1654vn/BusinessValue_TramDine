@@ -1,23 +1,14 @@
 "use client";
 
-// TRẦM Reserve — ứng dụng một trang (3 view chuyển bằng state client-side)
-// Trang chủ · Đặt bàn (wizard 5 bước) · Quản trị
+// TRẦM Reserve — ứng dụng một trang (3 view chuyển bằng state client-side + Framer Motion page transitions)
+// Trang chủ · Đặt bàn (wizard) · Quản trị
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { SiteHeader, type MainView } from "@/components/tram/site-header";
 import { SiteFooter } from "@/components/tram/site-footer";
 import { HomeView } from "@/components/tram/home-view";
 import { BookingWizard } from "@/components/tram/booking/booking-wizard";
-
-function AdminViewLazy() {
-  // Admin chứa tabs + recharts — tách import động để trang chủ nhẹ hơn
-  const [AdminView, setAdminView] = useState<
-    React.ComponentType | null
-  >(null);
-  import("@/components/tram/admin/admin-view").then((mod) => {
-    setAdminView(() => mod.AdminView);
-  });
-  return null;
-}
+import { AdminView } from "@/components/tram/admin/admin-view";
 
 export default function Page() {
   const [view, setView] = useState<MainView>("home");
@@ -26,32 +17,49 @@ export default function Page() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader view={view} onChangeView={setView} />
 
-      {view === "home" && <HomeView onBookNow={() => setView("booking")} />}
-      {view === "booking" && <BookingWizard onGoHome={() => setView("home")} />}
-      {view === "admin" && <AdminViewSection />}
+      <AnimatePresence mode="wait">
+        {view === "home" && (
+          <motion.div
+            key="home-view"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+            className="flex-1"
+          >
+            <HomeView onBookNow={() => setView("booking")} />
+          </motion.div>
+        )}
 
-      <SiteFooter />
+        {view === "booking" && (
+          <motion.div
+            key="booking-view"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+            className="flex-1"
+          >
+            <BookingWizard onGoHome={() => setView("home")} />
+          </motion.div>
+        )}
+
+        {view === "admin" && (
+          <motion.div
+            key="admin-view"
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.32, ease: "easeOut" }}
+            className="flex-1"
+          >
+            <AdminView />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Chỉ hiển thị footer thông thường ở các trang Đặt bàn / Quản trị, trang chủ đã có footer tự nhiên ở cuối */}
+      {view !== "home" && <SiteFooter />}
     </div>
   );
 }
-
-function AdminViewSection() {
-  const [AdminView, setAdminView] = useState<React.ComponentType | null>(null);
-  if (typeof window !== "undefined" && !AdminView) {
-    import("@/components/tram/admin/admin-view").then((mod) => {
-      setAdminView(() => mod.AdminView);
-    });
-  }
-  if (!AdminView) {
-    return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-muted-foreground">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#fdf0d5] border-t-[#b45309]" />
-        <p className="text-sm">Đang mở màn quản trị...</p>
-      </div>
-    );
-  }
-  return <AdminView />;
-}
-
-// Ghi chú: AdminViewLazy không dùng nữa — giữ component AdminViewSection trực tiếp.
-export { AdminViewLazy as _unused };

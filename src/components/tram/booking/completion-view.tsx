@@ -1,8 +1,8 @@
 "use client";
 
-// Bước 5 — màn hoàn tất: mã đặt bàn, tóm tắt, dòng thời gian nhắc lịch
+// Bước hoàn tất — màn hoàn tất: mã đặt bàn, tóm tắt, món đã chọn, dòng thời gian nhắc lịch
 // và xem trước nội dung email / tin nhắn Zalo nhắc lịch
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BellRing,
   CheckCircle2,
@@ -13,8 +13,9 @@ import {
   ReceiptText,
   Table2,
   Users,
-  Gem,
+  UtensilsCrossed,
   Sparkles,
+  Gem
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,12 @@ function pairingPriceOf(pairing: string): number {
   if (pairing === "WINE") return PRICES.winePairing;
   if (pairing === "TEA") return PRICES.teaPairing;
   return 0;
+}
+
+interface SelectedDishSummary {
+  index: number;
+  name: string;
+  optionName?: string;
 }
 
 interface CompletionViewProps {
@@ -49,7 +56,28 @@ export function CompletionView({ reservation, onGoHome }: CompletionViewProps) {
   const pairingPrice = pairingPriceOf(r.pairing);
   const total = r.partySize * (PRICES.menu + pairingPrice);
 
+  const selectedDishes = useMemo<SelectedDishSummary[] | null>(() => {
+    if (!r.selectedDishes) return null;
+    try {
+      const parsed = JSON.parse(r.selectedDishes);
+      if (Array.isArray(parsed)) return parsed as SelectedDishSummary[];
+      return null;
+    } catch {
+      return null;
+    }
+  }, [r.selectedDishes]);
+
   // Nội dung email nhắc lịch (mô phỏng)
+  const dishLines = selectedDishes
+    ? `\n• Thực đơn 7 món đã chọn:\n` +
+    selectedDishes
+      .map(
+        (d) =>
+          `   ${d.index}. ${d.name}${d.optionName ? ` (${d.optionName})` : ""}`,
+      )
+      .join("\n")
+    : "";
+
   const emailBody = `Kính gửi ${r.customerName},
 
 TRẦM Reserve xin xác nhận lượt đặt bàn của Quý khách:
@@ -58,8 +86,8 @@ TRẦM Reserve xin xác nhận lượt đặt bàn của Quý khách:
 • Thời gian: ${weekday}, ${dateLabel.split(", ")[1]} — khung ${slotTime}
 • Bàn: ${r.table.code} (${r.table.seats} chỗ) · ${r.table.zone}
 • Số khách: ${r.partySize} khách
-• Pairing: ${r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine pairing" : "Tea pairing"}
-• Đặt cọc đã nhận: ${isDepositExempt ? "0 đ (Đặc quyền Miễn cọc Thượng khách Nam Trầm — FR-22)" : formatVND(r.depositAmount)}
+• Pairing: ${r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine pairing" : "Tea pairing"}${dishLines}
+• Đặt cọc đã nhận: ${formatVND(r.depositAmount)}
 • Tổng dự kiến: ${formatVND(total)}${r.allergy ? `\n• Lưu ý dị ứng: ${r.allergy} — bếp đã ghi nhận và sẽ điều chỉnh món` : ""}
 
 ${isDepositExempt ? "Đặc quyền VIP: Quý khách được miễn 100% tiền cọc khi đặt bàn trực tuyến." : "Chính sách: hoàn cọc nếu Quý khách hủy trước 48 giờ so với giờ đến."}
@@ -77,7 +105,8 @@ Chào ${r.customerName}, TRẦM hẹn gặp Quý khách:
 ▪ ${weekday} · ${dateLabel.split(", ")[1]}
 ▪ Khung ${slotTime} · Bàn ${r.table.code}
 ▪ ${r.partySize} khách · Mã ${r.code}
-▪ Cọc: ${isDepositExempt ? "0 đ (Miễn cọc VIP Nam Trầm)" : formatVND(r.depositAmount)}
+▪ Menu 7 món "Hành trình vị Việt" (đã lưu vào hệ thống bếp)
+▪ Cọc đã nhận: ${formatVND(r.depositAmount)}
 
 ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc VIP Nam Trầm." : "Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 giờ để được hoàn cọc."} Hotline ${RESTAURANT.hotline}.`;
 
@@ -97,9 +126,7 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
             Đặt bàn thành công!
           </CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">
-            {isDepositExempt
-              ? "Nhà hàng TRẦM đã ghi nhận lượt đặt. Quý khách được áp dụng đặc quyền Miễn cọc Hạng Nam Trầm (FR-22)."
-              : "Nhà hàng TRẦM đã ghi nhận lượt đặt và nhận cọc của Quý khách."}
+            Nhà hàng TRẦM đã ghi nhận lượt đặt, thực đơn đã chọn và nhận cọc của Quý khách.
           </p>
           {isDepositExempt && (
             <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-purple-500/15 px-3.5 py-1 text-xs font-extrabold text-amber-950">
@@ -117,7 +144,7 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2.5 rounded-xl border border-border bg-[#fffdf9] p-4 text-sm">
               <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -219,6 +246,38 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
               </p>
             </div>
           </div>
+
+          {/* HIỂN THỊ CÁC MÓN ĐÃ CHỌN LƯU VÀO DB */}
+          {selectedDishes && selectedDishes.length > 0 && (
+            <div className="rounded-xl border border-[#b45309]/30 bg-[#fdf0d5]/40 p-4">
+              <p className="mb-2.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#92400e]">
+                <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
+                Thực đơn 7 món đã chọn (Đã đồng bộ cơ sở dữ liệu)
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {selectedDishes.map((item) => (
+                  <div
+                    key={item.index}
+                    className="flex items-start gap-2 rounded-lg bg-card/80 p-2.5 text-xs shadow-2xs border border-border/60"
+                  >
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#b45309] text-[10px] font-bold text-[#fffbf2]">
+                      {item.index}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-medium text-stone-800 truncate">
+                        {item.name}
+                      </p>
+                      {item.optionName && (
+                        <p className="text-[11px] text-[#92400e]">
+                          {item.optionName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

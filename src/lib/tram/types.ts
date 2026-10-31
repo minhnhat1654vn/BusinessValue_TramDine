@@ -31,6 +31,7 @@ export interface ReservationDTO {
   pairing: Pairing;
   notes: string | null;
   allergy: string | null;
+  selectedDishes?: string | null;
   status: ReservationStatus;
   depositAmount: number;
   source: ReservationSource;
