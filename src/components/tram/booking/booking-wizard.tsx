@@ -525,6 +525,18 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
 
   const isNamTram = loyaltyProfile?.tier === "NAM_TRAM";
 
+  // Kiểm tra khung giờ đã qua so với thời gian hiện tại (nếu chọn ngày hôm nay)
+  const isSlotPassed = useCallback(
+    (slotValue: Slot) => {
+      if (!today || date !== today) return false;
+      const now = new Date();
+      const currentTotalMin = now.getHours() * 60 + now.getMinutes();
+      const slotTotalMin = slotValue === "SLOT_1730" ? 17 * 60 + 30 : 19 * 60 + 45;
+      return currentTotalMin >= slotTotalMin;
+    },
+    [today, date],
+  );
+
   useEffect(() => {
     setToday(todayLocalISO());
   }, []);
@@ -782,7 +794,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       <button
                         key={s.value}
                         type="button"
-                        disabled={!date}
+                        disabled={!date || isSlotPassed(s.value) || full}
                         onClick={() => setSlot(s.value)}
                         aria-pressed={isSelected}
                         className={cn(
@@ -792,9 +804,16 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                             : "border-border bg-[#fffdf9] text-stone-700 hover:border-[#b45309]/60 hover:bg-[#fdf0d5]/60",
                         )}
                       >
-                        <span className="font-heading text-xl font-semibold">
-                          {s.label}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn("font-heading text-xl font-semibold", isSlotPassed(s.value) && "line-through opacity-70")}>
+                            {s.label}
+                          </span>
+                          {isSlotPassed(s.value) && (
+                            <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                              Đã qua giờ
+                            </span>
+                          )}
+                        </div>
                         {loadingSlots ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
                         ) : remaining !== null ? (
@@ -1020,7 +1039,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                         {/* ẢNH THỰC TẾ CỦA MÓN */}
                         <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-stone-900/10 sm:h-24 sm:w-32">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          { }
                           <img
                             src={item.image}
                             alt={item.name}
@@ -1546,7 +1565,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       key={d.index}
                       className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-2 text-xs"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      { }
                       <img
                         src={d.image}
                         alt={d.name}
