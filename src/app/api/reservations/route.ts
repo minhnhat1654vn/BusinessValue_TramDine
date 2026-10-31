@@ -145,11 +145,11 @@ export async function POST(request: NextRequest) {
 
     const finalNotes = isNamTram
       ? [
-          body.notes?.trim(),
-          "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc (FR-22)]",
-        ]
-          .filter(Boolean)
-          .join(" · ")
+        body.notes?.trim(),
+        "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc (FR-22)]",
+      ]
+        .filter(Boolean)
+        .join(" · ")
       : body.notes?.trim() || null;
 
     const created = await db.reservation.create({
@@ -165,7 +165,6 @@ export async function POST(request: NextRequest) {
         pairing: body.pairing ?? "NONE",
         notes: finalNotes,
         allergy: body.allergy?.trim() || null,
-<<<<<<< HEAD
         selectedDishes: body.selectedDishes
           ? typeof body.selectedDishes === "string"
             ? body.selectedDishes
@@ -173,10 +172,6 @@ export async function POST(request: NextRequest) {
           : null,
         status: "CONFIRMED", // cọc đã "thanh toán" (mô phỏng) → xác nhận luôn
         depositAmount: PRICES.deposit * partySize,
-=======
-        status: "CONFIRMED", // cọc đã xác nhận / miễn cọc VIP → xác nhận luôn
-        depositAmount,
->>>>>>> a7887251d805bb5ebac55ea10aa459941d0c2121
         source: "WEB",
       },
       include: { table: true },
