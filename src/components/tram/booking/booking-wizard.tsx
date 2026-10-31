@@ -10,6 +10,7 @@ import {
   ArrowRight,
   CalendarCheck,
   Check,
+  Clock,
   ChefHat,
   CircleAlert,
   CreditCard,
@@ -208,7 +209,30 @@ function DateStrip({
   );
 }
 
-// ---------- Bước 2: sơ đồ bàn ----------
+// Kích thước và tọa độ chính xác của 12 bàn theo bản vẽ thiết kế mặt bằng
+const FLOORPLAN_COORDINATES: Record<
+  string,
+  { x: number; y: number; w: number; h: number; shape: "square" | "circle" }
+> = {
+  // KHU A - CỬA SỔ - SÁT VIEW SÔNG (5 bàn vuông gỗ tự nhiên 2 chỗ)
+  B01: { x: 16.5, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+  B02: { x: 34.8, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+  B03: { x: 53.1, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+  B04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+  B05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+
+  // KHU B - TRUNG TÂM (5 bàn tròn 4 chỗ bố trí đối xứng quanh Bếp Mở)
+  B06: { x: 27.5, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
+  B07: { x: 27.5, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
+  B08: { x: 81.1, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
+  B09: { x: 81.1, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
+  B10: { x: 54.5, y: 64.5, w: 7.6, h: 7.6, shape: "circle" },
+
+  // KHU BÀN LỚN (B11, B12 - 6 chỗ): Đặt tinh tế làm bàn VIP riêng cạnh khu phục vụ
+  // Lưu ý: 3 ghế quầy BAR là khu vực order đồ uống trực tiếp, không cho phép đặt trước (No-booking)
+};
+
+// ---------- Bước 2: SƠ ĐỒ MẶT BẰNG TƯƠNG TÁC TINH TẾ (ARCHITECTURAL FLOOR PLAN) ----------
 function TableGrid({
   tables,
   selectedTableId,
@@ -218,85 +242,118 @@ function TableGrid({
   selectedTableId: string | null;
   onSelect: (t: TableAvailability) => void;
 }) {
-  const zones = [
-    { name: "Khu cửa sổ", hint: "Bàn 2 chỗ — tầm nhìn ra khu vườn" },
-    { name: "Khu trung tâm", hint: "Bàn 4 chỗ — giữa phòng" },
-    { name: "Khu sân sau", hint: "Bàn 6 chỗ — không gian riêng" },
-  ];
   return (
     <div className="space-y-5">
-      {zones.map((zone) => {
-        const zoneTables = tables.filter((t) => t.table.zone === zone.name);
-        if (zoneTables.length === 0) return null;
-        return (
-          <div key={zone.name}>
-            <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              {zone.name}
-              <span className="ml-2 font-normal normal-case tracking-normal text-muted-foreground/70">
-                {zone.hint}
-              </span>
-            </p>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-              {zoneTables.map((t) => {
-                const isSelected = selectedTableId === t.table.id;
-                const statusLabel = t.available
-                  ? "Trống"
-                  : t.reason === "BOOKED"
-                    ? "Đã đặt"
-                    : "Không đủ chỗ";
-                return (
-                  <button
-                    key={t.table.id}
-                    type="button"
-                    disabled={!t.available}
-                    onClick={() => onSelect(t)}
-                    aria-label={`Bàn ${t.table.code}, ${t.table.seats} chỗ, ${statusLabel}`}
-                    aria-pressed={isSelected}
-                    className={cn(
-                      "flex h-[76px] flex-col items-center justify-center gap-1 rounded-xl border transition-all",
-                      t.available
-                        ? isSelected
-                          ? "border-[#b45309] bg-[#b45309] text-[#fffbf2] shadow-md shadow-[#b45309]/25"
-                          : "border-[#b45309]/45 bg-[#fffdf9] text-stone-700 hover:-translate-y-0.5 hover:border-[#b45309] hover:bg-[#fdf0d5] hover:shadow"
-                        : "cursor-not-allowed border-border/60 bg-muted/50 text-muted-foreground/60",
-                    )}
-                  >
-                    <span className="font-heading text-base font-semibold">
-                      {t.table.code}
-                    </span>
-                    <span className="flex items-center gap-1 text-[11px]">
-                      <Users className="h-3 w-3" aria-hidden />
-                      {t.table.seats} chỗ
-                    </span>
-                    <span
-                      className={cn(
-                        "flex items-center gap-0.5 text-[10px]",
-                        t.reason === "BOOKED" && "text-[#b3261e]/70",
-                      )}
-                    >
-                      {!t.available && (
-                        <Ban className="h-2.5 w-2.5" aria-hidden />
-                      )}
-                      {statusLabel}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded border border-[#b45309]/45 bg-[#fffdf9]" />
-          Trống — chọn được
+      {/* Khung bản vẽ mặt bằng phong cách kiến trúc Fine Dining */}
+      <div className="relative mx-auto aspect-square w-full max-w-2xl overflow-hidden rounded-3xl border border-[#c5a059]/40 bg-[#f7f2ea] p-2 shadow-2xl shadow-stone-900/10">
+        <div className="relative h-full w-full overflow-hidden rounded-2xl border border-stone-300/60 bg-[#fffdfa]">
+          { }
+          <img
+            src="/floorplan.jpg"
+            alt="Sơ đồ mặt bằng nhà hàng TRẦM"
+            className="pointer-events-none h-full w-full select-none object-cover filter contrast-[1.03] brightness-[1.01]"
+          />
+
+
+
+          {/* Các bàn được đặt vừa khít vào mặt bàn trên bản vẽ */}
+          {tables.filter((t) => FLOORPLAN_COORDINATES[t.table.code]).map((t) => {
+            const coord =
+              FLOORPLAN_COORDINATES[t.table.code] ?? {
+                x: 50,
+                y: 50,
+                w: 7.2,
+                h: 7.2,
+                shape: "circle",
+              };
+            const isSelected = selectedTableId === t.table.id;
+            const isHeld = t.reason === "HELD";
+            const isBooked = t.reason === "BOOKED";
+            const isTooSmall = t.reason === "TOO_SMALL";
+
+            // Style lớp phủ tiệp màu sang trọng theo từng trạng thái
+            let stateStyle = "";
+            let textStyle = "text-[#6b2b06]";
+            let ringGlow = "";
+
+            if (isSelected) {
+              stateStyle = "bg-[#b45309] text-[#fffdf9] shadow-lg shadow-[#b45309]/50 scale-105 z-30 ring-2 ring-[#f59e0b]";
+              textStyle = "text-white";
+              ringGlow = "animate-pulse";
+            } else if (isHeld) {
+              stateStyle = "bg-amber-500/80 text-white backdrop-blur-[1px] cursor-not-allowed border border-amber-300/80 z-20";
+              textStyle = "text-white";
+            } else if (isBooked) {
+              stateStyle = "bg-stone-800/75 text-stone-300 backdrop-blur-[2px] cursor-not-allowed border border-stone-500/40 z-10";
+              textStyle = "text-stone-300";
+            } else if (isTooSmall) {
+              stateStyle = "bg-stone-400/40 text-stone-500 backdrop-blur-[1px] cursor-not-allowed border border-dashed border-stone-400/50";
+              textStyle = "text-stone-600";
+            } else if (t.available) {
+              stateStyle =
+                "bg-[#f08c35]/25 hover:bg-[#b45309] hover:text-[#fffdf9] border border-[#b45309]/60 hover:border-white shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 z-20 cursor-pointer";
+              textStyle = "text-[#6b2b06] group-hover:text-white";
+            }
+
+            return (
+              <button
+                key={t.table.id}
+                type="button"
+                disabled={!t.available}
+                onClick={() => onSelect(t)}
+                style={{
+                  left: `${coord.x}%`,
+                  top: `${coord.y}%`,
+                  width: `${coord.w}%`,
+                  height: `${coord.h}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+                aria-label={`Bàn ${t.table.code}, ${t.table.seats} chỗ`}
+                className={cn(
+                  "group absolute flex flex-col items-center justify-center font-heading transition-all",
+                  coord.shape === "circle" ? "rounded-full" : "rounded-sm",
+                  stateStyle,
+                  ringGlow,
+                )}
+              >
+                <span className={cn("text-[11px] sm:text-xs font-bold leading-none tracking-tight", textStyle)}>
+                  {t.table.code}
+                </span>
+                <span
+                  className={cn(
+                    "text-[8px] sm:text-[9px] font-normal leading-none opacity-85 mt-0.5",
+                    textStyle,
+                  )}
+                >
+                  {isBooked ? "Kín" : isHeld ? "10p" : `${t.table.seats}C`}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Thanh chú thích tinh tế, gọn gàng phong cách nhà hàng cao cấp */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-6 rounded-2xl border border-border/80 bg-[#fffdf9]/90 px-4 py-3 text-xs shadow-sm backdrop-blur">
+        <span className="inline-flex items-center gap-1.5 font-medium text-stone-700">
+          <span className="h-3 w-3 rounded-full border border-[#b45309]/60 bg-[#f08c35]/30" />
+          Bàn trống (Chọn được)
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded border border-border/60 bg-muted/50" />
-          Đã đặt / không đủ chỗ
+        <span className="inline-flex items-center gap-1.5 font-medium text-amber-800">
+          <span className="h-3 w-3 rounded-full border border-amber-300 bg-amber-500/80" />
+          Đang có người đặt (Giữ 10p)
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 w-3 rounded bg-[#b45309]" />
+        <span className="inline-flex items-center gap-1.5 font-medium text-stone-600">
+          <span className="h-3 w-3 rounded-full border border-stone-500/50 bg-stone-800/80" />
+          Đã đặt
+        </span>
+        <span className="inline-flex items-center gap-1.5 font-medium text-stone-500">
+          <span className="h-3 w-3 rounded-full border border-dashed border-stone-400 bg-stone-300/40" />
+          Không đủ chỗ
+        </span>
+
+        <span className="inline-flex items-center gap-1.5 font-medium text-[#b45309]">
+          <span className="h-3 w-3 rounded-full bg-[#b45309] ring-2 ring-[#f59e0b]" />
           Đang chọn
         </span>
       </div>
@@ -304,9 +361,9 @@ function TableGrid({
   );
 }
 
-// ---------- Dialog thanh toán mô phỏng ----------
 type PayPhase = "method" | "processing" | "success";
 
+// ---------- Dialog thanh toán mô phỏng ----------
 function PaymentDialog({
   open,
   phase,
@@ -460,6 +517,8 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
   const [waitlistMode, setWaitlistMode] = useState(false);
 
   const [tableId, setTableId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [holdSecondsLeft, setHoldSecondsLeft] = useState<number>(0);
 
   // Trạng thái chọn 7 món và tùy chọn ẩm thực
   const [dishChoices, setDishChoices] = useState<Record<number, DishChoiceItem>>(
@@ -539,6 +598,13 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
 
   useEffect(() => {
     setToday(todayLocalISO());
+    // Khởi tạo hoặc lấy sessionId ẩn danh để nhận diện trình duyệt
+    let sid = sessionStorage.getItem("tram_booking_session");
+    if (!sid) {
+      sid = "sess_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now();
+      sessionStorage.setItem("tram_booking_session", sid);
+    }
+    setSessionId(sid);
   }, []);
 
   // Tải chỗ còn trống khi đổi ngày
@@ -570,7 +636,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
     setStep(2);
     try {
       const res = await fetch(
-        `/api/availability?date=${date}&slot=${slot}&partySize=${partySize}`,
+        `/api/availability?date=${date}&slot=${slot}&partySize=${partySize}&sessionId=${sessionId}`,
       );
       const data: AvailResp = await res.json();
       const list = data.tables ?? [];
@@ -587,6 +653,54 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
   const selectedTable = useMemo(
     () => tables?.find((t) => t.table.id === tableId) ?? null,
     [tables, tableId],
+  );
+
+  // Đếm ngược 10 phút giữ chỗ bàn
+  useEffect(() => {
+    if (!holdSecondsLeft || holdSecondsLeft <= 0) return;
+    const interval = setInterval(() => {
+      setHoldSecondsLeft((prev) => {
+        if (prev <= 1) {
+          toast.warning("Hết 10 phút giữ bàn. Bàn đã được mở lại cho khách khác.");
+          setTableId(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [holdSecondsLeft]);
+
+  // Hàm chọn bàn kèm gọi API giữ bàn 10 phút
+  const handleSelectTable = useCallback(
+    async (t: TableAvailability) => {
+      if (!t.available || !date || !slot || !sessionId) return;
+      try {
+        const res = await fetch("/api/table-hold", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "hold",
+            date,
+            slot,
+            tableId: t.table.id,
+            sessionId,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          toast.error(data.error ?? "Không thể chọn bàn này lúc này.");
+          void goStep2();
+          return;
+        }
+        setTableId(t.table.id);
+        setHoldSecondsLeft(data.remainingSeconds ?? 600);
+        toast.success(`Đã giữ bàn ${t.table.code} trong 10 phút để bạn hoàn tất đặt bàn!`);
+      } catch {
+        toast.error("Lỗi khi giữ bàn, vui lòng thử lại.");
+      }
+    },
+    [date, slot, sessionId, goStep2],
   );
 
   const pairingPrice =
@@ -954,7 +1068,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 <TableGrid
                   tables={tables}
                   selectedTableId={tableId}
-                  onSelect={(t) => setTableId(t.table.id)}
+                  onSelect={handleSelectTable}
                 />
               )}
 

@@ -9,6 +9,7 @@ import {
 } from "@/lib/tram/server";
 import { PRICES } from "@/lib/tram/constants";
 import { isClosedMonday } from "@/lib/tram/format";
+import { releaseTableHold } from "@/lib/tram/hold-manager";
 
 export async function GET(request: NextRequest) {
   try {
@@ -151,6 +152,8 @@ export async function POST(request: NextRequest) {
         .filter(Boolean)
         .join(" · ")
       : body.notes?.trim() || null;
+
+    releaseTableHold(body.date!, body.slot!, table.id);
 
     const created = await db.reservation.create({
       data: {

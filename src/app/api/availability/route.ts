@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ACTIVE_STATUSES, serializeReservation } from "@/lib/tram/server";
+import { getActiveHold } from "@/lib/tram/hold-manager";
 import { isClosedMonday } from "@/lib/tram/format";
 import type {
   AvailabilityResponse,
@@ -17,6 +18,7 @@ export async function GET(request: NextRequest) {
     const date = searchParams.get("date");
     const slot = searchParams.get("slot");
     const partySize = Number(searchParams.get("partySize") ?? "2");
+    const sessionId = searchParams.get("sessionId") ?? undefined;
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json(
@@ -68,6 +70,18 @@ export async function GET(request: NextRequest) {
             reservation: serializeReservation(booked),
           };
         }
+        // Kiểm tra bàn có đang bị người khác giữ chỗ (trong vòng 10 phút) hay không
+        const holdInfo = getActiveHold(date, slot, t.id, sessionId);
+        if (holdInfo.isHeldByOther) {
+          return {
+            table: t,
+            available: false,
+            reason: "HELD" as const,
+            reservation: null,
+            holdRemainingSeconds: Math.ceil(holdInfo.remainingMs / 1000),
+          };
+        }
+
         if (t.seats < partySize) {
           return {
             table: t,
