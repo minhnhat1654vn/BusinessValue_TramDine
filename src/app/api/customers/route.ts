@@ -2,10 +2,14 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { reservationTotal, serializeReservation } from "@/lib/tram/server";
+import { calculateLoyalty } from "@/lib/tram/loyalty";
 import type { CustomerProfileDTO, ReservationDTO } from "@/lib/tram/types";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const { searchParams } = new URL(req.url);
+    const searchPhone = searchParams.get("phone")?.trim();
+
     const seated = await db.reservation.findMany({
       where: { status: "SEATED" },
       include: { table: true },
@@ -47,6 +51,8 @@ export async function GET() {
               .filter((n): n is string => Boolean(n && n.trim())),
           ),
         );
+        const loyalty = calculateLoyalty(totalSpend, visits);
+
         return {
           name: c.name,
           phone: c.phone,
@@ -55,9 +61,34 @@ export async function GET() {
           lastVisit,
           notes,
           reservations: c.reservations,
+          tier: loyalty.tier,
+          points: loyalty.points,
+          nextTierVisits: loyalty.nextTierVisits,
+          nextTierPoints: loyalty.nextTierVisits * 10000,
+          nextTierName: loyalty.nextTierName,
+          tierProgress: loyalty.tierProgress,
         };
       })
-      .sort((a, b) => b.totalSpend - a.totalSpend);
+      .sort((a, b) => b.points - a.points);
+
+    // FR-22: Tra cứu riêng cho luồng đặt bàn theo SĐT
+    if (searchPhone) {
+      const matched = customers.find(
+        (c) => c.phone === searchPhone || c.phone === searchPhone.replace(/^0/, "+84"),
+      );
+      if (matched) {
+        return NextResponse.json({
+          customer: matched,
+          isNamTram: matched.tier === "NAM_TRAM",
+          depositExempt: matched.tier === "NAM_TRAM",
+        });
+      }
+      return NextResponse.json({
+        customer: null,
+        isNamTram: false,
+        depositExempt: false,
+      });
+    }
 
     return NextResponse.json({ customers });
   } catch (error) {

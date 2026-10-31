@@ -19,13 +19,16 @@ import {
   Plus,
   RotateCcw,
   ShieldCheck,
-  Sparkles,
   Users,
   UtensilsCrossed,
   Wallet,
   Wine,
   Coffee,
   Ban,
+  Gem,
+  Crown,
+  Award,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -476,6 +479,51 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
   const [payPhase, setPayPhase] = useState<PayPhase>("method");
   const [submitting, setSubmitting] = useState(false);
   const [created, setCreated] = useState<ReservationDTO | null>(null);
+
+  // FR-22: Tra cứu hạng hội viên theo SĐT để áp dụng miễn cọc Nam Trầm
+  const [loyaltyProfile, setLoyaltyProfile] = useState<{
+    found: boolean;
+    name: string;
+    visits: number;
+    tier: "HUONG" | "TRAM" | "NAM_TRAM";
+    points: number;
+    depositExempt: boolean;
+  } | null>(null);
+  const [checkingLoyalty, setCheckingLoyalty] = useState(false);
+
+  const checkLoyaltyByPhone = useCallback(async (phoneNum: string) => {
+    const clean = phoneNum.trim();
+    if (!/^0\d{9}$/.test(clean)) {
+      setLoyaltyProfile(null);
+      return;
+    }
+    setCheckingLoyalty(true);
+    try {
+      const res = await fetch(`/api/customers?phone=${encodeURIComponent(clean)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.customer) {
+          setLoyaltyProfile({
+            found: true,
+            name: data.customer.name,
+            visits: data.customer.visits,
+            tier: data.customer.tier,
+            points: data.customer.points,
+            depositExempt: data.customer.tier === "NAM_TRAM",
+          });
+          setName((prev) => (prev.trim() ? prev : data.customer.name));
+        } else {
+          setLoyaltyProfile(null);
+        }
+      }
+    } catch (e) {
+      console.error("Lookup error", e);
+    } finally {
+      setCheckingLoyalty(false);
+    }
+  }, []);
+
+  const isNamTram = loyaltyProfile?.tier === "NAM_TRAM";
 
   useEffect(() => {
     setToday(todayLocalISO());
@@ -1105,11 +1153,112 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     placeholder="09xxxxxxxx"
                     inputMode="numeric"
                     value={phone}
-                    onChange={(e) =>
-                      setPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^\d]/g, "").slice(0, 10);
+                      setPhone(val);
+                      if (val.length === 10) void checkLoyaltyByPhone(val);
+                      else setLoyaltyProfile(null);
+                    }}
                     className="h-11"
                   />
+                  {checkingLoyalty && (
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Đang tra cứu hạng thành viên...
+                    </p>
+                  )}
+                  {loyaltyProfile && (
+                    <div
+                      className={cn(
+                        "rounded-lg p-2.5 text-xs transition-all",
+                        loyaltyProfile.tier === "NAM_TRAM"
+                          ? "border border-amber-500/50 bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-purple-500/15 text-amber-950 font-medium"
+                          : loyaltyProfile.tier === "TRAM"
+                            ? "border border-amber-300 bg-amber-50 text-amber-900 font-medium"
+                            : "border border-stone-200 bg-stone-50 text-stone-700",
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        {loyaltyProfile.tier === "NAM_TRAM" ? (
+                          <Gem className="h-4 w-4 text-amber-600 shrink-0" />
+                        ) : loyaltyProfile.tier === "TRAM" ? (
+                          <Crown className="h-4 w-4 text-amber-600 shrink-0" />
+                        ) : (
+                          <Award className="h-4 w-4 text-stone-600 shrink-0" />
+                        )}
+                        <span>
+                          <strong>
+                            {loyaltyProfile.tier === "NAM_TRAM"
+                              ? "👑 Thượng khách Nam Trầm"
+                              : loyaltyProfile.tier === "TRAM"
+                                ? "Hạng Trầm"
+                                : "Hạng Hương"}
+                          </strong>{" "}
+                          ({loyaltyProfile.visits} lượt đến · {loyaltyProfile.points.toLocaleString("vi-VN")} pts)
+                          {loyaltyProfile.tier === "NAM_TRAM" && (
+                            <span className="block mt-0.5 text-emerald-800 font-bold">
+                              ✨ Đặc quyền FR-22: Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến!
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Thanh chọn nhanh thử nghiệm FR-22 */}
+              <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">
+                      ⚡ Thử nghiệm nhanh tính năng FR-22 (Miễn cọc Nam Trầm):
+                    </p>
+                    <p className="text-[11px] text-amber-800/80">
+                      Bấm vào số mẫu để tự động điền &amp; kích hoạt luồng miễn cọc
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setName("Trần Nam Trầm");
+                        setPhone("0909999999");
+                        setEmail("namtram@tramreserve.vn");
+                        void checkLoyaltyByPhone("0909999999");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-gradient-to-r from-amber-400 to-amber-200 px-3 py-1 text-xs font-extrabold text-stone-950 shadow-xs hover:brightness-105 transition-all"
+                    >
+                      <Gem className="h-3.5 w-3.5 text-amber-900" />
+                      0909 999 999 (Nam Trầm · 7 lượt)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setName("Nguyễn Hữu Phúc");
+                        setPhone("0993738817");
+                        setEmail("phuc.nguyen@gmail.com");
+                        void checkLoyaltyByPhone("0993738817");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900 hover:bg-amber-200 transition-colors"
+                    >
+                      <Crown className="h-3.5 w-3.5 text-amber-700" />
+                      0993 738 817 (Nam Trầm · 7 lượt)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setName("Lê Thu Hằng");
+                        setPhone("0913889848");
+                        setEmail("hang.le@gmail.com");
+                        void checkLoyaltyByPhone("0913889848");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100 transition-colors"
+                    >
+                      <Award className="h-3.5 w-3.5 text-stone-500" />
+                      0913 889 848 (Hạng Hương · Cọc 300k)
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">
@@ -1350,9 +1499,20 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       <span className="text-muted-foreground">
                         Đặt cọc ({formatVND(PRICES.deposit)} × {partySize})
                       </span>
-                      <span className="font-medium text-[#b45309]">
-                        {formatVND(depositAmount)}
-                      </span>
+                      {isNamTram ? (
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs line-through text-stone-400">
+                            {formatVND(depositAmount)}
+                          </span>
+                          <span className="rounded-full border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
+                            0 đ (Miễn cọc VIP)
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="font-medium text-[#b45309]">
+                          {formatVND(depositAmount)}
+                        </span>
+                      )}
                     </p>
                   </div>
                   <p className="text-xs leading-relaxed text-muted-foreground">

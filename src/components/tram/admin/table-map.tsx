@@ -10,6 +10,7 @@ import {
   LogIn,
   UserX,
   UtensilsCrossed,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,11 @@ import { DayStrip, LoadingBlock, SlotToggle, StatusBadge, useJson } from "./admi
 import { formatLongDate, formatVND } from "@/lib/tram/format";
 import { PAIRING_LABELS } from "@/lib/tram/constants";
 import type { AvailabilityResponse, ReservationDTO, Slot, TableAvailability } from "@/lib/tram/types";
+import {
+  CheckinRewardDialog,
+  type CheckinLoyaltyReward,
+} from "./checkin-reward-dialog";
+import { SurveyDialog } from "../survey/survey-dialog";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -81,6 +87,8 @@ export function AdminTableMap({ today }: TableMapProps) {
   const [selected, setSelected] = useState<TableAvailability | null>(null);
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [acting, setActing] = useState(false);
+  const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
+  const [surveyTarget, setSurveyTarget] = useState<ReservationDTO | null>(null);
 
   const { data, loading, refresh } = useJson<AvailResp>(
     `/api/availability?date=${date}&slot=${slot}&partySize=2`,
@@ -105,6 +113,9 @@ export function AdminTableMap({ today }: TableMapProps) {
         return;
       }
       toast.success(body.message ?? "Đã cập nhật trạng thái.");
+      if (action === "checkin" && body.loyalty) {
+        setRewardData(body.loyalty);
+      }
       setConfirmNoShow(false);
       setSelected(null);
       refresh();
@@ -260,8 +271,14 @@ export function AdminTableMap({ today }: TableMapProps) {
                     </p>
                     <p className="flex justify-between gap-2">
                       <span className="text-muted-foreground">Đặt cọc</span>
-                      <span className="text-[#292524]">
-                        {formatVND(selectedReservation.depositAmount)}
+                      <span className="text-[#292524] font-medium">
+                        {selectedReservation.depositAmount === 0 ? (
+                          <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-xs font-bold text-emerald-800">
+                            0 đ (Miễn cọc Nam Trầm)
+                          </span>
+                        ) : (
+                          formatVND(selectedReservation.depositAmount)
+                        )}
                       </span>
                     </p>
                     {selectedReservation.notes && (
@@ -298,6 +315,24 @@ export function AdminTableMap({ today }: TableMapProps) {
                       >
                         <UserX className="mr-1.5 h-4 w-4" aria-hidden />
                         Đánh dấu không đến
+                      </Button>
+                    </div>
+                  )}
+
+                  {selectedReservation.status === "SEATED" && (
+                    <div className="pt-2">
+                      <Button
+                        onClick={() => {
+                          const res = selectedReservation;
+                          setSelected(null);
+                          setSurveyTarget(res);
+                        }}
+                        className="w-full h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
+                      >
+                        <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
+                        {selectedReservation.survey
+                          ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 ⭐`
+                          : "Khảo sát sau bữa ăn"}
                       </Button>
                     </div>
                   )}
@@ -348,6 +383,24 @@ export function AdminTableMap({ today }: TableMapProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* FR-20: Pop-up chúc mừng tích điểm và thăng hạng khi Check-in */}
+      <CheckinRewardDialog
+        reward={rewardData}
+        open={rewardData !== null}
+        onClose={() => setRewardData(null)}
+      />
+
+      {/* FR-23: Pop-up Khảo sát sau bữa ăn */}
+      <SurveyDialog
+        reservation={surveyTarget}
+        open={surveyTarget !== null}
+        onClose={() => setSurveyTarget(null)}
+        onSubmitted={() => {
+          setSurveyTarget(null);
+          void refresh();
+        }}
+      />
     </div>
   );
 }

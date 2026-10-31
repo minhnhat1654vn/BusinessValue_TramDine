@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
     const reservations = await db.reservation.findMany({
       where: { date: { gte: dayStart, lte: dayEnd } },
-      include: { table: true },
+      include: { table: true, survey: true },
       orderBy: [{ slot: "asc" }, { createdAt: "asc" }],
     });
     return NextResponse.json({
@@ -133,6 +133,25 @@ export async function POST(request: NextRequest) {
       new Set(existing.map((r) => r.code)),
     );
 
+    // FR-22: Miễn cọc hạng cao nhất — Khách Nam Trầm (>= 6 lượt đến SEATED) được miễn 100% cọc 300.000 đ/khách
+    const pastSeatedCount = await db.reservation.count({
+      where: {
+        phone: body.phone!.trim(),
+        status: "SEATED",
+      },
+    });
+    const isNamTram = pastSeatedCount >= 6;
+    const depositAmount = isNamTram ? 0 : PRICES.deposit * partySize;
+
+    const finalNotes = isNamTram
+      ? [
+          body.notes?.trim(),
+          "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc (FR-22)]",
+        ]
+          .filter(Boolean)
+          .join(" · ")
+      : body.notes?.trim() || null;
+
     const created = await db.reservation.create({
       data: {
         code,
@@ -144,8 +163,9 @@ export async function POST(request: NextRequest) {
         date: dayStart,
         slot: body.slot!,
         pairing: body.pairing ?? "NONE",
-        notes: body.notes?.trim() || null,
+        notes: finalNotes,
         allergy: body.allergy?.trim() || null,
+<<<<<<< HEAD
         selectedDishes: body.selectedDishes
           ? typeof body.selectedDishes === "string"
             ? body.selectedDishes
@@ -153,6 +173,10 @@ export async function POST(request: NextRequest) {
           : null,
         status: "CONFIRMED", // cọc đã "thanh toán" (mô phỏng) → xác nhận luôn
         depositAmount: PRICES.deposit * partySize,
+=======
+        status: "CONFIRMED", // cọc đã xác nhận / miễn cọc VIP → xác nhận luôn
+        depositAmount,
+>>>>>>> a7887251d805bb5ebac55ea10aa459941d0c2121
         source: "WEB",
       },
       include: { table: true },

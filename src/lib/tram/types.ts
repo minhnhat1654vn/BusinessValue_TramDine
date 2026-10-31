@@ -37,6 +37,7 @@ export interface ReservationDTO {
   source: ReservationSource;
   createdAt: string;
   table: TableDTO;
+  survey?: SurveyDTO | null;
 }
 
 export interface WaitlistEntryDTO {
@@ -71,6 +72,12 @@ export interface AvailabilityResponse {
   tables: TableAvailability[] | null; // chỉ trả về khi có tham số slot
 }
 
+// FR-21: Chương trình ba hạng thân thiết (Bảng 8 nhóm 8):
+// - Hạng HƯƠNG (0–2 lượt đến)
+// - Hạng TRẦM (3–5 lượt đến)
+// - Hạng NAM TRẦM (6+ lượt đến)
+export type LoyaltyTier = "HUONG" | "TRAM" | "NAM_TRAM";
+
 export interface CustomerProfileDTO {
   name: string;
   phone: string;
@@ -79,6 +86,12 @@ export interface CustomerProfileDTO {
   lastVisit: string;
   notes: string[]; // ghi chú / dị ứng gộp
   reservations: ReservationDTO[];
+  tier: LoyaltyTier; // FR-21: Hạng thân thiết (HUONG, TRAM, NAM_TRAM)
+  points: number; // FR-20: Điểm tích lũy hiện tại (1.000 đ = 1 pt)
+  nextTierVisits?: number; // FR-21: Lượt cần để lên hạng (0-2 -> 3-5 -> 6+)
+  nextTierPoints?: number; // Điểm cần để lên hạng tiếp theo
+  nextTierName: string; // Tên hạng tiếp theo
+  tierProgress: number; // 0..100 (%) tiến độ lên hạng
 }
 
 export interface OccupancyPoint {
@@ -108,3 +121,43 @@ export interface AdminStats {
   waitlistWeekend: WaitlistEntryDTO[];
   windowLabel: string; // mô tả khoảng thời gian thống kê
 }
+
+// FR-23: Khảo sát sau bữa ăn — Thăm dò 5 sao gắn với lượt đã phục vụ
+export interface SurveyDTO {
+  id: string;
+  reservationId: string;
+  rating: number; // 1..5 sao tổng quan
+  foodRating: number; // 1..5 sao món ăn
+  serviceRating: number; // 1..5 sao phục vụ
+  ambianceRating: number; // 1..5 sao không gian
+  pairingRating: number; // 1..5 sao đồ uống
+  comment: string | null;
+  recommend: boolean;
+  bonusPointsGiven: number;
+  createdAt: string;
+}
+
+// FR-24: Phân bố sao đánh giá (5★ -> 1★)
+export interface StarDistributionItem {
+  star: number; // 5, 4, 3, 2, 1
+  count: number;
+  percent: number; // 0..100 (%)
+}
+
+export interface SurveyStatsDTO {
+  totalSurveys: number;
+  averageRating: number;
+  avgFood: number;
+  avgService: number;
+  avgAmbiance: number;
+  avgPairing: number;
+  recommendPercent: number;
+  starDistribution: StarDistributionItem[];
+  recentSurveys: (SurveyDTO & {
+    reservationCode: string;
+    customerName: string;
+    phone: string;
+    date: string;
+  })[];
+}
+

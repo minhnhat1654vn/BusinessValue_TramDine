@@ -1,11 +1,5 @@
--- =============================================================================
--- TRẦM Reserve Database Schema (SQLite)
--- Chuyển đổi từ prisma/schema.prisma
--- =============================================================================
-
 PRAGMA foreign_keys = ON;
 
--- 1. Bảng Bàn ăn (Table) — 12 bàn, 42 chỗ
 CREATE TABLE IF NOT EXISTS "Table" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "code" TEXT NOT NULL,
@@ -15,8 +9,6 @@ CREATE TABLE IF NOT EXISTS "Table" (
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Table_code_key" ON "Table"("code");
 
-
--- 2. Bảng Lượt đặt bàn (Reservation)
 CREATE TABLE IF NOT EXISTS "Reservation" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "code" TEXT NOT NULL,
@@ -47,7 +39,6 @@ CREATE INDEX IF NOT EXISTS "Reservation_date_slot_idx" ON "Reservation"("date", 
 CREATE INDEX IF NOT EXISTS "Reservation_tableId_date_slot_idx" ON "Reservation"("tableId", "date", "slot");
 
 
--- 3. Bảng Danh sách chờ (WaitlistEntry)
 CREATE TABLE IF NOT EXISTS "WaitlistEntry" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "name" TEXT NOT NULL,
@@ -61,3 +52,24 @@ CREATE TABLE IF NOT EXISTS "WaitlistEntry" (
 );
 
 CREATE INDEX IF NOT EXISTS "WaitlistEntry_date_slot_idx" ON "WaitlistEntry"("date", "slot");
+ 
+CREATE TABLE IF NOT EXISTS "Survey" (
+     "id" TEXT NOT NULL PRIMARY KEY,
+     "reservationId" TEXT NOT NULL UNIQUE,
+     "rating" INTEGER NOT NULL,
+     "foodRating" INTEGER NOT NULL DEFAULT 5,
+     "serviceRating" INTEGER NOT NULL DEFAULT 5,
+     "ambianceRating" INTEGER NOT NULL DEFAULT 5,
+     "pairingRating" INTEGER NOT NULL DEFAULT 5,
+     "comment" TEXT,
+     "recommend" BOOLEAN NOT NULL DEFAULT 1,
+     "bonusPointsGiven" INTEGER NOT NULL DEFAULT 200,
+     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+     CONSTRAINT "Survey_reservationId_fkey" 
+         FOREIGN KEY ("reservationId") 
+         REFERENCES "Reservation" ("id") 
+         ON DELETE CASCADE 
+         ON UPDATE CASCADE
+ );
+
+CREATE UNIQUE INDEX IF NOT EXISTS "Survey_reservationId_key" ON "Survey"("reservationId");
