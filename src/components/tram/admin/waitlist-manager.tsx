@@ -3,8 +3,9 @@
 // 3.5 Quản lý waitlist — mời khách theo (ngày, khung)
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { BellRing, MailCheck, Phone } from "lucide-react";
+import { BellRing, MailCheck, Phone, Search, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -13,7 +14,7 @@ import {
   useJson,
   useToday,
 } from "./admin-shared";
-import { formatLongDate, WEEKDAY_FULL_LABELS, weekdayOf } from "@/lib/tram/format";
+import { formatLongDate, formatShortDate, WEEKDAY_FULL_LABELS, weekdayOf } from "@/lib/tram/format";
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import type { WaitlistEntryDTO } from "@/lib/tram/types";
 
@@ -27,9 +28,49 @@ export function AdminWaitlist() {
   const { data, loading, error, refresh } = useJson<WaitlistResponse>(url);
   const [inviting, setInviting] = useState<string | null>(null);
 
+  // FR-13: Bộ lọc & Tìm kiếm
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<string>("ALL");
+  const [slotFilter, setSlotFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+
+  // Danh sách các ngày duy nhất có waitlist để làm dropdown lọc
+  const uniqueDates = useMemo(() => {
+    if (!data?.entries) return [];
+    const set = new Set(data.entries.map((w) => w.date));
+    return Array.from(set).sort();
+  }, [data?.entries]);
+
+  // Lọc danh sách chờ theo tên, SĐT, ngày, khung giờ và trạng thái
+  const filteredEntries = useMemo(() => {
+    if (!data?.entries) return [];
+    return data.entries.filter((w) => {
+      // 1. Tìm theo tên hoặc SĐT
+      if (search.trim()) {
+        const q = search.trim().toLowerCase();
+        const matchName = w.name.toLowerCase().includes(q);
+        const matchPhone = w.phone.toLowerCase().includes(q);
+        if (!matchName && !matchPhone) return false;
+      }
+      // 2. Lọc theo ngày
+      if (dateFilter !== "ALL" && w.date !== dateFilter) {
+        return false;
+      }
+      // 3. Lọc theo khung giờ
+      if (slotFilter !== "ALL" && w.slot !== slotFilter) {
+        return false;
+      }
+      // 4. Lọc theo trạng thái
+      if (statusFilter !== "ALL" && w.status !== statusFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [data?.entries, search, dateFilter, slotFilter, statusFilter]);
+
   const groups = useMemo(() => {
     const map = new Map<string, WaitlistEntryDTO[]>();
-    for (const w of data?.entries ?? []) {
+    for (const w of filteredEntries) {
       const key = `${w.date}|${w.slot}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(w);
@@ -37,7 +78,16 @@ export function AdminWaitlist() {
     return Array.from(map.entries()).sort((a, b) =>
       a[0].localeCompare(b[0]),
     );
-  }, [data]);
+  }, [filteredEntries]);
+
+  const hasFilters = search !== "" || dateFilter !== "ALL" || slotFilter !== "ALL" || statusFilter !== "ALL";
+
+  function resetFilters() {
+    setSearch("");
+    setDateFilter("ALL");
+    setSlotFilter("ALL");
+    setStatusFilter("ALL");
+  }
 
   async function invite(entry: WaitlistEntryDTO) {
     setInviting(entry.id);
@@ -67,15 +117,92 @@ export function AdminWaitlist() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-[#fffdf9] px-4 py-3 text-sm">
-        <p className="font-medium text-[#92400e]">
-          {data?.entries.length ?? 0} khách đang chờ · {groups.length} khung có
-          danh sách
-        </p>
-        <p className="text-xs text-muted-foreground">
-          “Mời khách” mô phỏng gửi tin nhắn/cú gọi — trạng thái đổi sang “Đã
-          mời”.
-        </p>
+      {/* FR-13: Thanh tìm kiếm & bộ lọc ngày, khung giờ, trạng thái */}
+      <div className="rounded-2xl border border-stone-200/90 bg-[#fffdf9] p-4 shadow-xs space-y-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {/* Ô tìm kiếm */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+            <Input
+              type="text"
+              placeholder="Tìm theo tên thực khách hoặc số điện thoại..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 pl-9 pr-8 bg-white border-stone-200 rounded-xl text-sm"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Các bộ lọc */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Lọc Ngày */}
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="h-10 rounded-xl border border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-2xs focus:outline-hidden"
+            >
+              <option value="ALL">Mọi ngày</option>
+              {uniqueDates.map((d) => (
+                <option key={d} value={d}>
+                  {formatShortDate(d)} ({WEEKDAY_FULL_LABELS[weekdayOf(d)]})
+                </option>
+              ))}
+            </select>
+
+            {/* Lọc Khung giờ */}
+            <select
+              value={slotFilter}
+              onChange={(e) => setSlotFilter(e.target.value)}
+              className="h-10 rounded-xl border border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-2xs focus:outline-hidden"
+            >
+              <option value="ALL">Mọi khung giờ</option>
+              <option value="SLOT_1730">Khung 17:30</option>
+              <option value="SLOT_1945">Khung 19:45</option>
+            </select>
+
+            {/* Lọc Trạng thái */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="h-10 rounded-xl border border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-2xs focus:outline-hidden"
+            >
+              <option value="ALL">Mọi trạng thái</option>
+              <option value="WAITING">Đang chờ</option>
+              <option value="INVITED">Đã mời</option>
+            </select>
+
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="h-10 rounded-xl text-xs text-amber-900 hover:bg-amber-100/50"
+              >
+                <X className="mr-1 h-3.5 w-3.5" />
+                Đặt lại
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Thông tin thống kê sau khi lọc */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/60 pt-2.5 text-xs text-muted-foreground">
+          <p>
+            Hiển thị <strong className="text-amber-950 font-bold">{filteredEntries.length}</strong> / {data?.entries.length ?? 0} khách chờ
+            {groups.length > 0 && ` (${groups.length} khung giờ)`}
+          </p>
+          <p className="text-[11px]">
+            Thứ tự ưu tiên xếp theo số thứ tự đăng ký danh sách chờ.
+          </p>
+        </div>
       </div>
 
       {groups.length === 0 && (

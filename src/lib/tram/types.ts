@@ -98,9 +98,13 @@ export interface OccupancyPoint {
   date: string;
   label: string; // vd "T6 24/10"
   weekday: number; // 0=CN..6=T7
-  occupied: number; // số chỗ đã đặt
+  occupied: number; // tổng số chỗ đã đặt
   capacity: number; // 84 (2 khung × 42) hoặc 0 nếu nghỉ
   percent: number; // 0..100
+  slot1730Occupied: number; // chỗ đặt khung 17:30
+  slot1730Percent: number; // % lấp chỗ khung 17:30 (trên 42 chỗ)
+  slot1945Occupied: number; // chỗ đặt khung 19:45
+  slot1945Percent: number; // % lấp chỗ khung 19:45 (trên 42 chỗ)
 }
 
 export interface SourceShare {
@@ -152,7 +156,7 @@ export interface SurveyStatsDTO {
   avgAmbiance: number;
   avgPairing: number;
   recommendPercent: number;
-  starDistribution: StarDistributionItem[];
+  starDistribution?: StarDistributionItem[];
   recentSurveys: (SurveyDTO & {
     reservationCode: string;
     customerName: string;
@@ -160,4 +164,46 @@ export interface SurveyStatsDTO {
     date: string;
   })[];
 }
+
+// FR-24: Đánh giá Google Maps (Mô phỏng Places API)
+export interface GoogleMapsReviewDTO {
+  id: string;
+  authorName: string;
+  authorPhoto?: string;
+  isLocalGuide?: boolean;
+  localGuideLevel?: number;
+  rating: number; // 1..5
+  relativeTime: string;
+  content: string;
+  depositPhone?: string; // SĐT đặt cọc nhận diện khách hàng
+  customerName?: string;
+  reservationCode?: string;
+  tags: string[]; // Tag nổi bật (vd: "Bò Wagyu A5", "Pairing trà")
+  pointsAwarded: boolean; // Đã tặng 200 điểm tri ân hay chưa
+  reply?: {
+    content: string;
+    repliedAt: string;
+    repliedBy: string;
+  } | null;
+}
+
+export interface GoogleMapsSyncStats {
+  placeName: string;
+  address: string;
+  overallRating: number; // vd 4.9
+  totalReviews: number; // vd 128
+  regionalAvgRating: number; // vd 4.3 (khu vực Q1)
+  ratingDifference: number; // +0.6
+  starDistribution: {
+    star: number;
+    count: number;
+    percent: number;
+  }[];
+  highlightTags: {
+    tag: string;
+    count: number;
+  }[];
+  lastSyncedAt: string;
+}
+
 

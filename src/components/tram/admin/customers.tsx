@@ -29,11 +29,11 @@ import {
   ArrowRight,
   Filter,
   TableProperties,
-  ShieldCheck,
   Clock,
   Send,
   Mail,
   MessageCircle,
+  Phone,
 } from "lucide-react";
 import { ReEngagementDialog } from "./re-engagement-dialog";
 import { TierUpgradeDialog } from "./tier-upgrade-dialog";
@@ -47,6 +47,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -111,7 +118,7 @@ export function AdminCustomers() {
   const [showBang8, setShowBang8] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedTier, setSelectedTier] = useState<LoyaltyTier | "ALL">("ALL");
-  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
 
   // FR-25: Quản lý khách hàng cần mời lại (≥ 21 ngày chưa quay lại)
   const [reEngageCustomer, setReEngageCustomer] = useState<{
@@ -204,15 +211,13 @@ export function AdminCustomers() {
         className="relative overflow-hidden rounded-2xl border border-amber-900/15 bg-gradient-to-br from-[#fffdf9] via-[#fcf6eb] to-[#f9eed9] p-5 shadow-sm"
       >
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309] text-white shadow-sm">
-                <Crown className="h-4 w-4" />
-              </span>
-              <h2 className="font-heading text-lg font-bold text-[#292524] md:text-xl">
-                Chương Trình Ba Hạng Thân Thiết
-              </h2>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309] text-white shadow-sm">
+              <Crown className="h-4 w-4" />
+            </span>
+            <h2 className="font-heading text-lg font-bold text-[#292524] md:text-xl">
+              Chương Trình Ba Hạng Thân Thiết
+            </h2>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -487,7 +492,7 @@ export function AdminCustomers() {
             }`}
           >
             <Gem className="h-3.5 w-3.5 text-purple-600" />
-            Nam Trầm · 6+ lượt ({stats.namTramCount})
+            Nam Trầm ({stats.namTramCount})
           </button>
           <button
             onClick={() => {
@@ -501,7 +506,7 @@ export function AdminCustomers() {
             }`}
           >
             <Crown className="h-3.5 w-3.5 text-amber-600" />
-            Trầm · 3–5 lượt ({stats.tramCount})
+            Trầm ({stats.tramCount})
           </button>
           <button
             onClick={() => {
@@ -515,7 +520,7 @@ export function AdminCustomers() {
             }`}
           >
             <Award className="h-3.5 w-3.5 text-stone-500" />
-            Hương · 0–2 lượt ({stats.huongCount})
+            Hương ({stats.huongCount})
           </button>
 
           {/* Nút lọc nhanh khách cần mời lại ≥ 21 ngày */}
@@ -830,169 +835,321 @@ export function AdminCustomers() {
         /* TABLE VIEW */
         <motion.div
           key="table-view"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="tram-scroll overflow-x-auto rounded-xl border border-border bg-card shadow-xs"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="overflow-hidden rounded-2xl border border-stone-200/90 bg-card shadow-sm"
         >
-          <Table className="min-w-[880px]">
-            <TableHeader>
-              <TableRow className="bg-[#f5efe4] hover:bg-[#f5efe4]">
-                <TableHead className="pl-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Khách hàng
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Hạng Thân Thiết
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Số Lần Đến
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Điểm Tích Lũy
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Tổng Chi Tiêu
-                </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Lần Cuối
-                </TableHead>
-                <TableHead className="pr-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
-                  Thao Tác
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCustomers.map((c) => {
-                const tierConfig = LOYALTY_TIERS[c.tier] ?? LOYALTY_TIERS.HUONG;
-                return (
-                  <TableRow
-                    key={`${c.name}-${c.phone}`}
-                    className="cursor-pointer border-border/70 hover:bg-[#fdf0d5]/40 transition-colors"
-                    onClick={() => setDetail(c)}
-                  >
-                    <TableCell className="pl-4 font-medium text-[#292524]">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold ${
-                            c.tier === "NAM_TRAM"
-                              ? "bg-purple-950 text-amber-300"
-                              : c.tier === "TRAM"
-                                ? "bg-amber-600 text-white"
-                                : "bg-stone-200 text-stone-800"
-                          }`}
-                        >
-                          {c.name.slice(0, 1)}
-                        </div>
-                        <div>
-                          <p className="font-semibold">{c.name}</p>
-                          <p className="text-xs text-muted-foreground">{c.phone}</p>
-                        </div>
-                      </div>
-                    </TableCell>
+          {/* Subtle Table Top Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-200/80 bg-gradient-to-r from-[#fbf8f3] via-[#faf6ef] to-[#fbf8f3] px-5 py-3">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-2 w-2 rounded-full bg-[#b45309] ring-4 ring-amber-100" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-stone-700">
+                Danh Sách Khách Hàng
+              </h3>
+              <span className="rounded-full bg-amber-100/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-900 border border-amber-200/60">
+                {filteredCustomers.length} hồ sơ
+              </span>
+            </div>
+            <p className="text-[11px] text-stone-500">
+              Nhấp vào hàng để xem hồ sơ chi tiết &amp; lịch sử ẩm thực
+            </p>
+          </div>
 
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold ${tierConfig.badgeBg} ${tierConfig.badgeText} ${tierConfig.badgeBorder}`}
-                      >
-                        <TierIcon tier={c.tier} className="h-3 w-3" />
-                        {tierConfig.name}
-                      </span>
-                    </TableCell>
+          <div className="tram-scroll overflow-x-auto">
+            <Table className="w-full min-w-[1100px] table-fixed">
+              <TableHeader>
+                <TableRow className="border-b border-stone-200/80 bg-[#f9f5ed]/90 hover:bg-[#f9f5ed]/90 h-11">
+                  <TableHead className="w-[19%] pl-5 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Khách Hàng
+                  </TableHead>
+                  <TableHead className="w-[13%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Hạng Thân Thiết
+                  </TableHead>
+                  <TableHead className="w-[8%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-center align-middle">
+                    Lượt Đến
+                  </TableHead>
+                  <TableHead className="w-[12%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Điểm Tích Lũy
+                  </TableHead>
+                  <TableHead className="w-[13%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Tổng Chi Tiêu
+                  </TableHead>
+                  <TableHead className="w-[9%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Lần Cuối
+                  </TableHead>
+                  <TableHead className="w-[19%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                    Ghi Chú &amp; Dị Ứng
+                  </TableHead>
+                  <TableHead className="w-[7%] pr-5 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-right align-middle">
+                    Thao Tác
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredCustomers.map((c) => {
+                  const lastVisitText = c.lastVisit
+                    ? formatLongDate(c.lastVisit).split(", ")[1] ?? "—"
+                    : "—";
 
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className="border-[#b45309]/40 bg-[#fdf0d5] font-bold text-[#92400e]"
-                      >
-                        {c.visits} lần đến
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-1.5 font-bold text-[#92400e]">
-                        <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                        <span>{formatPoints(c.points)} pts</span>
-                      </div>
-                      <div className="mt-1 h-1 w-24 overflow-hidden rounded-full bg-stone-100">
-                        <div
-                          className="h-full bg-amber-500"
-                          style={{ width: `${c.tierProgress}%` }}
-                        />
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="font-semibold text-[#292524]">
-                      {formatVND(c.totalSpend)}
-                    </TableCell>
-
-                    <TableCell className="text-muted-foreground text-xs">
-                      <div>{formatLongDate(c.lastVisit).split(", ")[1]}</div>
-                      {getDaysSinceLastVisit(c.lastVisit) >= 21 ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900 mt-1">
-                          <Clock className="h-2.5 w-2.5 text-amber-700" />
-                          Đã {getDaysSinceLastVisit(c.lastVisit)} ngày
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-stone-400">
-                          ({getDaysSinceLastVisit(c.lastVisit)} ngày trước)
-                        </span>
-                      )}
-                    </TableCell>
-
-                    <TableCell className="pr-4">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {getDaysSinceLastVisit(c.lastVisit) >= 21 && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setReEngageCustomer({
-                                customer: c,
-                                days: getDaysSinceLastVisit(c.lastVisit),
-                              });
-                            }}
-                            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold shadow-2xs transition-all ${
-                              sentPhones.has(c.phone)
-                                ? "bg-emerald-50 border border-emerald-300 text-emerald-800"
-                                : "bg-amber-600 text-white hover:bg-amber-700"
+                  return (
+                    <TableRow
+                      key={`${c.name}-${c.phone}`}
+                      className="group cursor-pointer border-b border-stone-100 min-h-[68px] hover:bg-[#fbf7ee]/70 transition-colors duration-150"
+                      onClick={() => setDetail(c)}
+                    >
+                      {/* 1. Khách Hàng (Avatar & Name & Phone) */}
+                      <TableCell className="pl-5 py-3 align-middle whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-transform group-hover:scale-105 ${
+                              c.tier === "NAM_TRAM"
+                                ? "bg-gradient-to-br from-purple-950 via-purple-900 to-amber-950 text-amber-300 ring-2 ring-purple-300/40 shadow-xs"
+                                : c.tier === "TRAM"
+                                  ? "bg-gradient-to-br from-amber-600 to-amber-800 text-white ring-2 ring-amber-300/40 shadow-xs"
+                                  : "bg-gradient-to-br from-stone-100 to-stone-200 text-stone-700 ring-1 ring-stone-300/80 shadow-2xs"
                             }`}
                           >
-                            <Send className="h-3 w-3" />
-                            {sentPhones.has(c.phone) ? "Đã gửi" : "Mời lại"}
-                          </button>
+                            {c.name.slice(0, 1)}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm leading-tight text-stone-900 transition-colors group-hover:text-[#b45309] truncate">
+                              {c.name}
+                            </p>
+                            <p className="mt-0.5 flex items-center gap-1 font-mono text-xs text-stone-500">
+                              <Phone className="h-2.5 w-2.5 text-stone-400 shrink-0" />
+                              <span>{c.phone}</span>
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* 2. Hạng Thân Thiết */}
+                      <TableCell className="py-3 align-middle whitespace-nowrap">
+                        {c.tier === "NAM_TRAM" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200/90 bg-gradient-to-r from-purple-50 via-fuchsia-50/50 to-amber-50 px-3 py-1 text-xs font-bold text-purple-950 shadow-2xs">
+                            <Gem className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                            Hạng Nam Trầm
+                          </span>
+                        ) : c.tier === "TRAM" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50/90 px-3 py-1 text-xs font-bold text-amber-950 shadow-2xs">
+                            <Crown className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                            Hạng Trầm
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-700 shadow-2xs">
+                            <Award className="h-3.5 w-3.5 text-stone-500 shrink-0" />
+                            Hạng Hương
+                          </span>
                         )}
-                        {/* FR-26: Nút xem Thư chúc mừng lên hạng trong bảng */}
-                        {c.visits >= 3 && (
+                      </TableCell>
+
+                      {/* 3. Lượt Đến */}
+                      <TableCell className="py-3 align-middle text-center whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-baseline gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                            c.visits >= 6
+                              ? "border border-purple-200/80 bg-purple-50/80 text-purple-950"
+                              : c.visits >= 3
+                                ? "border border-amber-200/80 bg-amber-50/80 text-amber-950"
+                                : "border border-stone-200/80 bg-stone-50/80 text-stone-700"
+                          }`}
+                        >
+                          <span className="font-bold text-sm">
+                            {c.visits}
+                          </span>
+                          <span className="text-[11px] font-normal opacity-70">
+                            lượt
+                          </span>
+                        </span>
+                      </TableCell>
+
+                      {/* 4. Điểm Tích Lũy */}
+                      <TableCell className="py-3 align-middle whitespace-nowrap">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 shrink-0" />
+                            <span className="font-bold text-sm text-[#92400e]">
+                              {formatPoints(c.points)}
+                            </span>
+                            <span className="text-[11px] font-medium text-stone-400">
+                              pts
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-stone-100 ring-1 ring-stone-200/50">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  c.tier === "NAM_TRAM"
+                                    ? "bg-gradient-to-r from-purple-500 via-rose-500 to-amber-500"
+                                    : c.tier === "TRAM"
+                                      ? "bg-gradient-to-r from-amber-400 to-amber-600"
+                                      : "bg-gradient-to-r from-stone-300 to-stone-500"
+                                }`}
+                                style={{
+                                  width: `${Math.min(100, Math.max(10, c.tierProgress))}%`,
+                                }}
+                              />
+                            </div>
+                            <span className="text-[10px] font-medium text-stone-400">
+                              {c.tier === "NAM_TRAM" ? "MAX" : `${c.tierProgress}%`}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      {/* 5. Tổng Chi Tiêu */}
+                      <TableCell className="py-3 align-middle text-left whitespace-nowrap">
+                        <p className="font-mono text-sm font-bold text-stone-900 leading-tight">
+                          {formatVND(c.totalSpend)}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-medium text-stone-400">
+                          TB ~{formatVND(Math.round(c.totalSpend / Math.max(1, c.visits)))} / lượt
+                        </p>
+                      </TableCell>
+
+                      {/* 6. Lần Cuối */}
+                      <TableCell className="py-3 align-middle text-left whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
+                          <Calendar className="h-3.5 w-3.5 text-stone-400 shrink-0" />
+                          <span>{lastVisitText}</span>
+                        </div>
+                      </TableCell>
+
+                      {/* 7. Chip Ghi Chú & Dị Ứng */}
+                      <TableCell className="py-3 align-middle text-left">
+                        {c.notes && c.notes.length > 0 ? (
+                          <div className="flex items-start gap-1.5">
+                            {(() => {
+                              const sortedNotes = [...c.notes].sort((a, b) => {
+                                const aIsAllergy = /dị ứng|hải sản|cồn|chay|đậu|tôm|bò|cua|hạt|sữa/i.test(a);
+                                const bIsAllergy = /dị ứng|hải sản|cồn|chay|đậu|tôm|bò|cua|hạt|sữa/i.test(b);
+                                return (bIsAllergy ? 1 : 0) - (aIsAllergy ? 1 : 0);
+                              });
+                              const primaryNote = sortedNotes[0];
+                              const isAllergy = /dị ứng|hải sản|cồn|chay|đậu|tôm|bò|cua|hạt|sữa/i.test(primaryNote);
+
+                              return (
+                                <>
+                                  <span
+                                    className={`inline-flex items-start gap-1.5 rounded-lg px-2.5 py-1 text-[11px] leading-snug font-medium whitespace-normal break-words max-w-[240px] ${
+                                      isAllergy
+                                        ? "border border-rose-200/90 bg-rose-50/90 font-semibold text-rose-700 shadow-2xs"
+                                        : "border border-amber-200/80 bg-amber-50/80 font-medium text-amber-900 shadow-2xs"
+                                    }`}
+                                    title={c.notes.join(" • ")}
+                                  >
+                                    <span
+                                      className={`h-1.5 w-1.5 shrink-0 rounded-full mt-1.5 ${
+                                        isAllergy
+                                          ? "bg-rose-500"
+                                          : "bg-amber-500"
+                                      }`}
+                                    />
+                                    <span>{primaryNote}</span>
+                                  </span>
+                                  {sortedNotes.length > 1 && (
+                                    <span
+                                      className="mt-0.5 rounded-md border border-stone-200/80 bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-600 shrink-0"
+                                      title={sortedNotes.slice(1).join(" • ")}
+                                    >
+                                      +{sortedNotes.length - 1}
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-stone-300 font-mono pl-1">—</span>
+                        )}
+                      </TableCell>
+
+                      {/* 8. Thao Tác */}
+                      <TableCell className="pr-5 py-3 align-middle text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {getDaysSinceLastVisit(c.lastVisit) >= 21 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReEngageCustomer({
+                                  customer: c,
+                                  days: getDaysSinceLastVisit(c.lastVisit),
+                                });
+                              }}
+                              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold shadow-2xs transition-all ${
+                                sentPhones.has(c.phone)
+                                  ? "bg-emerald-50 border border-emerald-300 text-emerald-800"
+                                  : "bg-amber-600 text-white hover:bg-amber-700"
+                              }`}
+                            >
+                              <Send className="h-3 w-3" />
+                              {sentPhones.has(c.phone) ? "Đã gửi" : "Mời lại"}
+                            </button>
+                          )}
+                          {c.visits >= 3 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setUpgradeLetterCustomer({
+                                  customer: c,
+                                  milestone: c.visits >= 6 ? 6 : 3,
+                                });
+                              }}
+                              title="Thư chúc mừng lên hạng"
+                              className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-all shadow-2xs"
+                            >
+                              <Sparkles className="h-3 w-3 text-amber-600" />
+                              Thư lên hạng
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setUpgradeLetterCustomer({
-                                customer: c,
-                                milestone: c.visits >= 6 ? 6 : 3,
-                              });
+                              setDetail(c);
                             }}
-                            title="Thư chúc mừng lên hạng"
-                            className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100 transition-all shadow-2xs"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200/90 bg-stone-50/70 px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-2xs transition-all duration-150 group-hover:border-[#b45309] group-hover:bg-[#b45309] group-hover:text-white"
                           >
-                            <Sparkles className="h-3 w-3 text-amber-600" />
-                            Thư lên hạng
+                            <Eye className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
+                            <span>Chi tiết</span>
                           </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDetail(c);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-md border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 hover:border-amber-600 hover:text-amber-800"
-                        >
-                          <Eye className="h-3 w-3" />
-                          Chi tiết
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Table Footer Bar */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-200/80 bg-[#fbf8f3] px-5 py-3 text-xs text-stone-500">
+            <div>
+              Hiển thị{" "}
+              <span className="font-bold text-stone-800">
+                {filteredCustomers.length}
+              </span>{" "}
+              trên tổng số{" "}
+              <span className="font-semibold text-stone-700">
+                {customers.length}
+              </span>{" "}
+              khách hàng
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-[11px]">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-purple-700" />
+                Nam Trầm: <strong className="text-purple-950 font-bold">{stats.namTramCount}</strong>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-[#b45309]" />
+                Trầm: <strong className="text-amber-950 font-bold">{stats.tramCount}</strong>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-stone-400" />
+                Hương: <strong className="text-stone-800 font-bold">{stats.huongCount}</strong>
+              </span>
+            </div>
+          </div>
         </motion.div>
       )}
 
@@ -1084,17 +1241,20 @@ export function AdminCustomers() {
         </DialogContent>
       </Dialog>
 
-      {/* 5. DIALOG: Hồ sơ Hội viên VIP & Lịch sử Đặt bàn */}
-      <Dialog open={detail !== null} onOpenChange={(v) => !v && setDetail(null)}>
-        <DialogContent className="max-w-2xl border-border bg-[#faf8f3] p-0 overflow-hidden [&_[data-slot=dialog-close]]:text-stone-200 [&_[data-slot=dialog-close]]:hover:text-white [&_[data-slot=dialog-close]]:bg-black/30 [&_[data-slot=dialog-close]]:hover:bg-black/55 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:z-20 [&_[data-slot=dialog-close]]:transition-all [&_[data-slot=dialog-close]]:border [&_[data-slot=dialog-close]]:border-white/15">
+      {/* 5. DRAWER (FR-17): Hồ sơ Hội viên VIP & Lịch sử Đặt bàn — Mở dạng Drawer trượt từ bên phải */}
+      <Sheet open={detail !== null} onOpenChange={(v) => !v && setDetail(null)}>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-xl md:max-w-2xl p-0 overflow-hidden bg-[#faf8f3] border-l border-amber-900/20 shadow-2xl [&_[data-slot=sheet-close]]:text-stone-200 [&_[data-slot=sheet-close]]:hover:text-white [&_[data-slot=sheet-close]]:bg-black/30 [&_[data-slot=sheet-close]]:hover:bg-black/55 [&_[data-slot=sheet-close]]:rounded-full [&_[data-slot=sheet-close]]:p-1.5 [&_[data-slot=sheet-close]]:top-4 [&_[data-slot=sheet-close]]:right-4 [&_[data-slot=sheet-close]]:z-20 [&_[data-slot=sheet-close]]:transition-all [&_[data-slot=sheet-close]]:border [&_[data-slot=sheet-close]]:border-white/15"
+        >
           {detail && (
-            <div className="tram-scroll max-h-[85vh] overflow-y-auto">
-              <DialogHeader className="sr-only">
-                <DialogTitle>Hồ sơ khách hàng: {detail.name}</DialogTitle>
-                <DialogDescription>
+            <div className="tram-scroll h-full max-h-screen overflow-y-auto">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Hồ sơ khách hàng: {detail.name}</SheetTitle>
+                <SheetDescription>
                   Thông tin hạng thân thiết {LOYALTY_TIERS[detail.tier]?.name ?? "Hạng Hương"}, điểm tích lũy và lịch sử đặt bàn.
-                </DialogDescription>
-              </DialogHeader>
+                </SheetDescription>
+              </SheetHeader>
 
               {/* Digital VIP Membership Card (Header) */}
               <div
@@ -1344,8 +1504,8 @@ export function AdminCustomers() {
               </div>
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* FR-25: Modal Xem trước Email/Zalo Chiến dịch mời lại */}
       <ReEngagementDialog

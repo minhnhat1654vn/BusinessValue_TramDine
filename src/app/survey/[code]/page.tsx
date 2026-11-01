@@ -20,6 +20,8 @@ import {
   Loader2,
   ArrowLeft,
   Home,
+  MapPin,
+  ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -484,6 +486,30 @@ export default function SurveyPage({ params }: PageProps) {
                       </>
                     )}
                   </Button>
+
+                  {/* FR-23: Mời đánh giá trên Google Maps */}
+                  <div className="mt-4 rounded-2xl border border-amber-300/80 bg-gradient-to-br from-amber-50/60 to-amber-100/30 p-4 shadow-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div>
+                        <p className="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 text-red-500" />
+                          Đánh giá trực tiếp trên Google Maps (Nhận thêm +200 điểm)
+                        </p>
+                        <p className="text-[11px] text-amber-800 mt-1">
+                          Chia sẻ cảm nhận trên Google Maps để giúp TRẦM Reserve lan tỏa trải nghiệm ẩm thực đương đại. Nhận diện theo SĐT đặt cọc {reservation?.phone}.
+                        </p>
+                      </div>
+                      <a
+                        href="https://maps.app.goo.gl/tram-reserve"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-amber-400 bg-white px-4 py-2 text-xs font-bold text-[#b45309] shadow-xs hover:bg-[#b45309] hover:text-white transition-all shrink-0"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Mở Google Maps
+                      </a>
+                    </div>
+                  </div>
                 </>
               )}
             </CardContent>

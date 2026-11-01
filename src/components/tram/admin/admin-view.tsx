@@ -101,7 +101,7 @@ export function AdminView() {
 
   if (authed === null) {
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl 2xl:max-w-[1600px] px-4 py-12 sm:px-6 lg:px-8">
         <LoadingBlock label="Đang kiểm tra phiên quản trị..." />
       </main>
     );
@@ -112,7 +112,7 @@ export function AdminView() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <main className="mx-auto w-full max-w-7xl 2xl:max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8 sm:py-10">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="mb-1 text-xs font-medium uppercase tracking-[0.3em] text-[#b45309]">
