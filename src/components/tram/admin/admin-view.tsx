@@ -15,6 +15,8 @@ import {
   SlidersHorizontal,
   Star,
   ShieldCheck,
+  TrendingUp,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +42,12 @@ const ADMIN_NAV_ITEMS = [
     label: "Dashboard",
     description: "Chỉ số & công suất",
     icon: LayoutDashboard,
+  },
+  {
+    key: "revenue",
+    label: "Doanh thu",
+    description: "Báo cáo doanh thu",
+    icon: TrendingUp,
   },
   {
     key: "booking",
@@ -291,6 +299,24 @@ export function AdminView() {
             >
               {activeTab === "dashboard" && (
                 today ? <AdminDashboard today={today} onNavigateTab={handleNavigateTab} /> : <LoadingBlock />
+              )}
+
+              {activeTab === "revenue" && (
+                <Card className="border-border/80 bg-card p-12 text-center shadow-xs">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 text-amber-700">
+                    <TrendingUp className="h-8 w-8" />
+                  </div>
+                  <h3 className="mt-4 font-heading text-xl font-bold text-stone-900">
+                    Phân hệ Quản lý &amp; Báo cáo Doanh thu
+                  </h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
+                    Khu vực đang được chuẩn bị để tích hợp dữ liệu báo cáo tài chính chi tiết (Menu tasting 7 món, đồ uống pairing, tiền cọc và thanh toán tại quầy).
+                  </p>
+                  <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-dashed border-amber-500/40 bg-amber-500/5 px-4 py-1.5 text-xs font-medium text-amber-900">
+                    <Clock className="h-3.5 w-3.5" />
+                    Dự kiến hoàn thiện vào Thứ Ba (T3) tới
+                  </div>
+                </Card>
               )}
 
               {(activeTab === "booking" || activeTab === "map" || activeTab === "list") && (

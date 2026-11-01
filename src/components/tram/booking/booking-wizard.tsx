@@ -32,6 +32,7 @@ import {
   Gem,
   Crown,
   Award,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -870,7 +871,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       <button
                         key={s.value}
                         type="button"
-                        disabled={!date || !isAllowed || isSlotPassed(s.value) || full}
+                        disabled={!date || !isAllowed || isSlotPassed(s.value)}
                         onClick={() => setSlot(s.value)}
                         aria-pressed={isSelected}
                         className={cn(
@@ -897,13 +898,15 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                             className={cn(
                               "text-xs",
                               full
-                                ? "font-medium text-[#b3261e]"
+                                ? isSelected
+                                  ? "font-semibold text-amber-200"
+                                  : "font-semibold text-[#b3261e]"
                                 : isSelected
                                   ? "text-[#fdf0d5]"
                                   : "text-muted-foreground",
                             )}
                           >
-                            {full ? "Hết chỗ" : `Còn ${remaining} chỗ`}
+                            {full ? "Hết chỗ (Đăng ký chờ)" : `Còn ${remaining} chỗ`}
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">
@@ -961,7 +964,9 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   }}
                   className="h-12 min-w-40 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e] disabled:opacity-50"
                 >
-                  Chọn bàn
+                  {slotsSummary?.find((x) => x.slot === slot)?.remainingSeats === 0
+                    ? "Đăng ký danh sách chờ"
+                    : "Chọn bàn"}
                   <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
                 </Button>
               </div>
@@ -1289,6 +1294,10 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       if (val.length === 10) void checkLoyaltyByPhone(val);
                       else setLoyaltyProfile(null);
                     }}
+                    onBlur={() => {
+                      const clean = phone.replace(/[^\d]/g, "");
+                      if (clean.length === 10) void checkLoyaltyByPhone(clean);
+                    }}
                     className="h-11"
                   />
                   {checkingLoyalty && (
@@ -1324,7 +1333,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                                 ? "Hạng Trầm"
                                 : "Hạng Hương"}
                           </strong>{" "}
-                          ({loyaltyProfile.visits} lượt đến · {loyaltyProfile.points.toLocaleString("vi-VN")} pts)
+                          ({loyaltyProfile.visits} lần sử dụng dịch vụ · {loyaltyProfile.points.toLocaleString("vi-VN")} pts)
                           {loyaltyProfile.tier === "NAM_TRAM" && (
                             <span className="block mt-0.5 text-emerald-800 font-bold">
                               ✨ Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền đặt cọc!
@@ -1587,7 +1596,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                       {isNamTram ? (
                         <span className="flex items-center gap-2">
                           <span className="text-xs line-through text-stone-400">
-                            {formatVND(depositAmount)}
+                            {formatVND(PRICES.deposit * partySize)}
                           </span>
                           <span className="rounded-full border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
                             0 đ (Miễn cọc VIP)
@@ -1599,6 +1608,11 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                         </span>
                       )}
                     </p>
+                    {isNamTram && (
+                      <p className="mt-1 text-xs text-emerald-700 font-medium leading-relaxed">
+                        Áp dụng đặc quyền Hạng Nam Trầm (FR-22): Miễn 100% tiền cọc. Thanh toán toàn bộ tại nhà hàng.
+                      </p>
+                    )}
                   </div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     Phần còn lại thanh toán tại nhà hàng khi dùng bữa. Hoàn cọc nếu hủy trước 48 giờ.
@@ -1606,23 +1620,60 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center gap-3 pt-2">
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    setPayPhase("method");
-                    setPayOpen(true);
-                  }}
-                  className="h-14 min-w-72 rounded-full bg-[#b45309] px-10 text-base text-[#fffbf2] shadow-lg shadow-[#b45309]/25 hover:bg-[#92400e]"
-                >
-                  <ShieldCheck className="mr-2 h-5 w-5" aria-hidden />
-                  Thanh toán cọc · {formatVND(depositAmount)}
-                </Button>
-                <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <Mail className="h-3 w-3" aria-hidden />
-                  Xác nhận &amp; thực đơn chi tiết sẽ được gửi qua Email / Zalo
-                </p>
-              </div>
+              {/* BANNER VIP MIỄN 100% CỌC NAM TRẦM (HÌNH 4.2 BÁO CÁO) */}
+              {isNamTram && (
+                <div className="rounded-2xl border border-amber-500/60 bg-gradient-to-br from-[#1c1326] via-[#2d1b3f] to-[#120a1c] p-4 sm:p-5 text-white shadow-lg">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-5 w-5 text-amber-400" />
+                      <span className="font-heading font-bold uppercase tracking-wider text-amber-300 text-sm">
+                        Đặc quyền Thượng khách Nam Trầm (FR-22)
+                      </span>
+                    </div>
+                    <span className="rounded-full bg-amber-400 px-3 py-0.5 text-xs font-extrabold text-stone-950 shadow-xs">
+                      Miễn 100% tiền cọc
+                    </span>
+                  </div>
+                  <p className="mt-2.5 text-xs leading-relaxed text-stone-200">
+                    Kính chào Thượng khách <strong className="text-amber-300 font-bold">{name || "Quý khách"}</strong>! Quý khách được áp dụng đặc quyền <strong className="text-emerald-400">miễn 100% tiền đặt cọc</strong> (tiết kiệm {formatVND(PRICES.deposit * partySize)}). Hệ thống sẽ bỏ qua bước thanh toán cọc {formatVND(PRICES.deposit)}/khách và xác nhận giữ bàn ngay lập tức.
+                  </p>
+                </div>
+              )}
+
+              {isNamTram ? (
+                <div className="flex flex-col items-center gap-2 pt-2">
+                  <Button
+                    size="lg"
+                    disabled={submitting}
+                    onClick={() => void submitReservation()}
+                    className="h-14 min-w-80 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 px-10 text-base font-extrabold text-stone-950 shadow-xl shadow-amber-500/30 hover:brightness-105"
+                  >
+                    <Zap className="mr-2 h-5 w-5 fill-stone-950" />
+                    Xác nhận Đặt bàn ngay · Miễn cọc VIP (0 đ)
+                  </Button>
+                  <p className="text-xs text-stone-500 font-medium">
+                    🌿 Rẽ nhánh đặc quyền Nam Trầm: Bỏ qua bước thanh toán cọc (FR-22)
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3 pt-2">
+                  <Button
+                    size="lg"
+                    onClick={() => {
+                      setPayPhase("method");
+                      setPayOpen(true);
+                    }}
+                    className="h-14 min-w-72 rounded-full bg-[#b45309] px-10 text-base text-[#fffbf2] shadow-lg shadow-[#b45309]/25 hover:bg-[#92400e]"
+                  >
+                    <ShieldCheck className="mr-2 h-5 w-5" aria-hidden />
+                    Thanh toán cọc · {formatVND(depositAmount)}
+                  </Button>
+                  <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Mail className="h-3 w-3" aria-hidden />
+                    Xác nhận &amp; thực đơn chi tiết sẽ được gửi qua Email / Zalo
+                  </p>
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

@@ -26,7 +26,7 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
   HUONG: {
     key: "HUONG",
     name: "Hạng Hương",
-    tagline: "Khởi sắc phong vị (0–2 lượt)",
+    tagline: "Khởi sắc phong vị",
     minVisits: 0,
     maxVisits: 2,
     bonusPercent: 0, // Điểm cơ bản 1.000 đ = 1 pt
@@ -37,8 +37,6 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
     accentColor: "#a8a29e",
     iconName: "Award",
     benefits: [
-      "Áp dụng cho khách từ 0 đến 2 lượt đến TRẦM Reserve",
-      "Tích lũy 1 điểm cho mỗi 1.000 đ chi tiêu hóa đơn",
       "Thiệp chúc mừng và quà tặng sinh nhật từ nhà hàng",
       "Nhận trước thông tin thực đơn tasting theo mùa",
       "Hỗ trợ đổi ca đặt bàn linh hoạt trước 24 giờ",

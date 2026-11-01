@@ -640,7 +640,7 @@ function HeroScreen({
           variants={revealUp}
           className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#92400e]/80 sm:text-xs"
         >
-          Fine dining Việt Nam · Quận 3 · TP. Hồ Chí Minh
+          NHÀ HÀNG FINE DINING TOP 2 TP. HỒ CHÍ MINH
         </motion.p>
 
         <motion.h1

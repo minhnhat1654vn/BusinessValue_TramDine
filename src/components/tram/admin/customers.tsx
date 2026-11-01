@@ -1274,14 +1274,14 @@ export function AdminCustomers() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold tracking-widest text-amber-300 uppercase">
-                        TRẦM Reserve · VIP Membership
+                        TRẦM Reserve · Membership
                       </span>
                     </div>
                     <h3 className="font-heading text-2xl font-bold tracking-tight text-white">
                       {detail.name}
                     </h3>
                     <p className="text-xs text-stone-200/90">
-                      SĐT: {detail.phone} · Đã ghé thăm {detail.visits} lần · Lần cuối:{" "}
+                      SĐT: {detail.phone} · {detail.visits} lần sử dụng dịch vụ · Lần cuối:{" "}
                       {formatLongDate(detail.lastVisit).split(", ")[1]}
                     </p>
                   </div>
@@ -1335,12 +1335,12 @@ export function AdminCustomers() {
 
               {/* Dialog Body */}
               <div className="space-y-6 p-6">
-                {/* Hành trình thăng hạng theo lượt đến (FR-21) */}
+                {/* Hành trình thăng hạng theo lượt sử dụng dịch vụ (FR-21) */}
                 <div className="rounded-xl border border-stone-200/90 bg-card p-4 shadow-xs">
                   <div className="flex items-center justify-between text-xs font-medium">
                     <span className="flex items-center gap-1.5 text-stone-700">
                       <TrendingUp className="h-4 w-4 text-[#b45309]" />
-                      Hành trình thăng hạng ({detail.visits} lượt đến)
+                      Hành trình thăng hạng ({detail.visits} lượt sử dụng dịch vụ)
                     </span>
                     <span className="font-bold text-[#b45309]">
                       {detail.tier === "NAM_TRAM"
@@ -1367,7 +1367,7 @@ export function AdminCustomers() {
                       <>
                         Cần thêm{" "}
                         <strong className="text-stone-900">
-                          {Math.max(0, 6 - detail.visits)} lượt đến nữa
+                          {Math.max(0, 6 - detail.visits)} lượt sử dụng dịch vụ nữa
                         </strong>{" "}
                         để đạt mốc 6 lượt và nâng hạng thành{" "}
                         <span className="font-bold text-purple-900">
@@ -1379,7 +1379,7 @@ export function AdminCustomers() {
                       <>
                         Cần thêm{" "}
                         <strong className="text-stone-900">
-                          {Math.max(0, 3 - detail.visits)} lượt đến nữa
+                          {Math.max(0, 3 - detail.visits)} lượt sử dụng dịch vụ nữa
                         </strong>{" "}
                         để đạt mốc 3 lượt và nâng hạng thành{" "}
                         <span className="font-bold text-[#b45309]">
@@ -1404,7 +1404,7 @@ export function AdminCustomers() {
                       </Badge>
                     </div>
                     <p className="text-xs text-stone-700 leading-relaxed">
-                      Quý khách <strong>{detail.name}</strong> đã đạt {detail.visits} lượt đến TRẦM Reserve. Quản lý có thể xem lại hoặc gửi lại Thư vinh danh thăng hạng qua Email/Zalo.
+                      Quý khách <strong>{detail.name}</strong> đã đạt {detail.visits} lượt sử dụng dịch vụ tại TRẦM Reserve. Quản lý có thể xem lại hoặc gửi lại Thư vinh danh thăng hạng qua Email/Zalo.
                     </p>
                     <Button
                       size="sm"

@@ -314,7 +314,7 @@ export function useBookingWizard() {
         ? PRICES.teaPairing
         : 0;
   const totalAmount = partySize * (PRICES.menu + pairingPrice);
-  const depositAmount = partySize * PRICES.deposit;
+  const depositAmount = isNamTram ? 0 : partySize * PRICES.deposit;
 
   const finalNotes = useMemo(() => {
     const extra: string[] = [];

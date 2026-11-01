@@ -478,6 +478,91 @@ async function main() {
   }
   console.log(`  → ${reservations.length} lượt đặt bàn`);
 
+  console.log("Cố định hồ sơ khách hàng mẫu (Nam Trầm & Hạng Hương)...");
+  const firstTableId = tableMap.get("A01") || Array.from(tableMap.values())[0];
+  const vipMembers = [
+    // 1. Trần Nam Trầm (0909999999) - 7 lượt SEATED (Nam Trầm - Miễn cọc VIP)
+    ...Array.from({ length: 7 }, (_, i) => ({
+      code: `TRM-NT0${i + 1}`,
+      customerName: "Trần Nam Trầm",
+      phone: "0909999999",
+      email: "namtram@tramreserve.vn",
+      partySize: 2,
+      tableId: firstTableId,
+      date: dayAt(-(20 - i * 2)),
+      slot: "SLOT_1945",
+      pairing: "WINE",
+      notes: "Thượng khách Nam Trầm",
+      allergy: null,
+      status: "SEATED",
+      depositAmount: 600000,
+      source: "WEB",
+      createdAt: dayAt(-(25 - i * 2)),
+    })),
+    // 2. Nguyễn Hữu Phúc (0993738817) - 7 lượt SEATED (Nam Trầm)
+    ...Array.from({ length: 7 }, (_, i) => ({
+      code: `TRM-HP0${i + 1}`,
+      customerName: "Nguyễn Hữu Phúc",
+      phone: "0993738817",
+      email: "phuc.nguyen@gmail.com",
+      partySize: 2,
+      tableId: firstTableId,
+      date: dayAt(-(21 - i * 2)),
+      slot: "SLOT_1945",
+      pairing: "WINE",
+      notes: null,
+      allergy: null,
+      status: "SEATED",
+      depositAmount: 600000,
+      source: "WEB",
+      createdAt: dayAt(-(26 - i * 2)),
+    })),
+    // 3. Trần Hải Yến (0998593177) - 2 lượt SEATED (Hạng Hương)
+    ...Array.from({ length: 2 }, (_, i) => ({
+      code: `TRM-HY0${i + 1}`,
+      customerName: "Trần Hải Yến",
+      phone: "0998593177",
+      email: "yen.tran@gmail.com",
+      partySize: 2,
+      tableId: firstTableId,
+      date: dayAt(-(10 - i * 3)),
+      slot: "SLOT_1730",
+      pairing: "NONE",
+      notes: null,
+      allergy: null,
+      status: "SEATED",
+      depositAmount: 600000,
+      source: "WEB",
+      createdAt: dayAt(-(14 - i * 3)),
+    })),
+    // 4. Lê Thu Hằng (0913889848) - 2 lượt SEATED (Hạng Hương)
+    ...Array.from({ length: 2 }, (_, i) => ({
+      code: `TRM-TH0${i + 1}`,
+      customerName: "Lê Thu Hằng",
+      phone: "0913889848",
+      email: "hang.le@gmail.com",
+      partySize: 2,
+      tableId: firstTableId,
+      date: dayAt(-(12 - i * 4)),
+      slot: "SLOT_1730",
+      pairing: "TEA",
+      notes: null,
+      allergy: null,
+      status: "SEATED",
+      depositAmount: 600000,
+      source: "WEB",
+      createdAt: dayAt(-(15 - i * 4)),
+    })),
+  ];
+
+  for (const v of vipMembers) {
+    await db.reservation.upsert({
+      where: { code: v.code },
+      update: { status: "SEATED" },
+      create: v,
+    });
+  }
+
   console.log("Tạo danh sách chờ...");
   for (const w of waitlist) {
     await db.waitlistEntry.create({ data: w });
