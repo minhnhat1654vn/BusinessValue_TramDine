@@ -101,18 +101,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     `/api/admin/stats?today=${today}`,
   );
 
-  if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
-  if (error) return <ErrorBlock message={error} onRetry={refresh} />;
-  if (!data) return null;
-
-  const chartData = data.occupancy.map((p) => ({
-    ...p,
-    isMonday: p.weekday === 1,
-    tooltipPercent: p.capacity === 0 ? 0 : Math.round(p.percent),
-    bar1730: p.weekday === 1 ? 0 : Math.round(p.slot1730Percent ?? 0),
-    bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
-  }));
-
   // Tự động làm mới khi người dùng quay lại tab hoặc cửa sổ focus
   useEffect(() => {
     const handleFocus = () => refresh();
@@ -125,6 +113,18 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     const timer = setInterval(() => refresh(), 20000);
     return () => clearInterval(timer);
   }, [refresh]);
+
+  if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
+  if (error) return <ErrorBlock message={error} onRetry={refresh} />;
+  if (!data) return null;
+
+  const chartData = data.occupancy.map((p) => ({
+    ...p,
+    isMonday: p.weekday === 1,
+    tooltipPercent: p.capacity === 0 ? 0 : Math.round(p.percent),
+    bar1730: p.weekday === 1 ? 0 : Math.round(p.slot1730Percent ?? 0),
+    bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
+  }));
 
   const recentList = data.recentReservations || [];
   const todayList = data.todayReservations || [];
