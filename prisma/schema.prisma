@@ -79,3 +79,17 @@ model WaitlistEntry {
   @@index([date, slot])
 }
 
+// Cài đặt chương trình đặt bàn & ngày mở/nghỉ
+model BookingSetting {
+  id               String   @id @default("default")
+  programEnabled   Boolean  @default(true)
+  programName      String   @default("Hành trình vị Việt - Tasting Menu 7 món")
+  programMode      String   @default("range") // range | specific
+  programStartDate String   @default("2026-10-18")
+  programEndDate   String   @default("2026-11-30")
+  programDays      String   @default("[]") // JSON string: string[]
+  closedDates      String   @default("[]") // JSON string: string[]
+  allowMonday      Boolean  @default(false)
+  notes            String?  @default("Chương trình thực đơn mùa đặc sắc của TRẦM")
+  updatedAt        DateTime @updatedAt
+}

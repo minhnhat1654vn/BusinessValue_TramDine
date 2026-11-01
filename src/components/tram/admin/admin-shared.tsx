@@ -1,13 +1,14 @@
 "use client";
 
 // Các thành phần dùng chung của màn Quản trị
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   addDays,
+  formatLongDate,
   formatShortDate,
   todayLocalISO,
   WEEKDAY_LABELS,
@@ -15,6 +16,10 @@ import {
 } from "@/lib/tram/format";
 import { SLOT_TIMES, STATUS_LABELS } from "@/lib/tram/constants";
 import type { Slot } from "@/lib/tram/types";
+import {
+  checkDateBookingAllowed,
+  type BookingProgramSettings,
+} from "@/lib/tram/booking-settings";
 
 // ---------- Hook fetch JSON ----------
 export function useJson<T>(url: string | null) {
@@ -52,55 +57,167 @@ export function useJson<T>(url: string | null) {
   return { data, loading, error, refresh };
 }
 
-// ---------- Dải chọn ngày (hôm qua → 10 ngày tới) ----------
+// ---------- Dải chọn ngày giống giao diện Khách hàng (User-like: Nhóm 4-5 tuần, thẻ ngày trực quan, trạng thái mở/nghỉ) ----------
 export function DayStrip({
   today,
   selected,
   onSelect,
-  days = 11,
+  settings,
+  numWeeks = 5,
 }: {
   today: string;
   selected: string;
   onSelect: (iso: string) => void;
-  days?: number;
+  settings?: BookingProgramSettings | null;
+  numWeeks?: number;
+  days?: number; // tương thích ngược
 }) {
-  const list = Array.from({ length: days }, (_, i) => addDays(addDays(today, -1), i));
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Nhóm theo tuần bắt đầu từ Chủ Nhật tuần này (giống trải nghiệm khách hàng)
+  const weeks = useMemo(() => {
+    const firstSunday = addDays(today, -weekdayOf(today));
+    return Array.from({ length: numWeeks }, (_, w) => {
+      const start = addDays(firstSunday, w * 7);
+      return {
+        label:
+          w === 0 ? "Tuần này" : w === 1 ? "Tuần sau" : `Tuần ${w + 1}`,
+        days: Array.from({ length: 7 }, (_, i) => addDays(start, i)),
+      };
+    });
+  }, [today, numWeeks]);
+
+  // Hỗ trợ cuộn ngang dải ngày bằng con lăn chuột (mouse wheel)
+  // Khi chuột nằm trên dải ngày: khóa cuộn dọc trang web và cuộn ngang dải ngày
+  // Khi chuột không nằm trên dải ngày: cuộn trang web (scroll page) bình thường
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (delta !== 0) {
+        e.preventDefault();
+        el.scrollLeft += delta;
+      }
+    };
+
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  // Tự động cuộn ngày đang chọn vào giữa tầm nhìn khi chọn hoặc khi load
+  useEffect(() => {
+    if (!selected) return;
+    const el = document.getElementById(`day-strip-${selected}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [selected]);
+
   return (
-    <div className="tram-scroll -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-2">
-      {list.map((iso) => {
-        const wd = weekdayOf(iso);
-        const isMonday = wd === 1;
-        const isSelected = selected === iso;
-        const dayNum = Number(iso.slice(8, 10));
-        return (
-          <button
-            key={iso}
-            type="button"
-            disabled={isMonday}
-            onClick={() => onSelect(iso)}
-            aria-pressed={isSelected}
-            aria-label={`Chọn ngày ${iso}`}
-            className={cn(
-              "flex h-[62px] w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition-all",
-              isMonday
-                ? "cursor-not-allowed border-border/60 bg-muted/40 text-muted-foreground/50"
-                : isSelected
-                  ? "border-[#b45309] bg-[#b45309] text-[#fffbf2] shadow-md shadow-[#b45309]/25"
-                  : "border-border bg-card text-stone-600 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/60",
-            )}
-          >
-            <span className="text-[10px] font-medium uppercase tracking-wide">
-              {WEEKDAY_LABELS[wd]}
-            </span>
-            <span className="font-heading text-lg font-semibold leading-none">
-              {dayNum}
-            </span>
-            <span className="text-[9px] leading-none">
-              {iso === today ? "Hôm nay" : isMonday ? "Nghỉ" : ""}
-            </span>
-          </button>
-        );
-      })}
+    <div ref={scrollRef} className="tram-scroll -mx-1 overflow-x-auto px-1 pb-2">
+      <div className="flex gap-4">
+        {weeks.map((week) => (
+          <div key={week.label} className="shrink-0">
+            <p className="mb-1.5 pl-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              {week.label}
+            </p>
+            <div className="flex gap-1.5">
+              {week.days.map((iso) => {
+                const wd = weekdayOf(iso);
+                const isPast = iso < today;
+                const isMonday = wd === 1;
+                let disabled = isPast;
+                let statusLabel = "";
+                let titleDesc = formatLongDate(iso);
+
+                if (isPast) {
+                  disabled = true;
+                  statusLabel = "Qua";
+                  titleDesc += " — Ngày đã qua (chương trình đã chạy)";
+                } else if (settings) {
+                  const check = checkDateBookingAllowed(iso, settings, today);
+                  if (!check.allowed) {
+                    disabled = true;
+                    if (check.reason === "CLOSED_MONDAY") {
+                      statusLabel = "Nghỉ";
+                      titleDesc += " — Nghỉ định kỳ Thứ 2";
+                    } else if (check.reason === "CLOSED_SPECIAL") {
+                      statusLabel = "Nghỉ lễ";
+                      titleDesc += " — Ngày nghỉ nhà hàng";
+                    } else if (check.reason === "NOT_IN_PROGRAM") {
+                      statusLabel = "Khóa";
+                      titleDesc += " — Không áp dụng chương trình";
+                    } else if (check.reason === "PROGRAM_DISABLED") {
+                      statusLabel = "Ngưng";
+                      titleDesc += " — Tạm ngưng nhận khách";
+                    }
+                  }
+                } else if (isMonday) {
+                  disabled = true;
+                  statusLabel = "Nghỉ";
+                  titleDesc += " — Nghỉ định kỳ Thứ 2";
+                }
+
+                if (iso === today) {
+                  statusLabel = "Hôm nay";
+                  disabled = false;
+                }
+
+                const isSelected = selected === iso;
+                const dayNum = Number(iso.slice(8, 10));
+
+                return (
+                  <button
+                    key={iso}
+                    id={`day-strip-${iso}`}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => !disabled && onSelect(iso)}
+                    aria-label={titleDesc}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      "flex h-[72px] w-[46px] sm:w-[52px] shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border text-center transition-all select-none",
+                      disabled
+                        ? "cursor-not-allowed border-border/50 bg-muted/40 text-muted-foreground/40 opacity-50"
+                        : isSelected
+                          ? "border-[#b45309] bg-[#b45309] text-[#fffbf2] shadow-md shadow-[#b45309]/30 scale-105 z-10 font-bold ring-2 ring-amber-300 cursor-pointer"
+                          : "border-border bg-card text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/60 hover:scale-[1.02] cursor-pointer"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "text-[10px] font-medium uppercase tracking-wide",
+                        isSelected ? "text-amber-100" : "text-muted-foreground"
+                      )}
+                    >
+                      {WEEKDAY_LABELS[wd]}
+                    </span>
+                    <span className="font-heading text-lg font-semibold leading-none">
+                      {dayNum}
+                    </span>
+                    <span
+                      className={cn(
+                        "text-[9px] font-semibold leading-none",
+                        isSelected
+                          ? "text-amber-100 font-bold"
+                          : statusLabel === "Hôm nay"
+                            ? "text-[#b45309] font-bold"
+                            : statusLabel === "Nghỉ" || statusLabel === "Nghỉ lễ"
+                              ? "text-rose-600"
+                              : "text-muted-foreground"
+                      )}
+                    >
+                      {statusLabel}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
