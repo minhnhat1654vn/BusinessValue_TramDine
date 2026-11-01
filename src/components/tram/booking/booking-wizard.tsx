@@ -1606,49 +1606,6 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
 
-              {/* TÓM TẮT 7 MÓN ĐÃ CHỌN SẼ ĐƯỢC LƯU VÀO DB */}
-              <div className="rounded-2xl border border-[#b45309]/30 bg-[#fdf0d5]/40 p-4 sm:p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#92400e]">
-                      Thực đơn 7 món đã chọn (Lưu trữ cơ sở dữ liệu)
-                    </span>
-                  </div>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={() => setStep(3)}
-                    className="h-auto p-0 text-xs text-[#b45309]"
-                  >
-                    Thay đổi món
-                  </Button>
-                </div>
-
-                <div className="grid gap-2.5 sm:grid-cols-2">
-                  {selectedDishesArray.map((d) => (
-                    <div
-                      key={d.index}
-                      className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-2 text-xs"
-                    >
-                      <img
-                        src={d.image}
-                        alt={d.name}
-                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-stone-800 truncate">
-                          0{d.index}. {d.name}
-                        </p>
-                        <p className="text-[11px] text-[#92400e] truncate">
-                          {d.optionName}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="flex flex-col items-center gap-3 pt-2">
                 <Button
                   size="lg"
