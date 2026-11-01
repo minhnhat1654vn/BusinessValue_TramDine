@@ -1337,60 +1337,6 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
 
-              {/* Thanh chọn nhanh thử nghiệm phân hạng */}
-              <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 sm:p-4">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-amber-900">
-                      ⚡ Chọn nhanh số điện thoại mẫu (Trải nghiệm phân hạng):
-                    </p>
-                    <p className="text-[11px] text-amber-800/80">
-                      Bấm vào số mẫu để tự động điền &amp; kích hoạt đặc quyền thành viên
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setName("Trần Nam Trầm");
-                        setPhone("0909999999");
-                        setEmail("namtram@tramreserve.vn");
-                        void checkLoyaltyByPhone("0909999999");
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-gradient-to-r from-amber-400 to-amber-200 px-3 py-1 text-xs font-extrabold text-stone-950 shadow-xs hover:brightness-105 transition-all"
-                    >
-                      <Gem className="h-3.5 w-3.5 text-amber-900" />
-                      0909 999 999 (Nam Trầm · 7 lượt)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setName("Nguyễn Hữu Phúc");
-                        setPhone("0993738817");
-                        setEmail("phuc.nguyen@gmail.com");
-                        void checkLoyaltyByPhone("0993738817");
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-900 hover:bg-amber-200 transition-colors"
-                    >
-                      <Crown className="h-3.5 w-3.5 text-amber-700" />
-                      0993 738 817 (Nam Trầm · 7 lượt)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setName("Lê Thu Hằng");
-                        setPhone("0913889848");
-                        setEmail("hang.le@gmail.com");
-                        void checkLoyaltyByPhone("0913889848");
-                      }}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-stone-300 bg-white px-3 py-1 text-xs font-medium text-stone-700 hover:bg-stone-100 transition-colors"
-                    >
-                      <Award className="h-3.5 w-3.5 text-stone-500" />
-                      0913 889 848 (Hạng Hương · Cọc 300k)
-                    </button>
-                  </div>
-                </div>
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="bk-email">Email (nhận xác nhận &amp; thực đơn)</Label>
                 <Input
