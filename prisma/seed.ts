@@ -301,8 +301,12 @@ for (const t of targets) {
       status = rng() < 0.12 ? "PENDING" : "CONFIRMED";
     }
 
-    const createdAt = new Date(t.date);
+    let createdAt = new Date(t.date);
     createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 9));
+    if (createdAt.getTime() > TODAY.getTime()) {
+      createdAt = new Date(TODAY);
+      createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 5));
+    }
 
     reservations.push({
       code: reservationCode(),

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 // 3.1 Dashboard quản trị — KPI, biểu đồ occupancy, nguồn đặt bàn, Top 5 mới nhất, Top 5 hôm nay & Top 5 đánh giá
 import {
   Bar,
@@ -24,6 +26,8 @@ import {
   UtensilsCrossed,
   MessageSquare,
   Sparkles,
+  RefreshCw,
+  User,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,12 +113,47 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
   }));
 
+  // Tự động làm mới khi người dùng quay lại tab hoặc cửa sổ focus
+  useEffect(() => {
+    const handleFocus = () => refresh();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [refresh]);
+
+  // Cập nhật định kỳ 20 giây để bắt kịp lượt đặt bàn mới nhất
+  useEffect(() => {
+    const timer = setInterval(() => refresh(), 20000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
   const recentList = data.recentReservations || [];
   const todayList = data.todayReservations || [];
   const surveysList = data.topSurveys || [];
 
   return (
     <div className="space-y-6">
+      {/* Tiêu đề Dashboard & Nút Làm mới dữ liệu */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-heading text-xl font-bold text-[#292524] sm:text-2xl">
+            Tổng quan Vận hành
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Dữ liệu thời gian thực · Đồng bộ tự động với khách đặt bàn mới
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => refresh()}
+          disabled={loading}
+          className="h-8 gap-2 border-stone-300 bg-white text-xs text-stone-700 shadow-xs hover:bg-stone-50 hover:text-[#b45309]"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5 text-[#b45309]", loading && "animate-spin")} />
+          Làm mới dữ liệu
+        </Button>
+      </div>
+
       {/* ---- 4 KPI ---- */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
@@ -357,7 +396,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               <div className="flex items-center justify-between">
                 <CardTitle className="inline-flex items-center gap-2 font-heading text-base text-[#292524]">
                   <Sparkles className="h-4.5 w-4.5 text-[#b45309]" aria-hidden />
-                  Đặt bàn mới nhất
+                  Khách đặt bàn mới nhất
                 </CardTitle>
                 <Button
                   variant="ghost"
@@ -370,7 +409,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                5 lượt đặt được tạo gần đây nhất
+                Top 5 khách hàng đặt bàn ghi nhận gần đây nhất
               </p>
             </CardHeader>
             <CardContent className="p-3.5">
@@ -389,15 +428,17 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-xs font-bold text-[#b45309]">
-                            {r.code}
-                          </span>
-                          <span className="text-muted-foreground text-[11px]">·</span>
-                          <span className="truncate text-xs font-semibold text-stone-800">
+                          <User className="h-3.5 w-3.5 text-stone-400 shrink-0 group-hover:text-[#b45309]" aria-hidden />
+                          <span className="truncate text-xs font-bold text-stone-900 group-hover:text-[#b45309]">
                             {r.customerName}
                           </span>
+                          <span className="font-mono text-[10.5px] font-semibold text-[#b45309] bg-amber-50 border border-amber-200/70 px-1 py-0.5 rounded shrink-0">
+                            {r.code}
+                          </span>
                         </div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <span className="font-mono text-stone-500 font-medium">{r.phone}</span>
+                          <span>•</span>
                           <span className="font-medium text-stone-700">
                             Bàn {r.table?.code}
                           </span>
@@ -406,7 +447,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                           <span>•</span>
                           <span>{formatShortDate(r.date)}</span>
                           <span>•</span>
-                          <span>{r.partySize}K</span>
+                          <span>{r.partySize} khách</span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
