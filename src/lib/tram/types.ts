@@ -122,8 +122,11 @@ export interface AdminStats {
   expectedRevenue: number; // doanh thu dự thu (tương lai)
   occupancy: OccupancyPoint[]; // 14 ngày gần nhất
   sourceShares: SourceShare[];
-  waitlistToday: WaitlistEntryDTO[];
-  waitlistWeekend: WaitlistEntryDTO[];
+    waitlistToday?: WaitlistEntryDTO[];
+  waitlistWeekend?: WaitlistEntryDTO[];
+  recentReservations: ReservationDTO[];
+  todayReservations: ReservationDTO[];
+  topSurveys: (SurveyDTO & { reservationCode: string; customerName: string; phone: string; date: string })[];
   windowLabel: string; // mô tả khoảng thời gian thống kê
 }
 
@@ -206,5 +209,7 @@ export interface GoogleMapsSyncStats {
   }[];
   lastSyncedAt: string;
 }
+
+
 
 

@@ -2,7 +2,7 @@
 
 // Giao diện Đặt bàn hợp nhất — Sơ đồ bàn ở trên, Danh sách khách đặt bàn ở dưới
 // Kèm bộ lọc toàn giao diện đồng bộ & nút chuyển nhanh đến Cài đặt đặt bàn
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -195,14 +195,20 @@ function formatTimeOnly(isoString: string): string {
 interface BookingUnifiedViewProps {
   today: string;
   onNavigateToSettings?: () => void;
+  targetDate?: string;
 }
 
 export function AdminBookingUnifiedView({
   today,
   onNavigateToSettings,
+  targetDate,
 }: BookingUnifiedViewProps) {
   // 1. Trạng thái bộ lọc toàn giao diện (Global Filter State)
-  const [date, setDate] = useState(today);
+  const [date, setDate] = useState(targetDate || today);
+
+  useEffect(() => {
+    if (targetDate) setDate(targetDate);
+  }, [targetDate]);
   const [slotFilter, setSlotFilter] = useState<"ALL" | "SLOT_1730" | "SLOT_1945">("ALL");
   const [mapSlot, setMapSlot] = useState<Slot>("SLOT_1945");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -2267,4 +2273,5 @@ export function AdminBookingUnifiedView({
     </div>
   );
 }
+
 

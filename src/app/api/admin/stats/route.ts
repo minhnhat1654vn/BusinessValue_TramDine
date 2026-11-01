@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import {
   ACTIVE_STATUSES,
   reservationTotal,
+  serializeReservation,
   serializeWaitlist,
 } from "@/lib/tram/server";
 import {
@@ -36,8 +37,9 @@ export async function GET(request: NextRequest) {
 
     const start = parseISODate(windowStart);
     const end = parseISODate(windowEnd);
+    const todayStart = parseISODate(today);
 
-    const [windowReservations, waitlistAll] = await Promise.all([
+    const [windowReservations, waitlistAll, recentRaw, todayRaw, surveysRaw] = await Promise.all([
       db.reservation.findMany({
         where: {
           date: { gte: start, lte: end },
@@ -47,6 +49,34 @@ export async function GET(request: NextRequest) {
       db.waitlistEntry.findMany({
         where: { date: { gte: start, lte: end } },
         orderBy: [{ date: "asc" }, { slot: "asc" }, { position: "asc" }],
+      }),
+      // Top 5 đặt bàn mới nhất (tạo gần đây nhất)
+      db.reservation.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: { table: true },
+      }),
+      // Top 5 đặt bàn hôm nay
+      db.reservation.findMany({
+        where: { date: todayStart },
+        take: 5,
+        orderBy: [{ slot: "asc" }, { table: { code: "asc" } }, { createdAt: "desc" }],
+        include: { table: true },
+      }),
+      // Top 5 đánh giá thực khách mới nhất
+      db.survey.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          reservation: {
+            select: {
+              code: true,
+              customerName: true,
+              phone: true,
+              date: true,
+            },
+          },
+        },
       }),
     ]);
 
@@ -152,16 +182,14 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // --- Waitlist hôm nay & cuối tuần ---
-    const todayStart = parseISODate(today);
+    // --- Waitlist hôm nay & cuối tuần (giữ lại hỗ trợ) ---
     const waitlistToday = waitlistAll
       .filter((w) => w.date.getTime() === todayStart.getTime())
       .map(serializeWaitlist);
 
-    // cuối tuần gần nhất trong tương lai (T7 + CN)
     const todayWd = weekdayOf(today);
     let saturday = todayWd === 6 ? today : addDays(today, (6 - todayWd + 7) % 7);
-    if (todayWd === 6) saturday = today; // hôm nay là thứ Bảy
+    if (todayWd === 6) saturday = today;
     const sunday = addDays(saturday, 1);
     const weekendStart = parseISODate(saturday);
     const weekendEnd = parseISODate(addDays(sunday, 1));
@@ -170,6 +198,27 @@ export async function GET(request: NextRequest) {
         (w) => w.date.getTime() >= weekendStart.getTime() && w.date.getTime() < weekendEnd.getTime(),
       )
       .map(serializeWaitlist);
+
+    // Serialize Top 5 mới
+    const recentReservations = recentRaw.map(serializeReservation);
+    const todayReservations = todayRaw.map(serializeReservation);
+    const topSurveys = surveysRaw.map((s) => ({
+      id: s.id,
+      reservationId: s.reservationId,
+      rating: s.rating,
+      foodRating: s.foodRating,
+      serviceRating: s.serviceRating,
+      ambianceRating: s.ambianceRating,
+      pairingRating: s.pairingRating,
+      comment: s.comment,
+      recommend: s.recommend,
+      bonusPointsGiven: s.bonusPointsGiven,
+      createdAt: s.createdAt.toISOString(),
+      reservationCode: s.reservation.code,
+      customerName: s.reservation.customerName,
+      phone: s.reservation.phone,
+      date: toISODate(s.reservation.date),
+    }));
 
     const stats: AdminStats = {
       totalReservations,
@@ -180,6 +229,9 @@ export async function GET(request: NextRequest) {
       sourceShares,
       waitlistToday,
       waitlistWeekend,
+      recentReservations,
+      todayReservations,
+      topSurveys,
       windowLabel: `4 tuần quanh hôm nay (${windowStart} → ${windowEnd})`,
     };
     return NextResponse.json(stats);

@@ -1,26 +1,32 @@
 "use client";
 
-// 3.1 Dashboard quản trị — KPI, biểu đồ occupancy, nguồn đặt bàn, waitlist
+// 3.1 Dashboard quản trị — KPI, biểu đồ occupancy, nguồn đặt bàn, Top 5 mới nhất, Top 5 hôm nay & Top 5 đánh giá
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
-  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  ReferenceLine,
 } from "recharts";
 import {
   Banknote,
   CalendarCheck,
   Percent,
   UserX,
-  BellRing,
   TrendingUp,
+  ArrowRight,
+  Clock,
+  Star,
+  Users,
+  UtensilsCrossed,
+  MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ErrorBlock,
@@ -28,18 +34,31 @@ import {
   StatusBadge,
   useJson,
 } from "./admin-shared";
-import { formatPercent, formatVND, formatLongDate, WEEKDAY_FULL_LABELS, weekdayOf } from "@/lib/tram/format";
+import {
+  formatPercent,
+  formatVND,
+  formatShortDate,
+  WEEKDAY_FULL_LABELS,
+} from "@/lib/tram/format";
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import type { AdminStats } from "@/lib/tram/types";
+import { cn } from "@/lib/utils";
 
 interface DashboardProps {
   today: string;
+  onNavigateTab?: (tab: string, date?: string) => void;
 }
 
 const SOURCE_COLORS: Record<string, string> = {
   WEB: "#b45309",
   PHONE: "#c2a37a",
   ZALO: "#854d0e",
+};
+
+const SOURCE_LABELS: Record<string, string> = {
+  WEB: "Web",
+  PHONE: "Điện thoại",
+  ZALO: "Zalo",
 };
 
 function KpiCard({
@@ -73,7 +92,7 @@ function KpiCard({
   );
 }
 
-export function AdminDashboard({ today }: DashboardProps) {
+export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   const { data, loading, error, refresh } = useJson<AdminStats>(
     `/api/admin/stats?today=${today}`,
   );
@@ -89,6 +108,10 @@ export function AdminDashboard({ today }: DashboardProps) {
     bar1730: p.weekday === 1 ? 0 : Math.round(p.slot1730Percent ?? 0),
     bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
   }));
+
+  const recentList = data.recentReservations || [];
+  const todayList = data.todayReservations || [];
+  const surveysList = data.topSurveys || [];
 
   return (
     <div className="space-y-6">
@@ -325,64 +348,270 @@ export function AdminDashboard({ today }: DashboardProps) {
         </Card>
       </div>
 
-      {/* ---- Waitlist hôm nay & cuối tuần ---- */}
-      <Card className="border-border/80 bg-card shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 font-heading text-lg text-[#292524]">
-            <BellRing className="h-5 w-5 text-[#b45309]" aria-hidden />
-            Danh sách chờ
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Hôm nay và cuối tuần gần nhất
-          </p>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          {[
-            { title: "Hôm nay", entries: data.waitlistToday },
-            { title: "Cuối tuần tới", entries: data.waitlistWeekend },
-          ].map((group) => (
-            <div
-              key={group.title}
-              className="rounded-xl border border-border bg-[#fffdf9] p-4"
-            >
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {group.title}
+      {/* ---- 3 KHỐI: TOP 5 ĐẶT BÀN MỚI NHẤT, TOP 5 ĐẶT BÀN HÔM NAY, TOP 5 ĐÁNH GIÁ ---- */}
+      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {/* ================= 1. TOP 5 ĐẶT BÀN MỚI NHẤT ================= */}
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+          <div>
+            <CardHeader className="pb-3 border-b border-border/60">
+              <div className="flex items-center justify-between">
+                <CardTitle className="inline-flex items-center gap-2 font-heading text-base text-[#292524]">
+                  <Sparkles className="h-4.5 w-4.5 text-[#b45309]" aria-hidden />
+                  Đặt bàn mới nhất
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onNavigateTab?.("booking")}
+                  className="h-8 px-2.5 text-xs text-[#b45309] hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                >
+                  Xem chi tiết
+                  <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                5 lượt đặt được tạo gần đây nhất
               </p>
-              {group.entries.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  Không có khách chờ
+            </CardHeader>
+            <CardContent className="p-3.5">
+              {recentList.length === 0 ? (
+                <p className="py-8 text-center text-xs text-muted-foreground">
+                  Chưa có lượt đặt bàn nào
                 </p>
               ) : (
-                <ul className="space-y-2.5">
-                  {group.entries.map((w) => (
-                    <li
-                      key={w.id}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-border/70 bg-card px-3 py-2.5"
+                <div className="space-y-2.5">
+                  {recentList.map((r) => (
+                    <div
+                      key={r.id}
+                      onClick={() => onNavigateTab?.("booking", r.date)}
+                      className="group flex items-center justify-between gap-2 rounded-xl border border-border/70 bg-[#fffdfa] p-2.5 transition-all hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/40 hover:shadow-xs cursor-pointer"
+                      title="Bấm để xem chi tiết đặt bàn"
                     >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-[#292524]">
-                          #{w.position} · {w.name}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatLongDate(w.date).split(", ")[1]} ·{" "}
-                          {SLOT_LABELS[w.slot]} · {w.partySize} khách
-                        </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold text-[#b45309]">
+                            {r.code}
+                          </span>
+                          <span className="text-muted-foreground text-[11px]">·</span>
+                          <span className="truncate text-xs font-semibold text-stone-800">
+                            {r.customerName}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <span className="font-medium text-stone-700">
+                            Bàn {r.table?.code}
+                          </span>
+                          <span>•</span>
+                          <span>{SLOT_LABELS[r.slot]}</span>
+                          <span>•</span>
+                          <span>{formatShortDate(r.date)}</span>
+                          <span>•</span>
+                          <span>{r.partySize}K</span>
+                        </div>
                       </div>
-                      <StatusBadge
-                        status={w.status === "INVITED" ? "CONFIRMED" : "PENDING"}
-                      />
-                    </li>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <StatusBadge status={r.status} />
+                        <span className="text-[10px] text-muted-foreground bg-stone-100 px-1.5 py-0.5 rounded">
+                          {SOURCE_LABELS[r.source] || r.source}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </div>
+          <div className="px-4 pb-3 pt-1 border-t border-border/50">
+            <button
+              type="button"
+              onClick={() => onNavigateTab?.("booking")}
+              className="w-full text-center text-[11.5px] font-medium text-[#b45309] hover:underline"
+            >
+              Xem tất cả danh sách đặt bàn →
+            </button>
+          </div>
+        </Card>
+
+        {/* ================= 2. TOP 5 ĐẶT BÀN HÔM NAY ================= */}
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+          <div>
+            <CardHeader className="pb-3 border-b border-border/60">
+              <div className="flex items-center justify-between">
+                <CardTitle className="inline-flex items-center gap-2 font-heading text-base text-[#292524]">
+                  <CalendarCheck className="h-4.5 w-4.5 text-[#b45309]" aria-hidden />
+                  Đặt bàn hôm nay
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onNavigateTab?.("booking", today)}
+                  className="h-8 px-2.5 text-xs text-[#b45309] hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                >
+                  Xem chi tiết
+                  <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Lượt phục vụ ngày hôm nay ({formatShortDate(today)})
+              </p>
+            </CardHeader>
+            <CardContent className="p-3.5">
+              {todayList.length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  <p>Hôm nay chưa có lượt khách nào</p>
+                  <Button
+                    variant="link"
+                    size="sm"
+                    onClick={() => onNavigateTab?.("booking", today)}
+                    className="mt-1 h-auto text-xs text-[#b45309]"
+                  >
+                    Mở sơ đồ bàn hôm nay
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {todayList.map((r) => (
+                    <div
+                      key={r.id}
+                      onClick={() => onNavigateTab?.("booking", today)}
+                      className="group flex items-center justify-between gap-2 rounded-xl border border-border/70 bg-[#fffdfa] p-2.5 transition-all hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/40 hover:shadow-xs cursor-pointer"
+                      title="Bấm để xem bàn trên sơ đồ mặt bằng hôm nay"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs font-bold text-[#b45309]">
+                            {r.code}
+                          </span>
+                          <span className="text-muted-foreground text-[11px]">·</span>
+                          <span className="truncate text-xs font-semibold text-stone-800">
+                            {r.customerName}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-semibold border-amber-300 bg-amber-50 text-amber-900">
+                            Bàn {r.table?.code}
+                          </Badge>
+                          <span>•</span>
+                          <span className="font-medium text-stone-700">{SLOT_LABELS[r.slot]}</span>
+                          <span>•</span>
+                          <span>{r.partySize} khách</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <StatusBadge status={r.status} />
+                        <span className="text-[10px] text-stone-500 font-mono">
+                          {r.phone.slice(-4).padStart(r.phone.length, "•")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </div>
+          <div className="px-4 pb-3 pt-1 border-t border-border/50">
+            <button
+              type="button"
+              onClick={() => onNavigateTab?.("booking", today)}
+              className="w-full text-center text-[11.5px] font-medium text-[#b45309] hover:underline"
+            >
+              Mở sơ đồ & danh sách hôm nay →
+            </button>
+          </div>
+        </Card>
+
+        {/* ================= 3. TOP 5 ĐÁNH GIÁ THỰC KHÁCH ================= */}
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+          <div>
+            <CardHeader className="pb-3 border-b border-border/60">
+              <div className="flex items-center justify-between">
+                <CardTitle className="inline-flex items-center gap-2 font-heading text-base text-[#292524]">
+                  <Star className="h-4.5 w-4.5 text-amber-500 fill-amber-400" aria-hidden />
+                  Top 5 đánh giá
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onNavigateTab?.("surveys")}
+                  className="h-8 px-2.5 text-xs text-[#b45309] hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                >
+                  Xem chi tiết
+                  <ArrowRight className="ml-1 h-3.5 w-3.5" aria-hidden />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Phản hồi & khảo sát gần đây của khách
+              </p>
+            </CardHeader>
+            <CardContent className="p-3.5">
+              {surveysList.length === 0 ? (
+                <p className="py-8 text-center text-xs text-muted-foreground">
+                  Chưa có đánh giá khảo sát nào
+                </p>
+              ) : (
+                <div className="space-y-2.5">
+                  {surveysList.map((s) => (
+                    <div
+                      key={s.id}
+                      onClick={() => onNavigateTab?.("surveys")}
+                      className="group flex flex-col gap-1 rounded-xl border border-border/70 bg-[#fffdfa] p-2.5 transition-all hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/40 hover:shadow-xs cursor-pointer"
+                      title="Bấm để xem trang Thống kê khảo sát"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="truncate text-xs font-semibold text-stone-800">
+                            {s.customerName}
+                          </span>
+                          <span className="font-mono text-[10.5px] text-muted-foreground">
+                            ({s.reservationCode})
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-0.5 shrink-0" aria-label={`${s.rating} sao`}>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star
+                              key={i}
+                              className={cn(
+                                "h-3 w-3",
+                                i < s.rating
+                                  ? "text-amber-500 fill-amber-400"
+                                  : "text-stone-300 fill-stone-100",
+                              )}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-stone-600 line-clamp-2 italic">
+                        {s.comment ? `“${s.comment}”` : "Khách để lại đánh giá 5★ hài lòng về bữa ăn."}
+                      </p>
+
+                      <div className="flex items-center justify-between text-[10.5px] text-muted-foreground pt-0.5">
+                        <span className="flex items-center gap-1">
+                          <UtensilsCrossed className="h-3 w-3 text-[#b45309]" />
+                          Món: {s.foodRating}★ · Phục vụ: {s.serviceRating}★
+                        </span>
+                        <span>{formatShortDate(s.date)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </div>
+          <div className="px-4 pb-3 pt-1 border-t border-border/50">
+            <button
+              type="button"
+              onClick={() => onNavigateTab?.("surveys")}
+              className="w-full text-center text-[11.5px] font-medium text-[#b45309] hover:underline"
+            >
+              Xem trang Thống kê khảo sát chi tiết →
+            </button>
+          </div>
+        </Card>
+      </div>
 
       <p className="pb-2 text-[11px] text-muted-foreground">
-        Cửa sổ thống kê: {data.windowLabel}. Số liệu mô phỏng phục vụ đồ án
-        Business Value.
+        Cửa sổ thống kê: {data.windowLabel}. Số liệu cập nhật thời gian thực phục vụ vận hành nhà hàng TRẦM Reserve.
       </p>
     </div>
   );

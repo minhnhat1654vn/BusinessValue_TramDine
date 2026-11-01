@@ -138,6 +138,12 @@ function LoginGate({ onOk }: { onOk: () => void }) {
 export function AdminView() {
   const [authed, setAuthed] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [bookingTargetDate, setBookingTargetDate] = useState<string | undefined>(undefined);
+
+  const handleNavigateTab = (tab: string, date?: string) => {
+    if (date) setBookingTargetDate(date);
+    setActiveTab(tab);
+  };
   const today = useToday();
 
   useEffect(() => {
@@ -247,13 +253,14 @@ export function AdminView() {
         <section className="flex-1 min-w-0 w-full">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsContent value="dashboard" className="mt-0 focus-visible:outline-none">
-              {today ? <AdminDashboard today={today} /> : <LoadingBlock />}
+              {today ? <AdminDashboard today={today} onNavigateTab={handleNavigateTab} /> : <LoadingBlock />}
             </TabsContent>
 
             <TabsContent value="booking" className="mt-0 focus-visible:outline-none">
               {today ? (
                 <AdminBookingUnifiedView
                   today={today}
+                  targetDate={bookingTargetDate}
                   onNavigateToSettings={() => setActiveTab("settings")}
                 />
               ) : (
@@ -266,6 +273,7 @@ export function AdminView() {
               {today ? (
                 <AdminBookingUnifiedView
                   today={today}
+                  targetDate={bookingTargetDate}
                   onNavigateToSettings={() => setActiveTab("settings")}
                 />
               ) : (
@@ -276,6 +284,7 @@ export function AdminView() {
               {today ? (
                 <AdminBookingUnifiedView
                   today={today}
+                  targetDate={bookingTargetDate}
                   onNavigateToSettings={() => setActiveTab("settings")}
                 />
               ) : (
