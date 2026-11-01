@@ -143,7 +143,17 @@ export function AdminView() {
   const handleNavigateTab = (tab: string, date?: string) => {
     if (date) setBookingTargetDate(date);
     setActiveTab(tab);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   };
+
+  // Khi chuyển tab quản trị (qua sidebar hoặc điều hướng), luôn hiển thị ở đỉnh đầu trang
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [activeTab]);
   const today = useToday();
 
   useEffect(() => {
@@ -199,7 +209,10 @@ export function AdminView() {
                   <button
                     key={item.key}
                     type="button"
-                    onClick={() => setActiveTab(item.key)}
+                    onClick={() => {
+                      setActiveTab(item.key);
+                      if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
+                    }}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all shrink-0 lg:w-full select-none",
                       active

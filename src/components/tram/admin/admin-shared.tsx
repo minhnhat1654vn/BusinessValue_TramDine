@@ -106,12 +106,16 @@ export function DayStrip({
     return () => el.removeEventListener("wheel", handleWheel);
   }, []);
 
-  // Tự động cuộn ngày đang chọn vào giữa tầm nhìn khi chọn hoặc khi load
+  // Tự động cuộn ngày đang chọn vào giữa tầm nhìn nội bộ container (tuyệt đối KHÔNG cuộn window/page)
   useEffect(() => {
     if (!selected) return;
+    const container = scrollRef.current;
     const el = document.getElementById(`day-strip-${selected}`);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    if (container && el) {
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const offset = elRect.left - containerRect.left - containerRect.width / 2 + elRect.width / 2;
+      container.scrollBy({ left: offset, behavior: "smooth" });
     }
   }, [selected]);
 
