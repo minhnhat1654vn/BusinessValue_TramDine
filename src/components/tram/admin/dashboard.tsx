@@ -115,10 +115,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     return () => clearInterval(timer);
   }, [refresh]);
 
-  if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
-  if (error) return <ErrorBlock message={error} onRetry={refresh} />;
-  if (!data) return null;
-
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const revContainerRef = useRef<HTMLDivElement>(null);
 
@@ -140,6 +136,34 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   useEffect(() => {
     if (!revContainerRef.current || !data?.occupancy?.length) return;
     const container = revContainerRef.current;
+    const todayIndex = data.occupancy.findIndex((p) => p.date === today);
+    if (todayIndex !== -1) {
+      const totalDays = data.occupancy.length;
+      const scrollWidth = container.scrollWidth;
+      const dayWidth = scrollWidth / totalDays;
+      const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+    }
+  }, [data, today]);
+
+  // Lăn chuột ngang tự nhiên trên biểu đồ 4 tuần
+  useEffect(() => {
+    const el = chartContainerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  // Ưu tiên hiển thị tuần hiện tại (cuộn dải ngày 4 tuần tới vị trí ngày hôm nay)
+  useEffect(() => {
+    if (!chartContainerRef.current || !data?.occupancy?.length) return;
+    const container = chartContainerRef.current;
     const todayIndex = data.occupancy.findIndex((p) => p.date === today);
     if (todayIndex !== -1) {
       const totalDays = data.occupancy.length;
@@ -178,34 +202,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     }
   };
 
-  // Lăn chuột ngang tự nhiên trên biểu đồ 4 tuần
-  useEffect(() => {
-    const el = chartContainerRef.current;
-    if (!el) return;
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    };
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // Ưu tiên hiển thị tuần hiện tại (cuộn dải ngày 4 tuần tới vị trí ngày hôm nay)
-  useEffect(() => {
-    if (!chartContainerRef.current || !data?.occupancy?.length) return;
-    const container = chartContainerRef.current;
-    const todayIndex = data.occupancy.findIndex((p) => p.date === today);
-    if (todayIndex !== -1) {
-      const totalDays = data.occupancy.length;
-      const scrollWidth = container.scrollWidth;
-      const dayWidth = scrollWidth / totalDays;
-      const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
-      container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
-    }
-  }, [data, today]);
-
   const scrollToPast = () => {
     if (chartContainerRef.current) {
       chartContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
@@ -233,6 +229,10 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
       });
     }
   };
+
+  if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
+  if (error) return <ErrorBlock message={error} onRetry={refresh} />;
+  if (!data) return null;
 
   const chartData = data.occupancy.map((p) => ({
     ...p,
