@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
   ReferenceLine,
+  LabelList,
 } from "recharts";
 import {
   Banknote,
@@ -189,17 +190,17 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle className="inline-flex items-center gap-2 font-heading text-lg text-[#292524]">
                 <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
-                Occupancy 2 Khung Giờ Theo Ngày
+                Tỷ Lệ Lấp Chỗ 2 Khung Giờ (14 Ngày)
               </CardTitle>
               {/* FR-14 Legend */}
               <div className="flex flex-wrap items-center gap-3 text-xs">
-                <span className="inline-flex items-center gap-1.5 text-stone-700">
-                  <span className="h-2.5 w-2.5 rounded-xs bg-[#d97706]" />
-                  Khung 17:30
+                <span className="inline-flex items-center gap-1.5 font-medium text-stone-700">
+                  <span className="h-2.5 w-2.5 rounded-xs bg-[#0284c7]" />
+                  Khung 17:30 (Xanh biển)
                 </span>
-                <span className="inline-flex items-center gap-1.5 text-stone-700">
-                  <span className="h-2.5 w-2.5 rounded-xs bg-[#b45309]" />
-                  Khung 19:45
+                <span className="inline-flex items-center gap-1.5 font-medium text-stone-700">
+                  <span className="h-2.5 w-2.5 rounded-xs bg-[#d97706]" />
+                  Khung 19:45 (Vàng hổ phách)
                 </span>
                 <span className="inline-flex items-center gap-1.5 font-medium text-rose-600">
                   <span className="inline-block w-4 border-b-2 border-dashed border-rose-500" />
@@ -208,13 +209,13 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              14 ngày gần nhất · % lấp chỗ trên sức chứa mỗi khung (42 chỗ/khung)
+              Hiệu suất lấp đầy theo ngày · 42 chỗ/khung · Đường mục tiêu 85%
             </p>
           </CardHeader>
           <CardContent>
             <div className="h-64 w-full" role="img" aria-label="Biểu đồ cột ghép tỷ lệ lấp chỗ 2 khung giờ">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 14, right: 10, left: -18, bottom: 0 }}>
+                <BarChart data={chartData} margin={{ top: 22, right: 10, left: -18, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="#e7e1d3" strokeDasharray="3 3" />
                   <XAxis
                     dataKey="label"
@@ -227,7 +228,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     tickLine={false}
                   />
                   <YAxis
-                    domain={[0, 100]}
+                    domain={[0, 115]}
                     tick={{ fontSize: 10, fill: "#78716c" }}
                     tickFormatter={(v: number) => `${v}%`}
                     axisLine={false}
@@ -273,7 +274,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                             <div className="space-y-1.5 text-[11px]">
                               <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-1.5 text-stone-700">
-                                  <span className="h-2 w-2 rounded-full bg-[#d97706]" />
+                                  <span className="h-2 w-2 rounded-full bg-[#0284c7]" />
                                   Khung 17:30:
                                 </span>
                                 <span className="font-semibold text-stone-900">
@@ -282,7 +283,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                               </div>
                               <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-1.5 text-stone-700">
-                                  <span className="h-2 w-2 rounded-full bg-[#b45309]" />
+                                  <span className="h-2 w-2 rounded-full bg-[#d97706]" />
                                   Khung 19:45:
                                 </span>
                                 <span className="font-semibold text-stone-900">
@@ -315,26 +316,40 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                       );
                     }}
                   />
-                  {/* FR-14: Hai cột ghép đại diện cho 2 khung 17:30 và 19:45 */}
+                  {/* FR-14: Hai cột ghép đại diện cho 2 khung 17:30 (Xanh) và 19:45 (Vàng hổ phách) có nhãn số % trên đầu */}
                   <Bar
                     dataKey="bar1730"
                     name="Khung 17:30"
-                    fill="#d97706"
-                    radius={[3, 3, 0, 0]}
-                    maxBarSize={15}
-                  />
+                    fill="#0284c7"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={16}
+                  >
+                    <LabelList
+                      dataKey="bar1730"
+                      position="top"
+                      formatter={(val: number) => (val > 0 ? `${val}%` : "")}
+                      style={{ fontSize: "8.5px", fontWeight: "700", fill: "#0369a1" }}
+                    />
+                  </Bar>
                   <Bar
                     dataKey="bar1945"
                     name="Khung 19:45"
-                    fill="#b45309"
-                    radius={[3, 3, 0, 0]}
-                    maxBarSize={15}
-                  />
+                    fill="#d97706"
+                    radius={[4, 4, 0, 0]}
+                    maxBarSize={16}
+                  >
+                    <LabelList
+                      dataKey="bar1945"
+                      position="top"
+                      formatter={(val: number) => (val > 0 ? `${val}%` : "")}
+                      style={{ fontSize: "8.5px", fontWeight: "700", fill: "#b45309" }}
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              So sánh 2 khung giờ: Khung 19:45 thường đạt mục tiêu 85% cao hơn khung 17:30 — tối ưu bài toán yield management.
+              So sánh 2 khung giờ: Khung 19:45 (vàng hổ phách) thường đạt mục tiêu 85% cao hơn khung 17:30 (xanh biển) — tối ưu bài toán yield management và xếp bàn.
             </p>
           </CardContent>
         </Card>
