@@ -21,10 +21,10 @@ export default function Page() {
         {view === "home" && (
           <motion.div
             key="home-view"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.32, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="flex-1"
           >
             <HomeView onBookNow={() => setView("booking")} />
@@ -34,10 +34,10 @@ export default function Page() {
         {view === "booking" && (
           <motion.div
             key="booking-view"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.32, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="flex-1"
           >
             <BookingWizard onGoHome={() => setView("home")} />
@@ -47,10 +47,10 @@ export default function Page() {
         {view === "admin" && (
           <motion.div
             key="admin-view"
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.32, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             className="flex-1"
           >
             <AdminView />

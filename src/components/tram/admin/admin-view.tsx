@@ -1,6 +1,6 @@
 "use client";
 
-// Màn Quản trị — đăng nhập bằng mã demo (sessionStorage) + 5 phân hệ
+// Màn Quản trị — đăng nhập bằng mã demo (sessionStorage) + các phân hệ quản lý
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -11,23 +11,67 @@ import {
   Table2,
   Users,
   ClipboardList,
+  SlidersHorizontal,
+  Star,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { ADMIN_CODE } from "@/lib/tram/constants";
 import { AdminDashboard } from "./dashboard";
+import { AdminBookingUnifiedView } from "./booking-unified-view";
 import { AdminTableMap } from "./table-map";
 import { AdminReservationsList } from "./reservations-list";
 import { AdminCustomers } from "./customers";
 import { AdminWaitlist } from "./waitlist-manager";
 import { AdminSurveys } from "./surveys-view";
+import { AdminBookingSettingsView } from "./booking-settings-view";
 import { LoadingBlock, useToday } from "./admin-shared";
-import { Star } from "lucide-react";
 
 const SESSION_KEY = "tram_admin_ok";
+
+const ADMIN_NAV_ITEMS = [
+  {
+    key: "dashboard",
+    label: "Dashboard",
+    description: "Chỉ số & công suất",
+    icon: LayoutDashboard,
+  },
+  {
+    key: "booking",
+    label: "Đặt bàn & Sơ đồ",
+    description: "10 bàn & danh sách",
+    icon: ClipboardList,
+  },
+  {
+    key: "customers",
+    label: "Khách hàng",
+    description: "Hồ sơ & chi tiêu",
+    icon: Users,
+  },
+  {
+    key: "surveys",
+    label: "Khảo sát",
+    description: "Đánh giá thực khách",
+    icon: Star,
+  },
+  {
+    key: "waitlist",
+    label: "Waitlist",
+    description: "Danh sách chờ",
+    icon: CalendarRange,
+  },
+  {
+    key: "settings",
+    label: "Cài đặt chương trình",
+    description: "Ngày mở / ngày nghỉ",
+    icon: SlidersHorizontal,
+  },
+] as const;
 
 function LoginGate({ onOk }: { onOk: () => void }) {
   const [code, setCode] = useState("");
@@ -93,6 +137,7 @@ function LoginGate({ onOk }: { onOk: () => void }) {
 
 export function AdminView() {
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [activeTab, setActiveTab] = useState("dashboard");
   const today = useToday();
 
   useEffect(() => {
@@ -112,96 +157,150 @@ export function AdminView() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="mb-1 text-xs font-medium uppercase tracking-[0.3em] text-[#b45309]">
-            Khu vực nội bộ
-          </p>
-          <h1 className="font-heading text-3xl font-semibold text-[#292524] sm:text-4xl">
-            Quản trị vận hành
-          </h1>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            sessionStorage.removeItem(SESSION_KEY);
-            setAuthed(false);
-            toast.success("Đã đăng xuất màn quản trị.");
-          }}
-          className="h-11 rounded-full border-border text-stone-600 hover:bg-muted"
-        >
-          <LogOut className="mr-1.5 h-4 w-4" aria-hidden />
-          Đăng xuất
-        </Button>
+    <main className="mx-auto w-full max-w-[1520px] px-3 sm:px-6 py-4 sm:py-6">
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
+        {/* ==================== SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI ==================== */}
+        <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-20 z-20">
+          <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-sm space-y-4">
+            {/* Header thông tin nhà hàng & Quản trị */}
+            <div className="px-1.5 pt-1 pb-3 border-b border-border/60">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+                  Khu vực nội bộ
+                </span>
+                <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live
+                </span>
+              </div>
+              <h1 className="mt-1 font-heading text-lg font-bold text-[#292524] sm:text-xl">
+                Quản trị TRẦM
+              </h1>
+              <p className="text-[11px] text-muted-foreground">
+                Fine Dining · Q.3, TP.HCM
+              </p>
+            </div>
+
+            {/* Menu tab danh mục: Cuộn ngang trên mobile, xếp dọc dạng Sidebar trên desktop */}
+            <nav
+              aria-label="Menu quản trị"
+              className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible tram-scroll pb-1.5 lg:pb-0"
+            >
+              {ADMIN_NAV_ITEMS.map((item) => {
+                const active = activeTab === item.key;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setActiveTab(item.key)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all shrink-0 lg:w-full select-none",
+                      active
+                        ? "bg-[#b45309] text-[#fffbf2] shadow-sm font-semibold ring-1 ring-[#b45309]/50"
+                        : "text-stone-700 hover:bg-[#fdf0d5]/70 hover:text-[#b45309]"
+                    )}
+                  >
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-colors",
+                        active ? "text-[#fffbf2]" : "text-[#b45309]"
+                      )}
+                      aria-hidden
+                    />
+                    <div className="min-w-0">
+                      <div className="leading-snug truncate">{item.label}</div>
+                      <div
+                        className={cn(
+                          "text-[10.5px] font-normal leading-tight hidden lg:block",
+                          active ? "text-amber-100" : "text-muted-foreground"
+                        )}
+                      >
+                        {item.description}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Chân Sidebar: Thông tin phiên & Nút Đăng xuất */}
+            <div className="pt-2 border-t border-border/60">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  sessionStorage.removeItem(SESSION_KEY);
+                  setAuthed(false);
+                  toast.success("Đã đăng xuất màn quản trị.");
+                }}
+                className="w-full justify-start rounded-xl text-stone-600 hover:bg-destructive/10 hover:text-destructive text-xs h-9 px-3"
+              >
+                <LogOut className="mr-2 h-4 w-4" aria-hidden />
+                Đăng xuất
+              </Button>
+            </div>
+          </div>
+        </aside>
+
+        {/* ==================== KHU VỰC NỘI DUNG CHÍNH (BÊN PHẢI) ==================== */}
+        <section className="flex-1 min-w-0 w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsContent value="dashboard" className="mt-0 focus-visible:outline-none">
+              {today ? <AdminDashboard today={today} /> : <LoadingBlock />}
+            </TabsContent>
+
+            <TabsContent value="booking" className="mt-0 focus-visible:outline-none">
+              {today ? (
+                <AdminBookingUnifiedView
+                  today={today}
+                  onNavigateToSettings={() => setActiveTab("settings")}
+                />
+              ) : (
+                <LoadingBlock />
+              )}
+            </TabsContent>
+
+            {/* Tương thích ngược link cũ */}
+            <TabsContent value="map" className="mt-0 focus-visible:outline-none">
+              {today ? (
+                <AdminBookingUnifiedView
+                  today={today}
+                  onNavigateToSettings={() => setActiveTab("settings")}
+                />
+              ) : (
+                <LoadingBlock />
+              )}
+            </TabsContent>
+            <TabsContent value="list" className="mt-0 focus-visible:outline-none">
+              {today ? (
+                <AdminBookingUnifiedView
+                  today={today}
+                  onNavigateToSettings={() => setActiveTab("settings")}
+                />
+              ) : (
+                <LoadingBlock />
+              )}
+            </TabsContent>
+
+            <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
+              <AdminCustomers />
+            </TabsContent>
+
+            <TabsContent value="surveys" className="mt-0 focus-visible:outline-none">
+              <AdminSurveys />
+            </TabsContent>
+
+            <TabsContent value="waitlist" className="mt-0 focus-visible:outline-none">
+              <AdminWaitlist />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0 focus-visible:outline-none">
+              <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />
+            </TabsContent>
+          </Tabs>
+        </section>
       </div>
-
-      <Tabs defaultValue="dashboard" className="space-y-6">
-        <TabsList className="tram-scroll h-12 w-full justify-start gap-1 overflow-x-auto rounded-full bg-muted p-1 sm:justify-center">
-          <TabsTrigger
-            value="dashboard"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <LayoutDashboard className="mr-1.5 h-4 w-4" aria-hidden />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger
-            value="map"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <Table2 className="mr-1.5 h-4 w-4" aria-hidden />
-            Sơ đồ bàn
-          </TabsTrigger>
-          <TabsTrigger
-            value="list"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <ClipboardList className="mr-1.5 h-4 w-4" aria-hidden />
-            Đặt bàn
-          </TabsTrigger>
-          <TabsTrigger
-            value="customers"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <Users className="mr-1.5 h-4 w-4" aria-hidden />
-            Khách hàng
-          </TabsTrigger>
-          <TabsTrigger
-            value="surveys"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <Star className="mr-1.5 h-4 w-4 fill-current" aria-hidden />
-            Thống kê khảo sát
-          </TabsTrigger>
-          <TabsTrigger
-            value="waitlist"
-            className="h-10 shrink-0 rounded-full px-4 text-sm data-[state=active]:bg-[#b45309] data-[state=active]:text-[#fffbf2]"
-          >
-            <CalendarRange className="mr-1.5 h-4 w-4" aria-hidden />
-            Waitlist
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard">
-          {today ? <AdminDashboard today={today} /> : <LoadingBlock />}
-        </TabsContent>
-        <TabsContent value="map">
-          {today ? <AdminTableMap today={today} /> : <LoadingBlock />}
-        </TabsContent>
-        <TabsContent value="list">
-          {today ? <AdminReservationsList today={today} /> : <LoadingBlock />}
-        </TabsContent>
-        <TabsContent value="customers">
-          <AdminCustomers />
-        </TabsContent>
-        <TabsContent value="surveys">
-          <AdminSurveys />
-        </TabsContent>
-        <TabsContent value="waitlist">
-          <AdminWaitlist />
-        </TabsContent>
-      </Tabs>
     </main>
   );
 }

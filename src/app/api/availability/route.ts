@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { ACTIVE_STATUSES, serializeReservation } from "@/lib/tram/server";
 import { getActiveHold } from "@/lib/tram/hold-manager";
-import { isClosedMonday } from "@/lib/tram/format";
+import { checkDateBookingAllowed } from "@/lib/tram/booking-settings";
+import { getBookingSettings } from "@/lib/tram/booking-settings-server";
 import type {
   AvailabilityResponse,
   SlotSummary,
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
     const slot = searchParams.get("slot");
     const partySize = Number(searchParams.get("partySize") ?? "2");
     const sessionId = searchParams.get("sessionId") ?? undefined;
+    const isAdmin = searchParams.get("admin") === "1";
 
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json(
@@ -27,11 +29,34 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Kiểm tra cấu hình chương trình & ngày nghỉ từ Admin (Khách hàng bị chặn, Admin vẫn xem được để quản lý)
+    const settings = await getBookingSettings();
+    const dateCheck = checkDateBookingAllowed(date, settings);
+
+    if (!isAdmin && !dateCheck.allowed) {
+      return NextResponse.json({
+        date,
+        closed: true,
+        closeReason: dateCheck.reason,
+        closeMessage: dateCheck.message,
+        slots: (["SLOT_1730", "SLOT_1945"] as Slot[]).map((s) => ({
+          slot: s,
+          capacity: 42,
+          bookedSeats: 0,
+          remainingSeats: 0,
+        })),
+        tables: null,
+      });
+    }
+
     const dayStart = new Date(`${date}T00:00:00.000Z`);
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
 
     const [tables, dayReservations] = await Promise.all([
-      db.table.findMany({ orderBy: { code: "asc" } }),
+      db.table.findMany({
+        where: { code: { notIn: ["B11", "B12"] } },
+        orderBy: { code: "asc" },
+      }),
       db.reservation.findMany({
         where: {
           date: { gte: dayStart, lte: dayEnd },
@@ -94,9 +119,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const response: AvailabilityResponse & { closed: boolean } = {
+    const response: AvailabilityResponse & {
+      closed: boolean;
+      closeReason?: string;
+      closeMessage?: string;
+    } = {
       date,
-      closed: isClosedMonday(date),
+      closed: false,
       slots,
       tables: tableAvailability,
     };

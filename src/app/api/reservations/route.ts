@@ -8,8 +8,9 @@ import {
   serializeReservation,
 } from "@/lib/tram/server";
 import { PRICES } from "@/lib/tram/constants";
-import { isClosedMonday } from "@/lib/tram/format";
 import { releaseTableHold } from "@/lib/tram/hold-manager";
+import { checkDateBookingAllowed } from "@/lib/tram/booking-settings";
+import { getBookingSettings } from "@/lib/tram/booking-settings-server";
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,20 +54,31 @@ interface CreateBody {
   notes?: string;
   allergy?: string;
   selectedDishes?: string | unknown;
+  source?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
     const body = (await request.json()) as CreateBody;
+    const isAdmin =
+      searchParams.get("admin") === "1" ||
+      body.source === "PHONE" ||
+      body.source === "ZALO";
 
     // --- Kiểm tra dữ liệu đầu vào ---
     const errors: string[] = [];
     if (!body.date || !/^\d{4}-\d{2}-\d{2}$/.test(body.date)) {
       errors.push("Ngày đặt không hợp lệ.");
+    } else if (!isAdmin) {
+      // Kiểm tra quy tắc ngày chương trình & ngày nghỉ từ cài đặt quản trị (chỉ áp dụng cho khách tự đặt)
+      const settings = await getBookingSettings();
+      const dateCheck = checkDateBookingAllowed(body.date, settings);
+      if (!dateCheck.allowed) {
+        errors.push(dateCheck.message ?? "Ngày này nhà hàng không áp dụng chương trình đặt bàn.");
+      }
     }
-    if (body.date && isClosedMonday(body.date)) {
-      errors.push("Nhà hàng nghỉ thứ Hai — vui lòng chọn ngày khác.");
-    }
+
     if (body.slot !== "SLOT_1730" && body.slot !== "SLOT_1945") {
       errors.push("Khung giờ không hợp lệ.");
     }
@@ -91,7 +103,11 @@ export async function POST(request: NextRequest) {
     }
 
     const table = body.tableId
-      ? await db.table.findUnique({ where: { id: body.tableId } })
+      ? await db.table.findFirst({
+          where: {
+            OR: [{ id: body.tableId }, { code: body.tableId }],
+          },
+        })
       : null;
     if (!table) {
       return NextResponse.json(
@@ -175,7 +191,7 @@ export async function POST(request: NextRequest) {
           : null,
         status: "CONFIRMED", // cọc đã "thanh toán" (mô phỏng) → xác nhận luôn
         depositAmount: PRICES.deposit * partySize,
-        source: "WEB",
+        source: body.source === "PHONE" || body.source === "ZALO" ? body.source : "WEB",
       },
       include: { table: true },
     });
