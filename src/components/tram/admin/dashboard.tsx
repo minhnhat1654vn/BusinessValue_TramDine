@@ -6,6 +6,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -85,6 +86,8 @@ export function AdminDashboard({ today }: DashboardProps) {
     ...p,
     isMonday: p.weekday === 1,
     tooltipPercent: p.capacity === 0 ? 0 : Math.round(p.percent),
+    bar1730: p.weekday === 1 ? 0 : Math.round(p.slot1730Percent ?? 0),
+    bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
   }));
 
   return (
@@ -118,23 +121,38 @@ export function AdminDashboard({ today }: DashboardProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* ---- Biểu đồ occupancy 14 ngày ---- */}
+        {/* ---- Biểu đồ occupancy 14 ngày (FR-14: Cột ghép 2 khung 17:30 và 19:45 + Target 85%) ---- */}
         <Card className="border-border/80 bg-card shadow-sm lg:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="flex flex-wrap items-center justify-between gap-2 font-heading text-lg text-[#292524]">
-              <span className="inline-flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle className="inline-flex items-center gap-2 font-heading text-lg text-[#292524]">
                 <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
-                Occupancy theo ngày
-              </span>
-              <span className="text-xs font-normal text-muted-foreground">
-                14 ngày gần nhất · % chỗ đặt / sức chứa tối (84 chỗ)
-              </span>
-            </CardTitle>
+                Occupancy 2 Khung Giờ Theo Ngày
+              </CardTitle>
+              {/* FR-14 Legend */}
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <span className="inline-flex items-center gap-1.5 text-stone-700">
+                  <span className="h-2.5 w-2.5 rounded-xs bg-[#d97706]" />
+                  Khung 17:30
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-stone-700">
+                  <span className="h-2.5 w-2.5 rounded-xs bg-[#b45309]" />
+                  Khung 19:45
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium text-rose-600">
+                  <span className="inline-block w-4 border-b-2 border-dashed border-rose-500" />
+                  Mục tiêu 85%
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              14 ngày gần nhất · % lấp chỗ trên sức chứa mỗi khung (42 chỗ/khung)
+            </p>
           </CardHeader>
           <CardContent>
-            <div className="h-64 w-full" role="img" aria-label="Biểu đồ cột tỷ lệ lấp chỗ theo ngày">
+            <div className="h-64 w-full" role="img" aria-label="Biểu đồ cột ghép tỷ lệ lấp chỗ 2 khung giờ">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
+                <BarChart data={chartData} margin={{ top: 14, right: 10, left: -18, bottom: 0 }}>
                   <CartesianGrid vertical={false} stroke="#e7e1d3" strokeDasharray="3 3" />
                   <XAxis
                     dataKey="label"
@@ -153,44 +171,108 @@ export function AdminDashboard({ today }: DashboardProps) {
                     axisLine={false}
                     tickLine={false}
                   />
+                  {/* FR-14: Đường mục tiêu 85% nét đứt */}
+                  <ReferenceLine
+                    y={85}
+                    stroke="#dc2626"
+                    strokeDasharray="4 4"
+                    strokeWidth={1.5}
+                    label={{
+                      value: "85%",
+                      position: "right",
+                      fill: "#dc2626",
+                      fontSize: 10,
+                      fontWeight: 700,
+                    }}
+                  />
                   <Tooltip
-                    cursor={{ fill: "rgba(180, 83, 9, 0.06)" }}
+                    cursor={{ fill: "rgba(180, 83, 9, 0.05)" }}
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
                       const p = payload[0].payload as (typeof chartData)[number];
                       return (
-                        <div className="rounded-lg border border-border bg-[#fffdf9] px-3 py-2 text-xs shadow-md">
-                          <p className="mb-1 font-medium text-[#292524]">
-                            {p.isMonday
-                              ? `${p.label} — nhà hàng nghỉ`
-                              : `${p.label} · ${WEEKDAY_FULL_LABELS[p.weekday]}`}
-                          </p>
-                          {!p.isMonday && (
-                            <p className="text-stone-600">
-                              {p.occupied}/{p.capacity} chỗ ·{" "}
-                              <span className="font-semibold text-[#b45309]">
-                                {p.tooltipPercent}%
-                              </span>
+                        <div className="rounded-xl border border-stone-200 bg-[#fffdfa] px-3.5 py-2.5 text-xs shadow-lg space-y-1.5 min-w-[210px]">
+                          <div className="border-b border-stone-200/80 pb-1.5">
+                            <p className="font-bold text-[#292524]">
+                              {p.isMonday
+                                ? `${p.label} — Nhà hàng đóng cửa`
+                                : `${p.label} · ${WEEKDAY_FULL_LABELS[p.weekday]}`}
                             </p>
+                            {!p.isMonday && (
+                              <p className="text-[11px] text-stone-500">
+                                Tổng cả ngày:{" "}
+                                <strong className="text-[#b45309]">
+                                  {p.occupied}/{p.capacity} chỗ ({p.tooltipPercent}%)
+                                </strong>
+                              </p>
+                            )}
+                          </div>
+                          {!p.isMonday ? (
+                            <div className="space-y-1.5 text-[11px]">
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-stone-700">
+                                  <span className="h-2 w-2 rounded-full bg-[#d97706]" />
+                                  Khung 17:30:
+                                </span>
+                                <span className="font-semibold text-stone-900">
+                                  {p.slot1730Occupied}/42 chỗ ({p.bar1730}%)
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="flex items-center gap-1.5 text-stone-700">
+                                  <span className="h-2 w-2 rounded-full bg-[#b45309]" />
+                                  Khung 19:45:
+                                </span>
+                                <span className="font-semibold text-stone-900">
+                                  {p.slot1945Occupied}/42 chỗ ({p.bar1945}%)
+                                </span>
+                              </div>
+                              <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
+                                <span className="text-stone-500">Mục tiêu 85%:</span>
+                                <span
+                                  className={`font-bold ${
+                                    p.bar1730 >= 85 || p.bar1945 >= 85
+                                      ? "text-emerald-700"
+                                      : "text-amber-700"
+                                  }`}
+                                >
+                                  {p.bar1730 >= 85 && p.bar1945 >= 85
+                                    ? "✓ Đạt cả 2 khung"
+                                    : p.bar1945 >= 85
+                                      ? "✓ Đạt khung 19:45"
+                                      : p.bar1730 >= 85
+                                        ? "✓ Đạt khung 17:30"
+                                        : "Chưa đạt"}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ thứ Hai</p>
                           )}
                         </div>
                       );
                     }}
                   />
-                  <Bar dataKey="tooltipPercent" radius={[5, 5, 0, 0]} maxBarSize={26}>
-                    {chartData.map((p, i) => (
-                      <Cell
-                        key={i}
-                        fill={p.isMonday ? "#e7e1d3" : p.tooltipPercent >= 60 ? "#b45309" : "#d97706"}
-                      />
-                    ))}
-                  </Bar>
+                  {/* FR-14: Hai cột ghép đại diện cho 2 khung 17:30 và 19:45 */}
+                  <Bar
+                    dataKey="bar1730"
+                    name="Khung 17:30"
+                    fill="#d97706"
+                    radius={[3, 3, 0, 0]}
+                    maxBarSize={15}
+                  />
+                  <Bar
+                    dataKey="bar1945"
+                    name="Khung 19:45"
+                    fill="#b45309"
+                    radius={[3, 3, 0, 0]}
+                    maxBarSize={15}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Cuối tuần kín hơn, đầu tuần (T3–T5 khung 17:30) thưa — đúng phân
-              bổ nhu cầu của nhà hàng.
+              So sánh 2 khung giờ: Khung 19:45 thường đạt mục tiêu 85% cao hơn khung 17:30 — tối ưu bài toán yield management.
             </p>
           </CardContent>
         </Card>

@@ -118,9 +118,10 @@
   --ring: #d97706;
 }
 
-/* Font hệ thống — không tải font ngoài */
+/* Font hệ thống — Cambria và Times New Roman hỗ trợ 100% tiếng Việt chuẩn, không dùng Georgia */
 @theme {
-  --font-heading: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", "Noto Serif", serif;
+  --font-heading: Cambria, "Times New Roman", "Palatino Linotype", "Noto Serif",
+    "Liberation Serif", serif;
   --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, "Noto Sans", sans-serif;
 }

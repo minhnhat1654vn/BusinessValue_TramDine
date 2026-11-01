@@ -146,7 +146,7 @@ export function AdminView() {
 
   if (authed === null) {
     return (
-      <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl 2xl:max-w-[1600px] px-4 py-12 sm:px-6 lg:px-8">
         <LoadingBlock label="Đang kiểm tra phiên quản trị..." />
       </main>
     );

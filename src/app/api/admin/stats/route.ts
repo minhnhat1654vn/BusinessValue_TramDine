@@ -89,12 +89,12 @@ export async function GET(request: NextRequest) {
       )
       .reduce((sum, r) => sum + reservationTotal(r.partySize, r.pairing), 0);
 
-    // --- Biểu đồ occupancy 14 ngày gần nhất ---
-    const byDay = new Map<string, number>();
+    // --- Biểu đồ occupancy 14 ngày gần nhất (FR-14: ghép hai khung 17:30 và 19:45) ---
+    const byDaySlot = new Map<string, number>();
     for (const r of windowReservations) {
       if (r.status === "CANCELLED") continue;
-      const key = toISODate(r.date);
-      byDay.set(key, (byDay.get(key) ?? 0) + r.partySize);
+      const key = `${toISODate(r.date)}|${r.slot}`;
+      byDaySlot.set(key, (byDaySlot.get(key) ?? 0) + r.partySize);
     }
     const occupancy: OccupancyPoint[] = [];
     for (let i = 0; i < 14; i++) {
@@ -108,11 +108,19 @@ export async function GET(request: NextRequest) {
           occupied: 0,
           capacity: 0,
           percent: 0,
+          slot1730Occupied: 0,
+          slot1730Percent: 0,
+          slot1945Occupied: 0,
+          slot1945Percent: 0,
         });
         continue;
       }
-      const occupied = byDay.get(dateISO) ?? 0;
+      const occ1730 = byDaySlot.get(`${dateISO}|SLOT_1730`) ?? 0;
+      const occ1945 = byDaySlot.get(`${dateISO}|SLOT_1945`) ?? 0;
+      const occupied = occ1730 + occ1945;
       const capacity = SEATS_PER_SLOT * 2;
+      const slot1730Percent = Math.min(100, Math.round((occ1730 / SEATS_PER_SLOT) * 100));
+      const slot1945Percent = Math.min(100, Math.round((occ1945 / SEATS_PER_SLOT) * 100));
       occupancy.push({
         date: dateISO,
         label: formatShortDate(dateISO),
@@ -120,6 +128,10 @@ export async function GET(request: NextRequest) {
         occupied,
         capacity,
         percent: Math.min(100, (occupied / capacity) * 100),
+        slot1730Occupied: occ1730,
+        slot1730Percent,
+        slot1945Occupied: occ1945,
+        slot1945Percent,
       });
     }
 
