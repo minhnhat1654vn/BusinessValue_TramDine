@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { motion, type Variants } from "framer-motion";
 
 // 3.1 Dashboard quản trị — KPI, biểu đồ occupancy, nguồn đặt bàn, Top 5 mới nhất, Top 5 hôm nay & Top 5 đánh giá
 import {
@@ -66,6 +67,29 @@ const SOURCE_LABELS: Record<string, string> = {
   ZALO: "Zalo",
 };
 
+const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+const fadeUpItem: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
 function KpiCard({
   icon: Icon,
   label,
@@ -78,22 +102,24 @@ function KpiCard({
   sub: string;
 }) {
   return (
-    <Card className="border-border/80 bg-card shadow-sm transition-shadow hover:shadow-md">
-      <CardContent className="p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            {label}
+    <motion.div variants={fadeUpItem} whileHover={{ y: -3, transition: { duration: 0.2 } }}>
+      <Card className="border-border/80 bg-card shadow-sm transition-shadow hover:shadow-md h-full">
+        <CardContent className="p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {label}
+            </p>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
+              <Icon className="h-4.5 w-4.5" aria-hidden />
+            </span>
+          </div>
+          <p className="font-heading text-[26px] font-semibold leading-tight text-[#292524] sm:text-3xl">
+            {value}
           </p>
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
-            <Icon className="h-4.5 w-4.5" aria-hidden />
-          </span>
-        </div>
-        <p className="font-heading text-[26px] font-semibold leading-tight text-[#292524] sm:text-3xl">
-          {value}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
-      </CardContent>
-    </Card>
+          <p className="mt-1 text-xs text-muted-foreground">{sub}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
@@ -283,9 +309,9 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       {/* Tiêu đề Dashboard & Nút Làm mới dữ liệu */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <motion.div variants={fadeUpItem} className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-heading text-xl font-bold text-[#292524] sm:text-2xl">
             Tổng quan Vận hành
@@ -304,7 +330,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           <RefreshCw className={cn("h-3.5 w-3.5 text-[#b45309]", loading && "animate-spin")} />
           Làm mới dữ liệu
         </Button>
-      </div>
+      </motion.div>
 
       {/* ---- 4 KPI ---- */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -336,7 +362,8 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* ---- Biểu đồ số lượng khách 4 tuần / 1 tháng (Cuộn ngang, ưu tiên tuần hiện tại) ---- */}
-        <Card className="border-border/80 bg-card shadow-sm lg:col-span-2">
+        <motion.div variants={fadeUpItem} className="lg:col-span-2">
+          <Card className="border-border/80 bg-card shadow-sm h-full">
           <CardHeader className="pb-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -600,9 +627,11 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             </p>
           </CardContent>
         </Card>
+      </motion.div>
 
-        {/* ---- Nguồn đặt bàn ---- */}
-        <Card className="border-border/80 bg-card shadow-sm">
+      {/* ---- Nguồn đặt bàn ---- */}
+      <motion.div variants={fadeUpItem}>
+        <Card className="border-border/80 bg-card shadow-sm h-full">
           <CardHeader className="pb-2">
             <CardTitle className="font-heading text-lg text-[#292524]">
               Nguồn đặt bàn
@@ -647,9 +676,11 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             </p>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
+    </div>
 
-      {/* ---- BIỂU ĐỒ DOANH THU THEO NGÀY (4 TUẦN / 1 THÁNG) ---- */}
+    {/* ---- BIỂU ĐỒ DOANH THU THEO NGÀY (4 TUẦN / 1 THÁNG) ---- */}
+    <motion.div variants={fadeUpItem}>
       <Card className="border-border/80 bg-card shadow-sm">
         <CardHeader className="pb-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -878,11 +909,13 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           </p>
         </CardContent>
       </Card>
+    </motion.div>
 
-      {/* ---- 3 KHỐI: TOP 5 ĐẶT BÀN MỚI NHẤT, TOP 5 ĐẶT BÀN HÔM NAY, TOP 5 ĐÁNH GIÁ ---- */}
-      <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {/* ================= 1. TOP 5 ĐẶT BÀN MỚI NHẤT ================= */}
-        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+    {/* ---- 3 KHỐI: TOP 5 ĐẶT BÀN MỚI NHẤT, TOP 5 ĐẶT BÀN HÔM NAY, TOP 5 ĐÁNH GIÁ ---- */}
+    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* ================= 1. TOP 5 ĐẶT BÀN MỚI NHẤT ================= */}
+      <motion.div variants={fadeUpItem} className="h-full">
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between h-full">
           <div>
             <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between">
@@ -964,9 +997,11 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             </button>
           </div>
         </Card>
+      </motion.div>
 
-        {/* ================= 2. TOP 5 ĐẶT BÀN HÔM NAY ================= */}
-        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+      {/* ================= 2. TOP 5 ĐẶT BÀN HÔM NAY ================= */}
+      <motion.div variants={fadeUpItem} className="h-full">
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between h-full">
           <div>
             <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between">
@@ -1052,9 +1087,11 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             </button>
           </div>
         </Card>
+      </motion.div>
 
-        {/* ================= 3. TOP 5 ĐÁNH GIÁ THỰC KHÁCH ================= */}
-        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between">
+      {/* ================= 3. TOP 5 ĐÁNH GIÁ THỰC KHÁCH ================= */}
+      <motion.div variants={fadeUpItem} className="h-full">
+        <Card className="border-border/80 bg-card shadow-sm flex flex-col justify-between h-full">
           <div>
             <CardHeader className="pb-3 border-b border-border/60">
               <div className="flex items-center justify-between">
@@ -1141,11 +1178,12 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             </button>
           </div>
         </Card>
-      </div>
-
-      <p className="pb-2 text-[11px] text-muted-foreground">
-        Cửa sổ thống kê: {data.windowLabel}. Số liệu cập nhật thời gian thực phục vụ vận hành nhà hàng TRẦM Reserve.
-      </p>
+      </motion.div>
     </div>
-  );
+
+    <motion.p variants={fadeUpItem} className="pb-2 text-[11px] text-muted-foreground">
+      Cửa sổ thống kê: {data.windowLabel}. Số liệu cập nhật thời gian thực phục vụ vận hành nhà hàng TRẦM Reserve.
+    </motion.p>
+  </motion.div>
+);
 }

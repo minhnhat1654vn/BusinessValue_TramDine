@@ -3,6 +3,7 @@
 // Màn Quản trị — đăng nhập bằng mã demo (sessionStorage) + các phân hệ quản lý
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   CalendarRange,
   KeyRound,
@@ -19,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { ADMIN_CODE } from "@/lib/tram/constants";
 import { AdminDashboard } from "./dashboard";
@@ -90,47 +90,54 @@ function LoginGate({ onOk }: { onOk: () => void }) {
 
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16 sm:px-6">
-      <Card className="w-full border-border/80 bg-card shadow-md">
-        <CardHeader className="items-center text-center">
-          <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
-            <KeyRound className="h-6 w-6" aria-hidden />
-          </div>
-          <CardTitle className="font-heading text-2xl text-[#292524]">
-            Quản trị TRẦM
-          </CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Nhập mã truy cập dành cho quản lý nhà hàng
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="admin-code">Mã truy cập</Label>
-              <Input
-                id="admin-code"
-                type="password"
-                inputMode="text"
-                autoComplete="off"
-                placeholder="••••••••"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="h-11 text-center font-mono tracking-[0.3em]"
-              />
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full"
+      >
+        <Card className="w-full border-border/80 bg-card shadow-md">
+          <CardHeader className="items-center text-center">
+            <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
+              <KeyRound className="h-6 w-6" aria-hidden />
             </div>
-            <Button
-              type="submit"
-              disabled={checking || code.length === 0}
-              className="h-12 w-full rounded-full bg-[#b45309] text-[15px] text-[#fffbf2] hover:bg-[#92400e]"
-            >
-              Vào màn quản trị
-            </Button>
-            <p className="text-center text-[11px] text-muted-foreground">
-              Mã demo: <span className="font-mono font-medium">TRAM2025</span> ·
-              đăng nhập demo, không phải bảo mật thật
+            <CardTitle className="font-heading text-2xl text-[#292524]">
+              Quản trị TRẦM
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Nhập mã truy cập dành cho quản lý nhà hàng
             </p>
-          </form>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="admin-code">Mã truy cập</Label>
+                <Input
+                  id="admin-code"
+                  type="password"
+                  inputMode="text"
+                  autoComplete="off"
+                  placeholder="••••••••"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="h-11 text-center font-mono tracking-[0.3em]"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={checking || code.length === 0}
+                className="h-12 w-full rounded-full bg-[#b45309] text-[15px] text-[#fffbf2] hover:bg-[#92400e]"
+              >
+                Vào màn quản trị
+              </Button>
+              <p className="text-center text-[11px] text-muted-foreground">
+                Mã demo: <span className="font-mono font-medium">TRAM2025</span> ·
+                đăng nhập demo, không phải bảo mật thật
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
     </main>
   );
 }
@@ -206,39 +213,48 @@ export function AdminView() {
                 const active = activeTab === item.key;
                 const Icon = item.icon;
                 return (
-                  <button
+                  <motion.button
                     key={item.key}
                     type="button"
+                    whileHover={{ x: 3 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setActiveTab(item.key);
                       if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
                     }}
                     className={cn(
-                      "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all shrink-0 lg:w-full select-none",
+                      "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors shrink-0 lg:w-full select-none",
                       active
-                        ? "bg-[#b45309] text-[#fffbf2] shadow-sm font-semibold ring-1 ring-[#b45309]/50"
+                        ? "text-[#fffbf2] shadow-sm font-semibold"
                         : "text-stone-700 hover:bg-[#fdf0d5]/70 hover:text-[#b45309]"
                     )}
                   >
+                    {active && (
+                      <motion.div
+                        layoutId="admin-active-tab-indicator"
+                        className="absolute inset-0 rounded-xl bg-[#b45309] ring-1 ring-[#b45309]/50 z-0"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
                     <Icon
                       className={cn(
-                        "h-4 w-4 shrink-0 transition-colors",
+                        "h-4 w-4 shrink-0 transition-colors relative z-10",
                         active ? "text-[#fffbf2]" : "text-[#b45309]"
                       )}
                       aria-hidden
                     />
-                    <div className="min-w-0">
+                    <div className="min-w-0 relative z-10">
                       <div className="leading-snug truncate">{item.label}</div>
                       <div
                         className={cn(
-                          "text-[10.5px] font-normal leading-tight hidden lg:block",
+                          "text-[10.5px] font-normal leading-tight hidden lg:block transition-colors",
                           active ? "text-amber-100" : "text-muted-foreground"
                         )}
                       >
                         {item.description}
                       </div>
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
             </nav>
@@ -253,7 +269,7 @@ export function AdminView() {
                   setAuthed(false);
                   toast.success("Đã đăng xuất màn quản trị.");
                 }}
-                className="w-full justify-start rounded-xl text-stone-600 hover:bg-destructive/10 hover:text-destructive text-xs h-9 px-3"
+                className="w-full justify-start rounded-xl text-stone-600 hover:bg-destructive/10 hover:text-destructive text-xs h-9 px-3 transition-colors"
               >
                 <LogOut className="mr-2 h-4 w-4" aria-hidden />
                 Đăng xuất
@@ -264,63 +280,42 @@ export function AdminView() {
 
         {/* ==================== KHU VỰC NỘI DUNG CHÍNH (BÊN PHẢI) ==================== */}
         <section className="flex-1 min-w-0 w-full">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsContent value="dashboard" className="mt-0 focus-visible:outline-none">
-              {today ? <AdminDashboard today={today} onNavigateTab={handleNavigateTab} /> : <LoadingBlock />}
-            </TabsContent>
-
-            <TabsContent value="booking" className="mt-0 focus-visible:outline-none">
-              {today ? (
-                <AdminBookingUnifiedView
-                  today={today}
-                  targetDate={bookingTargetDate}
-                  onNavigateToSettings={() => setActiveTab("settings")}
-                />
-              ) : (
-                <LoadingBlock />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              className="space-y-6 focus-visible:outline-none"
+            >
+              {activeTab === "dashboard" && (
+                today ? <AdminDashboard today={today} onNavigateTab={handleNavigateTab} /> : <LoadingBlock />
               )}
-            </TabsContent>
 
-            {/* Tương thích ngược link cũ */}
-            <TabsContent value="map" className="mt-0 focus-visible:outline-none">
-              {today ? (
-                <AdminBookingUnifiedView
-                  today={today}
-                  targetDate={bookingTargetDate}
-                  onNavigateToSettings={() => setActiveTab("settings")}
-                />
-              ) : (
-                <LoadingBlock />
+              {(activeTab === "booking" || activeTab === "map" || activeTab === "list") && (
+                today ? (
+                  <AdminBookingUnifiedView
+                    today={today}
+                    targetDate={bookingTargetDate}
+                    onNavigateToSettings={() => setActiveTab("settings")}
+                  />
+                ) : (
+                  <LoadingBlock />
+                )
               )}
-            </TabsContent>
-            <TabsContent value="list" className="mt-0 focus-visible:outline-none">
-              {today ? (
-                <AdminBookingUnifiedView
-                  today={today}
-                  targetDate={bookingTargetDate}
-                  onNavigateToSettings={() => setActiveTab("settings")}
-                />
-              ) : (
-                <LoadingBlock />
+
+              {activeTab === "customers" && <AdminCustomers />}
+
+              {activeTab === "surveys" && <AdminSurveys />}
+
+              {activeTab === "waitlist" && <AdminWaitlist />}
+
+              {activeTab === "settings" && (
+                <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />
               )}
-            </TabsContent>
-
-            <TabsContent value="customers" className="mt-0 focus-visible:outline-none">
-              <AdminCustomers />
-            </TabsContent>
-
-            <TabsContent value="surveys" className="mt-0 focus-visible:outline-none">
-              <AdminSurveys />
-            </TabsContent>
-
-            <TabsContent value="waitlist" className="mt-0 focus-visible:outline-none">
-              <AdminWaitlist />
-            </TabsContent>
-
-            <TabsContent value="settings" className="mt-0 focus-visible:outline-none">
-              <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />
-            </TabsContent>
-          </Tabs>
+            </motion.div>
+          </AnimatePresence>
         </section>
       </div>
     </main>
