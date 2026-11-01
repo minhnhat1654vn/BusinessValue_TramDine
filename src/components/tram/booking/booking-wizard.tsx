@@ -202,9 +202,12 @@ function DateStrip({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const weeks = useMemo(() => {
-    const firstSunday = addDays(today, -weekdayOf(today));
+    // Nhóm theo tuần bắt đầu từ Thứ Hai (chuẩn lịch Việt Nam & ISO, T2 đến CN)
+    const dayOfWeek = weekdayOf(today); // 0 = CN, 1 = T2, ..., 6 = T7
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const monday = addDays(today, -daysSinceMonday);
     return [0, 1, 2, 3].map((w) => {
-      const start = addDays(firstSunday, w * 7);
+      const start = addDays(monday, w * 7);
       return {
         label:
           w === 0 ? "Tuần này" : w === 1 ? "Tuần sau" : "Tuần " + (w + 1),

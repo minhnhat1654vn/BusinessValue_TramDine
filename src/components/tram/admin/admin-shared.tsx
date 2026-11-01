@@ -74,11 +74,13 @@ export function DayStrip({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Nhóm theo tuần bắt đầu từ Chủ Nhật tuần này (giống trải nghiệm khách hàng)
+  // Nhóm theo tuần bắt đầu từ Thứ Hai tuần này (chuẩn lịch Việt Nam & ISO, T2 đến CN)
   const weeks = useMemo(() => {
-    const firstSunday = addDays(today, -weekdayOf(today));
+    const dayOfWeek = weekdayOf(today); // 0 = CN, 1 = T2, ..., 6 = T7
+    const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const monday = addDays(today, -daysSinceMonday);
     return Array.from({ length: numWeeks }, (_, w) => {
-      const start = addDays(firstSunday, w * 7);
+      const start = addDays(monday, w * 7);
       return {
         label:
           w === 0 ? "Tuần này" : w === 1 ? "Tuần sau" : `Tuần ${w + 1}`,
