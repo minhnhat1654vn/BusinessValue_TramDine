@@ -105,7 +105,8 @@ export interface OccupancyPoint {
   slot1730Occupied: number; // chỗ đặt khung 17:30
   slot1730Percent: number; // % lấp chỗ khung 17:30 (trên 42 chỗ)
   slot1945Occupied: number; // chỗ đặt khung 19:45
-  slot1945Percent: number; // % lấp chỗ khung 19:45 (trên 42 chỗ)
+  slot1945Percent: number;
+  isToday?: boolean; // % lấp chỗ khung 19:45 (trên 42 chỗ)
 }
 
 export interface SourceShare {

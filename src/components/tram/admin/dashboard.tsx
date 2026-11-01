@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // 3.1 Dashboard quản trị — KPI, biểu đồ occupancy, nguồn đặt bàn, Top 5 mới nhất, Top 5 hôm nay & Top 5 đánh giá
 import {
@@ -119,12 +119,71 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   if (error) return <ErrorBlock message={error} onRetry={refresh} />;
   if (!data) return null;
 
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // Lăn chuột ngang tự nhiên trên biểu đồ 4 tuần
+  useEffect(() => {
+    const el = chartContainerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener("wheel", handleWheel, { passive: false });
+    return () => el.removeEventListener("wheel", handleWheel);
+  }, []);
+
+  // Ưu tiên hiển thị tuần hiện tại (cuộn dải ngày 4 tuần tới vị trí ngày hôm nay)
+  useEffect(() => {
+    if (!chartContainerRef.current || !data?.occupancy?.length) return;
+    const container = chartContainerRef.current;
+    const todayIndex = data.occupancy.findIndex((p) => p.date === today);
+    if (todayIndex !== -1) {
+      const totalDays = data.occupancy.length;
+      const scrollWidth = container.scrollWidth;
+      const dayWidth = scrollWidth / totalDays;
+      const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
+      container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+    }
+  }, [data, today]);
+
+  const scrollToPast = () => {
+    if (chartContainerRef.current) {
+      chartContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  };
+
+  const scrollToToday = () => {
+    if (chartContainerRef.current && data?.occupancy?.length) {
+      const container = chartContainerRef.current;
+      const todayIndex = data.occupancy.findIndex((p) => p.date === today);
+      if (todayIndex !== -1) {
+        const totalDays = data.occupancy.length;
+        const dayWidth = container.scrollWidth / totalDays;
+        const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
+        container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+      }
+    }
+  };
+
+  const scrollToFuture = () => {
+    if (chartContainerRef.current) {
+      chartContainerRef.current.scrollTo({
+        left: chartContainerRef.current.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+  };
+
   const chartData = data.occupancy.map((p) => ({
     ...p,
     isMonday: p.weekday === 1,
     tooltipPercent: p.capacity === 0 ? 0 : Math.round(p.percent),
     bar1730: p.weekday === 1 ? 0 : Math.round(p.slot1730Percent ?? 0),
     bar1945: p.weekday === 1 ? 0 : Math.round(p.slot1945Percent ?? 0),
+    displayLabel: p.date === today ? `★ ${p.label}` : p.label,
   }));
 
   const recentList = data.recentReservations || [];
@@ -184,16 +243,55 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* ---- Biểu đồ occupancy 14 ngày (FR-14: Cột ghép 2 khung 17:30 và 19:45 + Target 85%) ---- */}
+        {/* ---- Biểu đồ số lượng khách 4 tuần / 1 tháng (Cuộn ngang, ưu tiên tuần hiện tại) ---- */}
         <Card className="border-border/80 bg-card shadow-sm lg:col-span-2">
           <CardHeader className="pb-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="inline-flex items-center gap-2 font-heading text-lg text-[#292524]">
-                <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
-                Tỷ Lệ Lấp Chỗ 2 Khung Giờ (14 Ngày)
-              </CardTitle>
-              {/* FR-14 Legend */}
-              <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <CardTitle className="inline-flex items-center gap-2 font-heading text-lg text-[#292524]">
+                  <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
+                  Số Lượng Khách 2 Khung Giờ (4 Tuần / 1 Tháng)
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Thống kê số chỗ đặt thực tế mỗi ngày · Tối đa 42 chỗ/khung · Đường mục tiêu 36 chỗ (85%)
+                </p>
+              </div>
+
+              {/* Nút lướt nhanh giữa các tuần */}
+              <div className="flex items-center gap-1.5 bg-stone-100 p-1 rounded-lg text-xs">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={scrollToPast}
+                  className="h-7 px-2 text-[11px] text-stone-600 hover:text-stone-900 hover:bg-white"
+                  title="Cuộn sang 2 tuần trước"
+                >
+                  ◀ 2 tuần trước
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={scrollToToday}
+                  className="h-7 px-2.5 text-[11px] font-semibold text-[#b45309] bg-white border-amber-300 shadow-xs hover:bg-amber-50"
+                  title="Ưu tiên cuộn về tuần hiện tại (Hôm nay)"
+                >
+                  ★ Tuần này (Hôm nay)
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={scrollToFuture}
+                  className="h-7 px-2 text-[11px] text-stone-600 hover:text-stone-900 hover:bg-white"
+                  title="Cuộn sang 2 tuần tới"
+                >
+                  2 tuần tới ▶
+                </Button>
+              </div>
+            </div>
+
+            {/* Chú giải Legend */}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center gap-1.5 font-medium text-stone-700">
                   <span className="h-2.5 w-2.5 rounded-xs bg-[#0284c7]" />
                   Khung 17:30 (Xanh biển)
@@ -204,152 +302,185 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                 </span>
                 <span className="inline-flex items-center gap-1.5 font-medium text-rose-600">
                   <span className="inline-block w-4 border-b-2 border-dashed border-rose-500" />
-                  Mục tiêu 85%
+                  Mục tiêu 36 chỗ (85%)
                 </span>
               </div>
+              <span className="text-[11px] text-stone-500 italic">
+                ↔ Cuộn chuột ngang để lướt xem 28 ngày
+              </span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Hiệu suất lấp đầy theo ngày · 42 chỗ/khung · Đường mục tiêu 85%
-            </p>
           </CardHeader>
           <CardContent>
-            <div className="h-64 w-full" role="img" aria-label="Biểu đồ cột ghép tỷ lệ lấp chỗ 2 khung giờ">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 22, right: 10, left: -18, bottom: 0 }}>
-                  <CartesianGrid vertical={false} stroke="#e7e1d3" strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 10, fill: "#78716c" }}
-                    interval={0}
-                    angle={-38}
-                    textAnchor="end"
-                    height={46}
-                    axisLine={{ stroke: "#e7e1d3" }}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    domain={[0, 115]}
-                    tick={{ fontSize: 10, fill: "#78716c" }}
-                    tickFormatter={(v: number) => `${v}%`}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  {/* FR-14: Đường mục tiêu 85% nét đứt */}
-                  <ReferenceLine
-                    y={85}
-                    stroke="#dc2626"
-                    strokeDasharray="4 4"
-                    strokeWidth={1.5}
-                    label={{
-                      value: "85%",
-                      position: "right",
-                      fill: "#dc2626",
-                      fontSize: 10,
-                      fontWeight: 700,
-                    }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "rgba(180, 83, 9, 0.05)" }}
-                    content={({ active, payload }) => {
-                      if (!active || !payload?.length) return null;
-                      const p = payload[0].payload as (typeof chartData)[number];
-                      return (
-                        <div className="rounded-xl border border-stone-200 bg-[#fffdfa] px-3.5 py-2.5 text-xs shadow-lg space-y-1.5 min-w-[210px]">
-                          <div className="border-b border-stone-200/80 pb-1.5">
-                            <p className="font-bold text-[#292524]">
-                              {p.isMonday
-                                ? `${p.label} — Nhà hàng đóng cửa`
-                                : `${p.label} · ${WEEKDAY_FULL_LABELS[p.weekday]}`}
-                            </p>
-                            {!p.isMonday && (
-                              <p className="text-[11px] text-stone-500">
-                                Tổng cả ngày:{" "}
-                                <strong className="text-[#b45309]">
-                                  {p.occupied}/{p.capacity} chỗ ({p.tooltipPercent}%)
-                                </strong>
+            {/* Vùng cuộn ngang biểu đồ 4 tuần */}
+            <div
+              ref={chartContainerRef}
+              className="w-full overflow-x-auto pb-2 tram-scroll select-none"
+              role="region"
+              aria-label="Khu vực cuộn ngang biểu đồ 4 tuần"
+            >
+              <div className="min-w-[1680px] h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 22, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#e7e1d3" strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="displayLabel"
+                      tick={(props) => {
+                        const { x, y, payload } = props;
+                        const isCurrentDay = String(payload.value).startsWith("★");
+                        return (
+                          <g transform={`translate(${x},${y})`}>
+                            <text
+                              x={0}
+                              y={0}
+                              dy={14}
+                              textAnchor="end"
+                              fill={isCurrentDay ? "#b45309" : "#78716c"}
+                              fontWeight={isCurrentDay ? 700 : 400}
+                              fontSize={isCurrentDay ? 11 : 10}
+                              transform="rotate(-40)"
+                            >
+                              {payload.value}
+                            </text>
+                          </g>
+                        );
+                      }}
+                      interval={0}
+                      height={48}
+                      axisLine={{ stroke: "#e7e1d3" }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      domain={[0, 48]}
+                      tick={{ fontSize: 10, fill: "#78716c" }}
+                      tickFormatter={(v: number) => `${v}`}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    {/* Đường mục tiêu 36 chỗ (85% của 42 chỗ) */}
+                    <ReferenceLine
+                      y={36}
+                      stroke="#dc2626"
+                      strokeDasharray="4 4"
+                      strokeWidth={1.5}
+                      label={{
+                        value: "36 chỗ (85%)",
+                        position: "right",
+                        fill: "#dc2626",
+                        fontSize: 10,
+                        fontWeight: 700,
+                      }}
+                    />
+                    <Tooltip
+                      cursor={{ fill: "rgba(180, 83, 9, 0.05)" }}
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        const p = payload[0].payload as (typeof chartData)[number];
+                        return (
+                          <div className="rounded-xl border border-stone-200 bg-[#fffdfa] px-3.5 py-2.5 text-xs shadow-lg space-y-1.5 min-w-[220px]">
+                            <div className="border-b border-stone-200/80 pb-1.5">
+                              <p className="font-bold text-[#292524] flex items-center justify-between">
+                                <span>
+                                  {p.isMonday
+                                    ? `${p.label} — Nhà hàng nghỉ`
+                                    : `${p.label} · ${WEEKDAY_FULL_LABELS[p.weekday]}`}
+                                </span>
+                                {p.date === today && (
+                                  <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-1.5 py-0.5 rounded">
+                                    HÔM NAY
+                                  </span>
+                                )}
                               </p>
+                              {!p.isMonday && (
+                                <p className="text-[11px] text-stone-500 mt-0.5">
+                                  Tổng cả ngày:{" "}
+                                  <strong className="text-[#b45309]">
+                                    {p.occupied}/{p.capacity} chỗ ({p.tooltipPercent}%)
+                                  </strong>
+                                </p>
+                              )}
+                            </div>
+                            {!p.isMonday ? (
+                              <div className="space-y-1.5 text-[11px]">
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1.5 text-stone-700">
+                                    <span className="h-2 w-2 rounded-full bg-[#0284c7]" />
+                                    Khung 17:30:
+                                  </span>
+                                  <span className="font-semibold text-stone-900">
+                                    {p.slot1730Occupied}/42 khách ({p.bar1730}%)
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-1.5 text-stone-700">
+                                    <span className="h-2 w-2 rounded-full bg-[#d97706]" />
+                                    Khung 19:45:
+                                  </span>
+                                  <span className="font-semibold text-stone-900">
+                                    {p.slot1945Occupied}/42 khách ({p.bar1945}%)
+                                  </span>
+                                </div>
+                                <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
+                                  <span className="text-stone-500">Mục tiêu 36 chỗ:</span>
+                                  <span
+                                    className={`font-bold ${
+                                      p.slot1730Occupied >= 36 || p.slot1945Occupied >= 36
+                                        ? "text-emerald-700"
+                                        : "text-amber-700"
+                                    }`}
+                                  >
+                                    {p.slot1730Occupied >= 36 && p.slot1945Occupied >= 36
+                                      ? "✓ Đạt cả 2 khung"
+                                      : p.slot1945Occupied >= 36
+                                        ? "✓ Đạt khung 19:45"
+                                        : p.slot1730Occupied >= 36
+                                          ? "✓ Đạt khung 17:30"
+                                          : "Chưa đạt"}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ thứ Hai</p>
                             )}
                           </div>
-                          {!p.isMonday ? (
-                            <div className="space-y-1.5 text-[11px]">
-                              <div className="flex items-center justify-between">
-                                <span className="flex items-center gap-1.5 text-stone-700">
-                                  <span className="h-2 w-2 rounded-full bg-[#0284c7]" />
-                                  Khung 17:30:
-                                </span>
-                                <span className="font-semibold text-stone-900">
-                                  {p.slot1730Occupied}/42 chỗ ({p.bar1730}%)
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="flex items-center gap-1.5 text-stone-700">
-                                  <span className="h-2 w-2 rounded-full bg-[#d97706]" />
-                                  Khung 19:45:
-                                </span>
-                                <span className="font-semibold text-stone-900">
-                                  {p.slot1945Occupied}/42 chỗ ({p.bar1945}%)
-                                </span>
-                              </div>
-                              <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
-                                <span className="text-stone-500">Mục tiêu 85%:</span>
-                                <span
-                                  className={`font-bold ${
-                                    p.bar1730 >= 85 || p.bar1945 >= 85
-                                      ? "text-emerald-700"
-                                      : "text-amber-700"
-                                  }`}
-                                >
-                                  {p.bar1730 >= 85 && p.bar1945 >= 85
-                                    ? "✓ Đạt cả 2 khung"
-                                    : p.bar1945 >= 85
-                                      ? "✓ Đạt khung 19:45"
-                                      : p.bar1730 >= 85
-                                        ? "✓ Đạt khung 17:30"
-                                        : "Chưa đạt"}
-                                </span>
-                              </div>
-                            </div>
-                          ) : (
-                            <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ thứ Hai</p>
-                          )}
-                        </div>
-                      );
-                    }}
-                  />
-                  {/* FR-14: Hai cột ghép đại diện cho 2 khung 17:30 (Xanh) và 19:45 (Vàng hổ phách) có nhãn số % trên đầu */}
-                  <Bar
-                    dataKey="bar1730"
-                    name="Khung 17:30"
-                    fill="#0284c7"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={16}
-                  >
-                    <LabelList
-                      dataKey="bar1730"
-                      position="top"
-                      formatter={(val: number) => (val > 0 ? `${val}%` : "")}
-                      style={{ fontSize: "8.5px", fontWeight: "700", fill: "#0369a1" }}
+                        );
+                      }}
                     />
-                  </Bar>
-                  <Bar
-                    dataKey="bar1945"
-                    name="Khung 19:45"
-                    fill="#d97706"
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={16}
-                  >
-                    <LabelList
-                      dataKey="bar1945"
-                      position="top"
-                      formatter={(val: number) => (val > 0 ? `${val}%` : "")}
-                      style={{ fontSize: "8.5px", fontWeight: "700", fill: "#b45309" }}
-                    />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                    {/* Cột 17:30 (Xanh biển) với số lượng khách trên đỉnh */}
+                    <Bar
+                      dataKey="slot1730Occupied"
+                      name="Khung 17:30"
+                      fill="#0284c7"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={18}
+                    >
+                      <LabelList
+                        dataKey="slot1730Occupied"
+                        position="top"
+                        formatter={(val: number) => (val > 0 ? `${val}` : "")}
+                        style={{ fontSize: "9px", fontWeight: "700", fill: "#0369a1" }}
+                      />
+                    </Bar>
+                    {/* Cột 19:45 (Vàng hổ phách) với số lượng khách trên đỉnh */}
+                    <Bar
+                      dataKey="slot1945Occupied"
+                      name="Khung 19:45"
+                      fill="#d97706"
+                      radius={[4, 4, 0, 0]}
+                      maxBarSize={18}
+                    >
+                      <LabelList
+                        dataKey="slot1945Occupied"
+                        position="top"
+                        formatter={(val: number) => (val > 0 ? `${val}` : "")}
+                        style={{ fontSize: "9px", fontWeight: "700", fill: "#b45309" }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              So sánh 2 khung giờ: Khung 19:45 (vàng hổ phách) thường đạt mục tiêu 85% cao hơn khung 17:30 (xanh biển) — tối ưu bài toán yield management và xếp bàn.
+              So sánh 2 khung giờ: Khung 19:45 (vàng hổ phách) thường đạt mục tiêu 36 khách cao hơn khung 17:30 (xanh biển) — tối ưu bài toán yield management và xếp bàn.
             </p>
           </CardContent>
         </Card>

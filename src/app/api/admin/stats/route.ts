@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const windowStart = addDays(today, -14); // 2 tuần quá khứ
     const windowEnd = addDays(today, 14); // 2 tuần tương lai
-    const chartStart = addDays(today, -13); // 14 ngày gần nhất
+    const chartStart = addDays(today, -14); // 28 ngày (4 tuần quanh hôm nay)
 
     const start = parseISODate(windowStart);
     const end = parseISODate(windowEnd);
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
       byDaySlot.set(key, (byDaySlot.get(key) ?? 0) + r.partySize);
     }
     const occupancy: OccupancyPoint[] = [];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 28; i++) {
       const dateISO = addDays(chartStart, i);
       const wd = weekdayOf(dateISO);
       if (wd === 1) {
@@ -142,6 +142,7 @@ export async function GET(request: NextRequest) {
           slot1730Percent: 0,
           slot1945Occupied: 0,
           slot1945Percent: 0,
+          isToday: dateISO === today,
         });
         continue;
       }
@@ -162,6 +163,7 @@ export async function GET(request: NextRequest) {
         slot1730Percent,
         slot1945Occupied: occ1945,
         slot1945Percent,
+        isToday: dateISO === today,
       });
     }
 
