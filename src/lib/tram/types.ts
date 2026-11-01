@@ -106,7 +106,8 @@ export interface OccupancyPoint {
   slot1730Percent: number; // % lấp chỗ khung 17:30 (trên 42 chỗ)
   slot1945Occupied: number; // chỗ đặt khung 19:45
   slot1945Percent: number;
-  isToday?: boolean; // % lấp chỗ khung 19:45 (trên 42 chỗ)
+  isToday?: boolean;
+  revenue: number; // Doanh thu ngày (VND)
 }
 
 export interface SourceShare {
@@ -121,6 +122,7 @@ export interface AdminStats {
   occupancyRate: number; // tỷ lệ lấp chỗ trung bình (các khung có khách)
   noShowRate: number; // tỷ lệ không đến
   expectedRevenue: number; // doanh thu dự thu (tương lai)
+  totalRevenue4Weeks?: number; // tổng doanh thu 4 tuần
   occupancy: OccupancyPoint[]; // 14 ngày gần nhất
   sourceShares: SourceShare[];
     waitlistToday?: WaitlistEntryDTO[];

@@ -121,10 +121,14 @@ export async function GET(request: NextRequest) {
 
     // --- Biểu đồ occupancy 14 ngày gần nhất (FR-14: ghép hai khung 17:30 và 19:45) ---
     const byDaySlot = new Map<string, number>();
+    const byDayRevenue = new Map<string, number>();
     for (const r of windowReservations) {
       if (r.status === "CANCELLED") continue;
-      const key = `${toISODate(r.date)}|${r.slot}`;
+      const dateKey = toISODate(r.date);
+      const key = `${dateKey}|${r.slot}`;
       byDaySlot.set(key, (byDaySlot.get(key) ?? 0) + r.partySize);
+      const total = reservationTotal(r.partySize, r.pairing);
+      byDayRevenue.set(dateKey, (byDayRevenue.get(dateKey) ?? 0) + total);
     }
     const occupancy: OccupancyPoint[] = [];
     for (let i = 0; i < 28; i++) {
@@ -143,6 +147,7 @@ export async function GET(request: NextRequest) {
           slot1945Occupied: 0,
           slot1945Percent: 0,
           isToday: dateISO === today,
+          revenue: 0,
         });
         continue;
       }
@@ -164,6 +169,7 @@ export async function GET(request: NextRequest) {
         slot1945Occupied: occ1945,
         slot1945Percent,
         isToday: dateISO === today,
+        revenue: byDayRevenue.get(dateISO) ?? 0,
       });
     }
 
@@ -222,7 +228,10 @@ export async function GET(request: NextRequest) {
       date: toISODate(s.reservation.date),
     }));
 
+    const totalRevenue4Weeks = occupancy.reduce((sum, p) => sum + p.revenue, 0);
+
     const stats: AdminStats = {
+      totalRevenue4Weeks,
       totalReservations,
       occupancyRate,
       noShowRate,
