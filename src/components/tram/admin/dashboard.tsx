@@ -120,9 +120,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   const revWrapperRef = useRef<HTMLDivElement>(null);
   const revContainerRef = useRef<HTMLDivElement>(null);
 
-  // Cuộn chuột ngang giống chọn ngày ở đặt bàn (booking-wizard)
-  // Khi chuột nằm trên biểu đồ: khóa cuộn dọc trang web và cuộn ngang dải 4 tuần
-  // Khi chuột không nằm trên biểu đồ: cuộn trang web bình thường
+  // Cuộn chuột ngang trên biểu đồ Khách giống chọn ngày ở đặt bàn (booking-wizard)
   useEffect(() => {
     const wrapper = chartWrapperRef.current;
     const el = chartContainerRef.current;
@@ -138,7 +136,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
 
     wrapper.addEventListener("wheel", handleWheel, { passive: false });
     return () => wrapper.removeEventListener("wheel", handleWheel);
-  }, []);
+  }, [data]);
 
   // Cuộn chuột ngang trên biểu đồ Doanh thu giống chọn ngày ở đặt bàn
   useEffect(() => {
@@ -156,63 +154,43 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
 
     wrapper.addEventListener("wheel", handleWheel, { passive: false });
     return () => wrapper.removeEventListener("wheel", handleWheel);
-  }, []);
-
-  // Ưu tiên hiển thị tuần hiện tại cho biểu đồ Doanh thu
-  useEffect(() => {
-    if (!revContainerRef.current || !data?.occupancy?.length) return;
-    const container = revContainerRef.current;
-    const todayIndex = data.occupancy.findIndex((p) => p.date === today);
-    if (todayIndex !== -1) {
-      const totalDays = data.occupancy.length;
-      const scrollWidth = container.scrollWidth;
-      const dayWidth = scrollWidth / totalDays;
-      const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
-      container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
-    }
-  }, [data, today]);
+  }, [data]);
 
   // Ưu tiên hiển thị tuần hiện tại (cuộn dải ngày 4 tuần tới vị trí ngày hôm nay)
   useEffect(() => {
     if (!chartContainerRef.current || !data?.occupancy?.length) return;
-    const container = chartContainerRef.current;
-    const todayIndex = data.occupancy.findIndex((p) => p.date === today);
-    if (todayIndex !== -1) {
-      const totalDays = data.occupancy.length;
-      const scrollWidth = container.scrollWidth;
-      const dayWidth = scrollWidth / totalDays;
-      const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
-      container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
-    }
-  }, [data, today]);
-
-  const scrollToRevPast = () => {
-    if (revContainerRef.current) {
-      revContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
-    }
-  };
-
-  const scrollToRevToday = () => {
-    if (revContainerRef.current && data?.occupancy?.length) {
-      const container = revContainerRef.current;
+    const timer = setTimeout(() => {
+      const container = chartContainerRef.current;
+      if (!container) return;
       const todayIndex = data.occupancy.findIndex((p) => p.date === today);
       if (todayIndex !== -1) {
         const totalDays = data.occupancy.length;
-        const dayWidth = container.scrollWidth / totalDays;
+        const scrollWidth = container.scrollWidth;
+        const dayWidth = scrollWidth / totalDays;
         const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
         container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
       }
-    }
-  };
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [data, today]);
 
-  const scrollToRevFuture = () => {
-    if (revContainerRef.current) {
-      revContainerRef.current.scrollTo({
-        left: revContainerRef.current.scrollWidth,
-        behavior: "smooth",
-      });
-    }
-  };
+  // Ưu tiên hiển thị tuần hiện tại cho biểu đồ Doanh thu
+  useEffect(() => {
+    if (!revContainerRef.current || !data?.occupancy?.length) return;
+    const timer = setTimeout(() => {
+      const container = revContainerRef.current;
+      if (!container) return;
+      const todayIndex = data.occupancy.findIndex((p) => p.date === today);
+      if (todayIndex !== -1) {
+        const totalDays = data.occupancy.length;
+        const scrollWidth = container.scrollWidth;
+        const dayWidth = scrollWidth / totalDays;
+        const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
+        container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+      }
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [data, today]);
 
   const scrollToPast = () => {
     if (chartContainerRef.current) {
@@ -242,7 +220,35 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     }
   };
 
-  if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
+  const scrollToRevPast = () => {
+    if (revContainerRef.current) {
+      revContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  };
+
+  const scrollToRevToday = () => {
+    if (revContainerRef.current && data?.occupancy?.length) {
+      const container = revContainerRef.current;
+      const todayIndex = data.occupancy.findIndex((p) => p.date === today);
+      if (todayIndex !== -1) {
+        const totalDays = data.occupancy.length;
+        const dayWidth = container.scrollWidth / totalDays;
+        const targetScroll = todayIndex * dayWidth - container.clientWidth / 2 + dayWidth / 2;
+        container.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+      }
+    }
+  };
+
+  const scrollToRevFuture = () => {
+    if (revContainerRef.current) {
+      revContainerRef.current.scrollTo({
+        left: revContainerRef.current.scrollWidth,
+        behavior: "smooth",
+      });
+    }
+  };
+
+    if (loading && !data) return <LoadingBlock label="Đang tổng hợp số liệu..." />;
   if (error) return <ErrorBlock message={error} onRetry={refresh} />;
   if (!data) return null;
 
@@ -267,7 +273,14 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
   const avgDailyRevM = Number((avgDailyRev / 1000000).toFixed(1));
   const peakRevDay = [...chartData].sort((a, b) => b.revenue - a.revenue)[0];
   const maxRevM = Math.max(...chartData.map((p) => p.revenueM), 45);
-  const revYDomainMax = Math.ceil(maxRevM * 1.25);
+  const revMaxTick = Math.ceil((maxRevM * 1.2) / 10) * 10;
+  const revTicks = [
+    0,
+    Math.round(revMaxTick * 0.25),
+    Math.round(revMaxTick * 0.5),
+    Math.round(revMaxTick * 0.75),
+    revMaxTick,
+  ];
 
   return (
     <div className="space-y-6">
@@ -393,28 +406,30 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
             {/* Khung biểu đồ với Trục Y cố định bên trái & Vùng cuộn ngang bên phải */}
             <div
               ref={chartWrapperRef}
+              onWheel={(e) => {
+                const el = chartContainerRef.current;
+                if (!el) return;
+                const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+                if (delta !== 0) el.scrollLeft += delta;
+              }}
               className="flex border border-stone-200/80 rounded-xl bg-card overflow-hidden"
             >
               {/* CỘT TRỤC Y CỐ ĐỊNH BÊN TRÁI (LUÔN HIỂN THỊ KHI CUỘN) */}
-              <div className="w-14 shrink-0 border-r border-stone-200/80 bg-[#fffdfa] select-none flex flex-col justify-between pt-1">
-                <div className="text-[10px] font-bold text-stone-500 text-right pr-2">
-                  Chỗ
-                </div>
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} margin={{ top: 14, right: 6, left: -22, bottom: 48 }}>
-                      <YAxis
-                        domain={[0, 48]}
-                        ticks={[0, 12, 24, 36, 48]}
-                        tick={{ fontSize: 10, fill: "#78716c", fontWeight: 600 }}
-                        tickFormatter={(v: number) => `${v}`}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <XAxis dataKey="displayLabel" hide height={48} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+              <div className="w-12 shrink-0 border-r border-stone-200/80 bg-[#fffdfa] select-none h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 14, right: 8, left: 0, bottom: 48 }}>
+                    <YAxis
+                      domain={[0, 48]}
+                      ticks={[0, 12, 24, 36, 48]}
+                      width={44}
+                      tick={{ fontSize: 10, fill: "#78716c", fontWeight: 600 }}
+                      tickFormatter={(v: number) => `${v}`}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <XAxis dataKey="displayLabel" hide height={48} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
               {/* VÙNG CUỘN NGANG CÁC CỘT BIỂU ĐỒ 4 TUẦN */}
@@ -712,27 +727,30 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           {/* Khung biểu đồ Doanh thu với Trục Y cố định bên trái & Vùng cuộn ngang bên phải */}
           <div
             ref={revWrapperRef}
+            onWheel={(e) => {
+              const el = revContainerRef.current;
+              if (!el) return;
+              const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+              if (delta !== 0) el.scrollLeft += delta;
+            }}
             className="flex border border-stone-200/80 rounded-xl bg-card overflow-hidden"
           >
             {/* CỘT TRỤC Y CỐ ĐỊNH BÊN TRÁI (LUÔN HIỂN THỊ KHI CUỘN) */}
-            <div className="w-16 shrink-0 border-r border-stone-200/80 bg-[#fffdfa] select-none flex flex-col justify-between pt-1">
-              <div className="text-[10px] font-bold text-stone-500 text-right pr-2">
-                Triệu đ
-              </div>
-              <div className="h-64 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 14, right: 4, left: -14, bottom: 48 }}>
-                    <YAxis
-                      domain={[0, revYDomainMax]}
-                      tick={{ fontSize: 10, fill: "#78716c", fontWeight: 600 }}
-                      tickFormatter={(v: number) => `${v}tr`}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <XAxis dataKey="displayLabel" hide height={48} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+            <div className="w-16 shrink-0 border-r border-stone-200/80 bg-[#fffdfa] select-none h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 14, right: 8, left: 0, bottom: 48 }}>
+                  <YAxis
+                    domain={[0, revMaxTick]}
+                    ticks={revTicks}
+                    width={56}
+                    tick={{ fontSize: 10, fill: "#78716c", fontWeight: 600 }}
+                    tickFormatter={(v: number) => `${v}tr`}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <XAxis dataKey="displayLabel" hide height={48} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
 
             {/* VÙNG CUỘN NGANG CÁC CỘT DOANH THU 4 TUẦN */}
@@ -773,7 +791,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                       axisLine={{ stroke: "#e7e1d3" }}
                       tickLine={false}
                     />
-                    <YAxis domain={[0, revYDomainMax]} hide />
+                    <YAxis domain={[0, revMaxTick]} hide />
                     <ReferenceLine
                       y={avgDailyRevM}
                       stroke="#059669"
