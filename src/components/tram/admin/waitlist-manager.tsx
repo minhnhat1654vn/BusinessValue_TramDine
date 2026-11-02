@@ -555,103 +555,115 @@ export function AdminWaitlist({
                       <li
                         key={w.id}
                         className={cn(
-                          "flex flex-col gap-2 rounded-xl border p-3 transition-all sm:flex-row sm:items-center sm:justify-between",
+                          "rounded-xl border p-3.5 transition-all space-y-2.5",
                           prio.isNewlyCreated
-                            ? "border-emerald-300 bg-emerald-50/20 shadow-xs ring-1 ring-emerald-400/40"
+                            ? "border-emerald-300 bg-emerald-50/25 shadow-xs ring-1 ring-emerald-400/40"
                             : prio.isBooked2DaysAdvance
                               ? "border-amber-300/90 bg-[#fffdf5] shadow-xs"
                               : "border-border/80 bg-[#fffdf9]",
                         )}
                       >
-                        <div className="flex min-w-0 items-start sm:items-center gap-3">
-                          <span
-                            className={cn(
-                              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-semibold",
-                              prio.isBooked2DaysAdvance
-                                ? "bg-amber-500 text-white shadow-xs"
-                                : "bg-[#f5efe4] text-[#92400e]",
-                            )}
-                            title={`Vị trí: #${w.position}`}
-                          >
-                            #{w.position}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <p className="truncate text-sm font-semibold text-[#292524]">
+                        {/* Hàng 1: Số thứ tự + Tên khách + Trạng thái & Xóa */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span
+                              className={cn(
+                                "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-heading text-xs font-bold shadow-2xs",
+                                prio.isBooked2DaysAdvance
+                                  ? "bg-amber-500 text-white"
+                                  : "bg-[#f5efe4] text-[#92400e]",
+                              )}
+                              title={`Vị trí: #${w.position}`}
+                            >
+                              #{w.position}
+                            </span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-[#292524] leading-tight break-words">
                                 {w.name}
                               </p>
-                              {prio.isNewlyCreated && (
-                                <Badge className="bg-emerald-600 text-white text-[9.5px] font-bold py-0 h-4.5">
-                                  Mới đăng ký
-                                </Badge>
-                              )}
-                              {prio.isBooked2DaysAdvance && (
-                                <Badge className="gap-1 bg-amber-500/15 text-amber-900 border-amber-300 text-[10px] font-bold py-0 h-4.5">
-                                  <Sparkles className="h-2.5 w-2.5 text-[#b45309]" />
-                                  Book trước {prio.daysInAdvance} ngày
-                                </Badge>
-                              )}
-                              {prio.isWithin2Days && (
-                                <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-800 text-[9.5px] py-0 h-4.5">
-                                  Cận ngày ({prio.daysUntilMeal === 0 ? "Hôm nay" : `${prio.daysUntilMeal} ngày tới`})
-                                </Badge>
-                              )}
                             </div>
-                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                              <span className="flex items-center gap-1 font-medium text-stone-700">
-                                <Phone className="h-3 w-3 text-stone-400" />
-                                {w.phone}
-                              </span>
-                              <span>·</span>
-                              <span className="font-semibold text-amber-900">{w.partySize} khách</span>
-                              <span>·</span>
-                              <span className="text-[10px] text-stone-400">
-                                {formatShortDate(w.createdAt.slice(0, 10))}
-                              </span>
-                            </p>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 pt-1 sm:pt-0">
-                          {w.status === "INVITED" ? (
-                            <Badge className="gap-1 border-emerald-600/40 bg-emerald-100/70 font-medium text-emerald-800 hover:bg-emerald-100/70 text-xs">
-                              <MailCheck className="h-3 w-3" aria-hidden />
-                              Đã mời
-                            </Badge>
-                          ) : (
-                            <>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {w.status === "INVITED" ? (
+                              <Badge className="gap-1 border-emerald-600/40 bg-emerald-100/80 font-medium text-emerald-800 text-[11px] py-0.5 px-2">
+                                <MailCheck className="h-3 w-3" aria-hidden />
+                                Đã mời
+                              </Badge>
+                            ) : (
                               <Badge
                                 variant="outline"
-                                className="border-border bg-muted font-medium text-stone-600 text-xs"
+                                className="border-border bg-stone-100 font-medium text-stone-600 text-[11px] py-0.5 px-2"
                               >
                                 Đang chờ
                               </Badge>
-                              <Button
-                                size="sm"
-                                onClick={() => void invite(w)}
-                                disabled={inviting === w.id}
-                                className={cn(
-                                  "h-8 rounded-full px-3 text-xs text-[#fffbf2]",
-                                  prio.isBooked2DaysAdvance
-                                    ? "bg-amber-600 hover:bg-amber-700 shadow-xs font-semibold"
-                                    : "bg-[#b45309] hover:bg-[#92400e]",
-                                )}
-                              >
-                                <BellRing className="h-3 w-3 mr-1" aria-hidden />
-                                {prio.isBooked2DaysAdvance ? "Ưu tiên mời" : "Mời"}
-                              </Button>
-                            </>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={deletingId === w.id}
+                              onClick={() => void deleteEntry(w)}
+                              className="h-7 w-7 rounded-full p-0 text-stone-400 hover:text-rose-600 hover:bg-rose-50"
+                              title="Xóa lượt chờ này"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Hàng 2: Badges ưu tiên (Mới đăng ký, Book trước X ngày...) */}
+                        {(prio.isNewlyCreated || prio.isBooked2DaysAdvance || prio.isWithin2Days) && (
+                          <div className="flex flex-wrap items-center gap-1.5 pl-0.5">
+                            {prio.isNewlyCreated && (
+                              <Badge className="bg-emerald-600 text-white text-[10px] font-bold py-0.5 px-2">
+                                Mới đăng ký
+                              </Badge>
+                            )}
+                            {prio.isBooked2DaysAdvance && (
+                              <Badge className="gap-1 bg-amber-500/15 text-amber-900 border-amber-300 text-[10px] font-bold py-0.5 px-2">
+                                <Sparkles className="h-2.5 w-2.5 text-[#b45309]" />
+                                Book trước {prio.daysInAdvance} ngày
+                              </Badge>
+                            )}
+                            {prio.isWithin2Days && (
+                              <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-800 text-[10px] py-0.5 px-2">
+                                Cận ngày ({prio.daysUntilMeal === 0 ? "Hôm nay" : `${prio.daysUntilMeal} ngày tới`})
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Hàng 3: SĐT, Khách, Ngày tạo + Nút Mời / Ưu tiên mời */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/60">
+                          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-stone-600">
+                            <span className="flex items-center gap-1 font-medium text-stone-700">
+                              <Phone className="h-3 w-3 text-stone-400" />
+                              {w.phone}
+                            </span>
+                            <span>·</span>
+                            <span className="font-semibold text-amber-900">{w.partySize} khách</span>
+                            <span>·</span>
+                            <span className="text-[11px] text-stone-400">
+                              {formatShortDate(w.createdAt.slice(0, 10))}
+                            </span>
+                          </div>
+
+                          {w.status !== "INVITED" && (
+                            <Button
+                              size="sm"
+                              onClick={() => void invite(w)}
+                              disabled={inviting === w.id}
+                              className={cn(
+                                "h-7.5 rounded-full px-3 text-xs text-[#fffbf2] shadow-2xs font-semibold shrink-0",
+                                prio.isBooked2DaysAdvance
+                                  ? "bg-amber-600 hover:bg-amber-700"
+                                  : "bg-[#b45309] hover:bg-[#92400e]",
+                              )}
+                            >
+                              <BellRing className="h-3 w-3 mr-1" aria-hidden />
+                              {prio.isBooked2DaysAdvance ? "Ưu tiên mời" : "Mời"}
+                            </Button>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={deletingId === w.id}
-                            onClick={() => void deleteEntry(w)}
-                            className="h-8 w-8 rounded-full p-0 text-stone-400 hover:text-rose-600 hover:bg-rose-50"
-                            title="Xóa lượt chờ này"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
                         </div>
                       </li>
                     );

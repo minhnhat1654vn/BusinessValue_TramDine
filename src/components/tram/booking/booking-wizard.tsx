@@ -974,6 +974,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 <div className="sm:ml-auto">
                   <Button
                     size="lg"
+                    data-action="go-step-2"
                     disabled={!date || !slot || !selectedDateCheck.allowed}
                     onClick={() => {
                       if (validateStep1()) void goStep2();
@@ -1119,6 +1120,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   </p>
                   <Button
                     size="lg"
+                    data-action="go-step-3"
                     onClick={() => setStep(3)}
                     className="h-12 min-w-40 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e]"
                   >
@@ -1284,6 +1286,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </Button>
                 <Button
                   size="lg"
+                  data-action="go-step-4"
                   onClick={() => setStep(4)}
                   className="h-12 min-w-44 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e]"
                 >
@@ -1524,6 +1527,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </Button>
                 <Button
                   size="lg"
+                  data-action="go-step-5"
                   onClick={() => {
                     if (validateStep4()) setStep(5);
                   }}
@@ -1661,7 +1665,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     </p>
                     {isNamTram && (
                       <p className="mt-1 text-xs text-emerald-700 font-medium leading-relaxed">
-                        Áp dụng đặc quyền Hạng Nam Trầm (FR-22): Miễn 100% tiền cọc. Thanh toán toàn bộ tại nhà hàng.
+                        Áp dụng đặc quyền Hạng Nam Trầm: Miễn 100% tiền cọc. Thanh toán toàn bộ tại nhà hàng.
                       </p>
                     )}
                     <Separator className="bg-border/60" />
@@ -1689,7 +1693,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     <div className="flex items-center gap-2">
                       <Crown className="h-5 w-5 text-amber-400" />
                       <span className="font-heading font-bold uppercase tracking-wider text-amber-300 text-sm">
-                        Đặc quyền Thượng khách Nam Trầm (FR-22)
+                        Đặc quyền Thượng khách Nam Trầm
                       </span>
                     </div>
                     <span className="rounded-full bg-amber-400 px-3 py-0.5 text-xs font-extrabold text-stone-950 shadow-xs">
@@ -1697,7 +1701,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     </span>
                   </div>
                   <p className="mt-2.5 text-xs leading-relaxed text-stone-200">
-                    Kính chào Thượng khách <strong className="text-amber-300 font-bold">{name || "Quý khách"}</strong>! Quý khách được áp dụng đặc quyền <strong className="text-emerald-400">miễn 100% tiền đặt cọc</strong> (tiết kiệm {formatVND(PRICES.deposit * partySize)}). Hệ thống sẽ bỏ qua bước thanh toán cọc {formatVND(PRICES.deposit)}/khách và xác nhận giữ bàn ngay lập tức.
+                    Kính chào Thượng khách <strong className="text-amber-300 font-bold">{name || "Quý khách"}</strong>! Quý khách được áp dụng đặc quyền <strong className="text-emerald-400">miễn 100% tiền đặt cọc</strong>. Hệ thống sẽ bỏ qua bước thanh toán cọc và xác nhận giữ bàn ngay lập tức.
                   </p>
                 </div>
               )}
@@ -1711,11 +1715,8 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     className="h-14 min-w-80 rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 px-10 text-base font-extrabold text-stone-950 shadow-xl shadow-amber-500/30 hover:brightness-105"
                   >
                     <Zap className="mr-2 h-5 w-5 fill-stone-950" />
-                    Xác nhận Đặt bàn ngay · Miễn cọc VIP (0 đ)
+                    Xác nhận Đặt bàn ngay
                   </Button>
-                  <p className="text-xs text-stone-500 font-medium">
-                    🌿 Rẽ nhánh đặc quyền Nam Trầm: Bỏ qua bước thanh toán cọc (FR-22)
-                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3 pt-2">

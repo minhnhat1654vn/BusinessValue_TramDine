@@ -1,4 +1,4 @@
-// Tiện ích phía server: chuyển đổi bản ghi Prisma sang DTO và tính toán giá
+
 import type {
   Pairing,
   ReservationDTO,

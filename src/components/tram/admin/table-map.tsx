@@ -331,7 +331,7 @@ export function AdminTableMap({ today }: TableMapProps) {
                       >
                         <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
                         {selectedReservation.survey
-                          ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 ⭐`
+                          ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 `
                           : "Khảo sát sau bữa ăn"}
                       </Button>
                     </div>

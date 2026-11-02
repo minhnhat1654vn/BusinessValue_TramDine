@@ -223,6 +223,7 @@ export function AdminView() {
                 return (
                   <motion.button
                     key={item.key}
+                    data-tab={item.key}
                     type="button"
                     whileHover={{ x: 3 }}
                     whileTap={{ scale: 0.98 }}

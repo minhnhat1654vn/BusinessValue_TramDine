@@ -268,7 +268,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                       {r.survey && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
                           <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
-                          {r.survey.rating}/5 ⭐
+                          {r.survey.rating}/5 
                         </span>
                       )}
                     </div>
@@ -421,7 +421,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                     className="w-full mt-3 h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
                   >
                     <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
-                    {detail.survey ? `Xem đánh giá 5 sao (${detail.survey.rating}/5 ⭐)` : "Khảo sát sau bữa ăn"}
+                    {detail.survey ? `Xem đánh giá 5 sao (${detail.survey.rating}/5 )` : "Khảo sát sau bữa ăn"}
                   </Button>
                 )}
               </div>

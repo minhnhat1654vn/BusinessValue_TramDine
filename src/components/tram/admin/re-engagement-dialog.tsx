@@ -77,12 +77,12 @@ export function ReEngagementDialog({
 
 Bếp trưởng và Đội ngũ phục vụ trân trọng kính mời Quý khách trở lại thưởng thức Bộ Thực đơn Tasting Mùa Thu mới vừa ra mắt.
 
-👑 Đặc quyền tri ân dành riêng cho Quý khách:
+Đặc quyền tri ân dành riêng cho Quý khách:
 ${tierGift}
 
-✨ Điểm thưởng hiện có: ${formatPoints(customer.points)} pts
-📞 Hotline VIP: 0909 888 777
-🌐 Đặt bàn trực tuyến: https://tramreserve.vn
+Điểm thưởng hiện có: ${formatPoints(customer.points)} pts
+Hotline VIP: 0909 888 777
+Đặt bàn trực tuyến: https://tramreserve.vn
 
 Hân hạnh được đón tiếp Quý khách!`;
 

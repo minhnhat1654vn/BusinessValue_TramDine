@@ -45,7 +45,7 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
   TRAM: {
     key: "TRAM",
     name: "Hạng Trầm",
-    tagline: "Tri kỷ phong vị (3–5 lượt)",
+    tagline: "Tri kỷ phong vị",
     minVisits: 3,
     maxVisits: 5,
     bonusPercent: 5, // Thưởng thêm 5% giá trị hóa đơn
@@ -56,7 +56,6 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
     accentColor: "#fcd34d",
     iconName: "Crown",
     benefits: [
-      "Áp dụng cho khách từ 3 đến 5 lượt đến TRẦM Reserve",
       "Thưởng thêm +5% điểm tích lũy trên mỗi hóa đơn dùng bữa",
       "Ưu tiên chọn và giữ bàn đẹp (khu vực cửa sổ / trung tâm)",
       "Tặng trà chào mừng thượng hạng chế tác riêng theo mùa",
@@ -67,7 +66,7 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
   NAM_TRAM: {
     key: "NAM_TRAM",
     name: "Hạng Nam Trầm",
-    tagline: "Thượng khách tinh hoa (6+ lượt)",
+    tagline: "Thượng khách tinh hoa",
     minVisits: 6,
     maxVisits: Infinity,
     bonusPercent: 8, // Thưởng tối đa 8% giá trị hóa đơn
@@ -78,7 +77,6 @@ export const LOYALTY_TIERS: Record<LoyaltyTier, TierConfig> = {
     accentColor: "#fbbf24",
     iconName: "Gem",
     benefits: [
-      "Áp dụng cho khách từ 6 lượt đến trở lên (Hạng cao nhất)",
       "Thưởng tối đa +8% điểm tích lũy trên mỗi hóa đơn dùng bữa",
       "Miễn 100% tiền đặt cọc khi đặt bàn trực tuyến",
       "Tặng món tasting độc bản sáng tạo riêng từ Bếp trưởng",

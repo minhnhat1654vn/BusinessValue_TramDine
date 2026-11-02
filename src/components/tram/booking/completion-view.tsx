@@ -398,10 +398,6 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
               </div>
             </TabsContent>
           </Tabs>
-          <p className="mt-3 text-[11px] text-muted-foreground">
-            Nội dung nhắc lịch mô phỏng — hiển thị đúng dạng khách nhận được qua
-            kênh Email / Zalo.
-          </p>
         </CardContent>
       </Card>
 

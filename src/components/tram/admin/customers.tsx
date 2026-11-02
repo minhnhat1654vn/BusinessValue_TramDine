@@ -787,6 +787,8 @@ export function AdminCustomers() {
                     ) : null}
 
                     <button
+                      data-action="view-profile"
+                      data-tier={c.tier}
                       onClick={() => setDetail(c)}
                       className={`flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-stone-50/70 py-2 text-xs font-semibold text-stone-700 transition-all hover:border-[#b45309] hover:bg-[#b45309] hover:text-white ${
                         getDaysSinceLastVisit(c.lastVisit) < 21 ? "col-span-2" : ""
@@ -857,31 +859,31 @@ export function AdminCustomers() {
           </div>
 
           <div className="tram-scroll overflow-x-auto">
-            <Table className="w-full min-w-[1100px] table-fixed">
+            <Table className="w-full min-w-[980px]">
               <TableHeader>
                 <TableRow className="border-b border-stone-200/80 bg-[#f9f5ed]/90 hover:bg-[#f9f5ed]/90 h-11">
-                  <TableHead className="w-[19%] pl-5 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="pl-4 pr-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Khách Hàng
                   </TableHead>
-                  <TableHead className="w-[13%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Hạng Thân Thiết
                   </TableHead>
-                  <TableHead className="w-[8%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-center align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-center align-middle whitespace-nowrap">
                     Lượt Đến
                   </TableHead>
-                  <TableHead className="w-[12%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Điểm Tích Lũy
                   </TableHead>
-                  <TableHead className="w-[13%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Tổng Chi Tiêu
                   </TableHead>
-                  <TableHead className="w-[9%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Lần Cuối
                   </TableHead>
-                  <TableHead className="w-[19%] text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle min-w-[150px]">
                     Ghi Chú &amp; Dị Ứng
                   </TableHead>
-                  <TableHead className="w-[7%] pr-5 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-right align-middle">
+                  <TableHead className="pr-4 pl-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-right align-middle whitespace-nowrap min-w-[170px]">
                     Thao Tác
                   </TableHead>
                 </TableRow>
@@ -895,14 +897,14 @@ export function AdminCustomers() {
                   return (
                     <TableRow
                       key={`${c.name}-${c.phone}`}
-                      className="group cursor-pointer border-b border-stone-100 min-h-[68px] hover:bg-[#fbf7ee]/70 transition-colors duration-150"
+                      className="group cursor-pointer border-b border-stone-100 min-h-[64px] hover:bg-[#fbf7ee]/70 transition-colors duration-150"
                       onClick={() => setDetail(c)}
                     >
                       {/* 1. Khách Hàng (Avatar & Name & Phone) */}
-                      <TableCell className="pl-5 py-3 align-middle whitespace-nowrap">
-                        <div className="flex items-center gap-3">
+                      <TableCell className="pl-4 pr-2 py-2.5 align-middle whitespace-nowrap">
+                        <div className="flex items-center gap-2.5">
                           <div
-                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-transform group-hover:scale-105 ${
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-bold transition-transform group-hover:scale-105 ${
                               c.tier === "NAM_TRAM"
                                 ? "bg-gradient-to-br from-purple-950 via-purple-900 to-amber-950 text-amber-300 ring-2 ring-purple-300/40 shadow-xs"
                                 : c.tier === "TRAM"
@@ -913,10 +915,10 @@ export function AdminCustomers() {
                             {c.name.slice(0, 1)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-sm leading-tight text-stone-900 transition-colors group-hover:text-[#b45309] truncate">
+                            <p className="font-semibold text-xs leading-tight text-stone-900 transition-colors group-hover:text-[#b45309] truncate">
                               {c.name}
                             </p>
-                            <p className="mt-0.5 flex items-center gap-1 font-mono text-xs text-stone-500">
+                            <p className="mt-0.5 flex items-center gap-1 font-mono text-[11px] text-stone-500">
                               <Phone className="h-2.5 w-2.5 text-stone-400 shrink-0" />
                               <span>{c.phone}</span>
                             </p>
@@ -925,29 +927,29 @@ export function AdminCustomers() {
                       </TableCell>
 
                       {/* 2. Hạng Thân Thiết */}
-                      <TableCell className="py-3 align-middle whitespace-nowrap">
+                      <TableCell className="px-2 py-2.5 align-middle whitespace-nowrap">
                         {c.tier === "NAM_TRAM" ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200/90 bg-gradient-to-r from-purple-50 via-fuchsia-50/50 to-amber-50 px-3 py-1 text-xs font-bold text-purple-950 shadow-2xs">
-                            <Gem className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                          <span className="inline-flex items-center gap-1 rounded-full border border-purple-200/90 bg-gradient-to-r from-purple-50 via-fuchsia-50/50 to-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-purple-950 shadow-2xs">
+                            <Gem className="h-3 w-3 text-purple-700 shrink-0" />
                             Hạng Nam Trầm
                           </span>
                         ) : c.tier === "TRAM" ? (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/80 bg-amber-50/90 px-3 py-1 text-xs font-bold text-amber-950 shadow-2xs">
-                            <Crown className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs">
+                            <Crown className="h-3 w-3 text-amber-700 shrink-0" />
                             Hạng Trầm
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs font-medium text-stone-700 shadow-2xs">
-                            <Award className="h-3.5 w-3.5 text-stone-500 shrink-0" />
+                          <span className="inline-flex items-center gap-1 rounded-full border border-stone-200 bg-stone-50 px-2.5 py-0.5 text-[11px] font-medium text-stone-700 shadow-2xs">
+                            <Award className="h-3 w-3 text-stone-500 shrink-0" />
                             Hạng Hương
                           </span>
                         )}
                       </TableCell>
 
                       {/* 3. Lượt Đến */}
-                      <TableCell className="py-3 align-middle text-center whitespace-nowrap">
+                      <TableCell className="px-2 py-2.5 align-middle text-center whitespace-nowrap">
                         <span
-                          className={`inline-flex items-baseline gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                          className={`inline-flex items-baseline gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ${
                             c.visits >= 6
                               ? "border border-purple-200/80 bg-purple-50/80 text-purple-950"
                               : c.visits >= 3
@@ -955,29 +957,29 @@ export function AdminCustomers() {
                                 : "border border-stone-200/80 bg-stone-50/80 text-stone-700"
                           }`}
                         >
-                          <span className="font-bold text-sm">
+                          <span className="font-bold text-xs">
                             {c.visits}
                           </span>
-                          <span className="text-[11px] font-normal opacity-70">
+                          <span className="text-[10px] font-normal opacity-70">
                             lượt
                           </span>
                         </span>
                       </TableCell>
 
                       {/* 4. Điểm Tích Lũy */}
-                      <TableCell className="py-3 align-middle whitespace-nowrap">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5">
-                            <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500 shrink-0" />
-                            <span className="font-bold text-sm text-[#92400e]">
+                      <TableCell className="px-2 py-2.5 align-middle whitespace-nowrap">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-amber-500 text-amber-500 shrink-0" />
+                            <span className="font-bold text-xs text-[#92400e]">
                               {formatPoints(c.points)}
                             </span>
-                            <span className="text-[11px] font-medium text-stone-400">
+                            <span className="text-[10px] font-medium text-stone-400">
                               pts
                             </span>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-stone-100 ring-1 ring-stone-200/50">
+                          <div className="flex items-center gap-1">
+                            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-stone-100 ring-1 ring-stone-200/50">
                               <div
                                 className={`h-full rounded-full transition-all duration-500 ${
                                   c.tier === "NAM_TRAM"
@@ -991,7 +993,7 @@ export function AdminCustomers() {
                                 }}
                               />
                             </div>
-                            <span className="text-[10px] font-medium text-stone-400">
+                            <span className="text-[9px] font-medium text-stone-400">
                               {c.tier === "NAM_TRAM" ? "MAX" : `${c.tierProgress}%`}
                             </span>
                           </div>
@@ -999,27 +1001,27 @@ export function AdminCustomers() {
                       </TableCell>
 
                       {/* 5. Tổng Chi Tiêu */}
-                      <TableCell className="py-3 align-middle text-left whitespace-nowrap">
-                        <p className="font-mono text-sm font-bold text-stone-900 leading-tight">
+                      <TableCell className="px-2 py-2.5 align-middle text-left whitespace-nowrap">
+                        <p className="font-mono text-xs font-bold text-stone-900 leading-tight">
                           {formatVND(c.totalSpend)}
                         </p>
-                        <p className="mt-0.5 text-[10px] font-medium text-stone-400">
-                          TB ~{formatVND(Math.round(c.totalSpend / Math.max(1, c.visits)))} / lượt
+                        <p className="mt-0.5 text-[9px] font-medium text-stone-400">
+                          TB ~{formatVND(Math.round(c.totalSpend / Math.max(1, c.visits)))}
                         </p>
                       </TableCell>
 
                       {/* 6. Lần Cuối */}
-                      <TableCell className="py-3 align-middle text-left whitespace-nowrap">
-                        <div className="flex items-center gap-1.5 text-xs text-stone-600 font-medium">
-                          <Calendar className="h-3.5 w-3.5 text-stone-400 shrink-0" />
+                      <TableCell className="px-2 py-2.5 align-middle text-left whitespace-nowrap">
+                        <div className="flex items-center gap-1 text-[11px] text-stone-600 font-medium">
+                          <Calendar className="h-3 w-3 text-stone-400 shrink-0" />
                           <span>{lastVisitText}</span>
                         </div>
                       </TableCell>
 
                       {/* 7. Chip Ghi Chú & Dị Ứng */}
-                      <TableCell className="py-3 align-middle text-left">
+                      <TableCell className="px-2 py-2.5 align-middle text-left">
                         {c.notes && c.notes.length > 0 ? (
-                          <div className="flex items-start gap-1.5">
+                          <div className="flex items-start gap-1">
                             {(() => {
                               const sortedNotes = [...c.notes].sort((a, b) => {
                                 const aIsAllergy = /dị ứng|hải sản|cồn|chay|đậu|tôm|bò|cua|hạt|sữa/i.test(a);
@@ -1032,7 +1034,7 @@ export function AdminCustomers() {
                               return (
                                 <>
                                   <span
-                                    className={`inline-flex items-start gap-1.5 rounded-lg px-2.5 py-1 text-[11px] leading-snug font-medium whitespace-normal break-words max-w-[240px] ${
+                                    className={`inline-flex items-start gap-1 rounded-md px-2 py-0.5 text-[11px] leading-snug font-medium whitespace-normal break-words max-w-[210px] ${
                                       isAllergy
                                         ? "border border-rose-200/90 bg-rose-50/90 font-semibold text-rose-700 shadow-2xs"
                                         : "border border-amber-200/80 bg-amber-50/80 font-medium text-amber-900 shadow-2xs"
@@ -1040,7 +1042,7 @@ export function AdminCustomers() {
                                     title={c.notes.join(" • ")}
                                   >
                                     <span
-                                      className={`h-1.5 w-1.5 shrink-0 rounded-full mt-1.5 ${
+                                      className={`h-1.5 w-1.5 shrink-0 rounded-full mt-1 ${
                                         isAllergy
                                           ? "bg-rose-500"
                                           : "bg-amber-500"
@@ -1050,7 +1052,7 @@ export function AdminCustomers() {
                                   </span>
                                   {sortedNotes.length > 1 && (
                                     <span
-                                      className="mt-0.5 rounded-md border border-stone-200/80 bg-stone-100 px-1.5 py-0.5 text-[10px] font-bold text-stone-600 shrink-0"
+                                      className="mt-0.5 rounded border border-stone-200/80 bg-stone-100 px-1 py-0.5 text-[9px] font-bold text-stone-600 shrink-0"
                                       title={sortedNotes.slice(1).join(" • ")}
                                     >
                                       +{sortedNotes.length - 1}
@@ -1066,7 +1068,7 @@ export function AdminCustomers() {
                       </TableCell>
 
                       {/* 8. Thao Tác */}
-                      <TableCell className="pr-5 py-3 align-middle text-right whitespace-nowrap">
+                      <TableCell className="pr-4 pl-2 py-2.5 align-middle text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {getDaysSinceLastVisit(c.lastVisit) >= 21 && (
                             <button
@@ -1077,7 +1079,7 @@ export function AdminCustomers() {
                                   days: getDaysSinceLastVisit(c.lastVisit),
                                 });
                               }}
-                              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold shadow-2xs transition-all ${
+                              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold shadow-2xs transition-all ${
                                 sentPhones.has(c.phone)
                                   ? "bg-emerald-50 border border-emerald-300 text-emerald-800"
                                   : "bg-amber-600 text-white hover:bg-amber-700"
@@ -1108,7 +1110,7 @@ export function AdminCustomers() {
                               e.stopPropagation();
                               setDetail(c);
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200/90 bg-stone-50/70 px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-2xs transition-all duration-150 group-hover:border-[#b45309] group-hover:bg-[#b45309] group-hover:text-white"
+                            className="inline-flex items-center gap-1 rounded-md border border-stone-200/90 bg-stone-50/70 px-2.5 py-1 text-xs font-semibold text-stone-700 shadow-2xs transition-all duration-150 group-hover:border-[#b45309] group-hover:bg-[#b45309] group-hover:text-white"
                           >
                             <Eye className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
                             <span>Chi tiết</span>
