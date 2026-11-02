@@ -111,6 +111,13 @@ const REGULARS: Customer[] = NAMES.slice(0, 10).map(makeCustomer);
 // Khách lẻ
 const OTHERS: Customer[] = NAMES.slice(10).map(makeCustomer);
 
+// FR-21 & FR-22: Thượng khách Hạng Nam Trầm cố định để phục vụ demo đặc quyền (>= 6 lượt SEATED)
+const NAM_TRAM_CUSTOMER: Customer = {
+  name: "Trần Nam Trầm",
+  phone: "0909999999",
+  email: "namtram@tramreserve.vn",
+};
+
 // ---------- Ghi chú / dị ứng ----------
 const ALLERGIES = [
   "Hải sản",
@@ -329,10 +336,27 @@ for (const t of targets) {
   }
 }
 
-// --- Đánh dấu no-show (quá khứ) ---
+// --- FR-21 & FR-22: Đảm bảo Thượng khách Nam Trầm (0909999999) luôn có đủ 7 lượt SEATED trong quá khứ ---
+const namTramCandidates = reservations.filter(
+  (r) => isPast(r.date) && r.status === "SEATED",
+);
+const namTramCount = Math.min(7, namTramCandidates.length);
+for (let i = 0; i < namTramCount; i++) {
+  namTramCandidates[i].customerName = NAM_TRAM_CUSTOMER.name;
+  namTramCandidates[i].phone = NAM_TRAM_CUSTOMER.phone;
+  namTramCandidates[i].email = NAM_TRAM_CUSTOMER.email;
+  namTramCandidates[i].notes = "👑 Thượng khách Nam Trầm quen thuộc của nhà hàng";
+}
+
+// --- Đánh dấu no-show (quá khứ) — không chạm vào khách Nam Trầm ---
 const pastIdx = reservations
   .map((r, i) => ({ r, i }))
-  .filter((x) => isPast(x.r.date) && x.r.status === "SEATED")
+  .filter(
+    (x) =>
+      isPast(x.r.date) &&
+      x.r.status === "SEATED" &&
+      x.r.phone !== NAM_TRAM_CUSTOMER.phone,
+  )
   .map((x) => x.i);
 const noShowCount = Math.min(6, pastIdx.length);
 for (let k = 0; k < noShowCount; k++) {
@@ -345,6 +369,7 @@ for (let k = 0; k < noShowCount; k++) {
 const cancellable = reservations.map((r, i) => ({ r, i })).filter(
   (x) =>
     !["NO_SHOW"].includes(x.r.status) &&
+    x.r.phone !== NAM_TRAM_CUSTOMER.phone &&
     !(
       !isPast(x.r.date) &&
       x.r.date.getUTCDay() === 6 &&

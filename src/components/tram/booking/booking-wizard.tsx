@@ -1599,7 +1599,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                             {formatVND(PRICES.deposit * partySize)}
                           </span>
                           <span className="rounded-full border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
-                            0 đ (Miễn cọc VIP)
+                            0 đ (Miễn cọc VIP Nam Trầm)
                           </span>
                         </span>
                       ) : (
@@ -1613,9 +1613,20 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                         Áp dụng đặc quyền Hạng Nam Trầm (FR-22): Miễn 100% tiền cọc. Thanh toán toàn bộ tại nhà hàng.
                       </p>
                     )}
+                    <Separator className="bg-border/60" />
+                    <p className="flex justify-between gap-2 text-sm">
+                      <span className="font-medium text-stone-700">
+                        Thanh toán tại nhà hàng (sau khi trừ cọc)
+                      </span>
+                      <span className="font-semibold text-stone-900">
+                        {formatVND(isNamTram ? totalAmount : Math.max(0, totalAmount - depositAmount))}
+                      </span>
+                    </p>
                   </div>
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    Phần còn lại thanh toán tại nhà hàng khi dùng bữa. Hoàn cọc nếu hủy trước 48 giờ.
+                    {isNamTram
+                      ? "Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng."
+                      : "Phần còn lại thanh toán tại nhà hàng khi dùng bữa (đã trừ trước số tiền cọc). Hoàn cọc nếu hủy trước 48 giờ."}
                   </p>
                 </div>
               </div>
@@ -1671,8 +1682,6 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     <Mail className="h-3 w-3" aria-hidden />
                     Xác nhận &amp; thực đơn chi tiết sẽ được gửi qua Email / Zalo
-                  </p>
-                </div>
               )}
             </motion.div>
           )}
@@ -1683,7 +1692,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
       <PaymentDialog
         open={payOpen}
         phase={payPhase}
-        amount={depositAmount}
+        amount={isNamTram ? 0 : depositAmount}
         onClose={() => setPayOpen(false)}
         onSelectMethod={() => handlePayMethod()}
         onDone={() => void submitReservation()}

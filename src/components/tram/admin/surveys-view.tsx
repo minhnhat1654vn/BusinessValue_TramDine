@@ -1,8 +1,5 @@
 "use client";
 
-// FR-24: Đồng bộ đánh giá Google Maps (mô phỏng Places API) — So sánh khu vực, phân bố sao, tag nổi bật, trả lời review, tặng điểm tri ân
-// FR-23: Mời khách đánh giá Google Maps sau bữa ăn qua SMS/Zalo (mô phỏng), nhận diện theo SĐT đặt cọc
-
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -118,7 +115,7 @@ export function AdminSurveys() {
         setGReviews(dataG.reviews);
         if (isManualSync) {
           toast.success("Đã đồng bộ 128 đánh giá mới nhất từ Google Places API!", {
-            description: "Điểm trung bình: 4.9⭐ · Vượt trội +0.6⭐ so với khu vực.",
+            description: "Điểm trung bình: 4.9 · Vượt trội +0.6 so với khu vực.",
           });
         }
       }
@@ -354,7 +351,7 @@ export function AdminSurveys() {
             <MapPin className="h-3.5 w-3.5 text-red-500" />
             Đánh giá Google Maps (Places API)
             <Badge className="ml-1 bg-amber-500/20 text-[#92400e] text-[10px] font-bold border-0 px-1.5 py-0">
-              4.9 ⭐
+              4.9
             </Badge>
           </TabsTrigger>
           <TabsTrigger
@@ -366,11 +363,9 @@ export function AdminSurveys() {
           </TabsTrigger>
         </TabsList>
 
-        {/* ============================================================== */}
-        {/* TAB 1: GOOGLE MAPS (PLACES API) — FR-24 & FR-23                */}
-        {/* ============================================================== */}
+
         <TabsContent value="google" className="space-y-6 mt-4">
-          {/* FR-24 Row 1: Điểm trung bình so với khu vực + Phân bố sao + Tag nổi bật */}
+
           <div className="grid gap-4 md:grid-cols-3">
             {/* Widget 1: Điểm TB so với khu vực (FR-24) */}
             <Card className="border-border/80 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-card shadow-xs">
@@ -388,10 +383,10 @@ export function AdminSurveys() {
                   <span className="font-heading text-4xl font-extrabold text-[#92400e]">
                     {gStats?.overallRating ?? "4.9"}
                   </span>
-                  <span className="text-sm font-bold text-muted-foreground">/ 5.0 ⭐</span>
+                  <span className="text-sm font-bold text-muted-foreground">/ 5.0 </span>
                 </div>
 
-                {/* Regional comparison badge */}
+                { }
                 <div className="mt-2 flex items-center gap-1.5 text-xs">
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-bold text-emerald-800">
                     <TrendingUp className="h-3 w-3" />
@@ -425,9 +420,8 @@ export function AdminSurveys() {
                     <div
                       key={item.star}
                       onClick={() => setStarFilter(starFilter === item.star ? 0 : item.star)}
-                      className={`flex items-center gap-2 text-xs cursor-pointer rounded px-1.5 py-0.5 transition-colors ${
-                        starFilter === item.star ? "bg-amber-100/70 font-semibold" : "hover:bg-stone-50"
-                      }`}
+                      className={`flex items-center gap-2 text-xs cursor-pointer rounded px-1.5 py-0.5 transition-colors ${starFilter === item.star ? "bg-amber-100/70 font-semibold" : "hover:bg-stone-50"
+                        }`}
                       title={`Bấm để lọc đánh giá ${item.star} sao`}
                     >
                       <span className="w-8 shrink-0 flex items-center gap-0.5 text-stone-700">
@@ -435,15 +429,14 @@ export function AdminSurveys() {
                       </span>
                       <div className="h-2 flex-1 rounded-full bg-stone-100 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${
-                            item.star === 5
+                          className={`h-full rounded-full transition-all ${item.star === 5
                               ? "bg-amber-500"
                               : item.star === 4
                                 ? "bg-amber-400"
                                 : item.star === 3
                                   ? "bg-amber-300"
                                   : "bg-stone-300"
-                          }`}
+                            }`}
                           style={{ width: `${item.percent}%` }}
                         />
                       </div>
@@ -476,11 +469,10 @@ export function AdminSurveys() {
                       <button
                         key={t.tag}
                         onClick={() => setSelectedTag(isSelected ? null : t.tag)}
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${
-                          isSelected
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-all ${isSelected
                             ? "bg-[#b45309] text-white shadow-xs"
                             : "bg-amber-50 text-amber-900 border border-amber-200/80 hover:bg-amber-100"
-                        }`}
+                          }`}
                       >
                         <span>{t.tag}</span>
                         <span className={`text-[10px] font-bold ${isSelected ? "text-amber-200" : "text-amber-700"}`}>
@@ -511,25 +503,22 @@ export function AdminSurveys() {
               <div className="flex items-center gap-1 border-r border-border pr-2">
                 <button
                   onClick={() => setStarFilter(0)}
-                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    starFilter === 0 ? "bg-[#b45309] text-white" : "text-stone-600 hover:bg-stone-100"
-                  }`}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${starFilter === 0 ? "bg-[#b45309] text-white" : "text-stone-600 hover:bg-stone-100"
+                    }`}
                 >
                   Tất cả sao
                 </button>
                 <button
                   onClick={() => setStarFilter(5)}
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    starFilter === 5 ? "bg-amber-600 text-white" : "text-amber-800 hover:bg-amber-50"
-                  }`}
+                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${starFilter === 5 ? "bg-amber-600 text-white" : "text-amber-800 hover:bg-amber-50"
+                    }`}
                 >
                   5 <Star className="h-3 w-3 fill-amber-400" />
                 </button>
                 <button
                   onClick={() => setStarFilter(4)}
-                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
-                    starFilter === 4 ? "bg-amber-600 text-white" : "text-stone-600 hover:bg-stone-100"
-                  }`}
+                  className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${starFilter === 4 ? "bg-amber-600 text-white" : "text-stone-600 hover:bg-stone-100"
+                    }`}
                 >
                   4 <Star className="h-3 w-3 fill-stone-400" />
                 </button>
@@ -585,11 +574,10 @@ export function AdminSurveys() {
                               {Array.from({ length: 5 }).map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`h-3.5 w-3.5 ${
-                                    i < rev.rating
+                                  className={`h-3.5 w-3.5 ${i < rev.rating
                                       ? "fill-amber-400 text-amber-400"
                                       : "fill-stone-200 text-stone-200"
-                                  }`}
+                                    }`}
                                 />
                               ))}
                             </div>
@@ -698,9 +686,7 @@ export function AdminSurveys() {
           </div>
         </TabsContent>
 
-        {/* ============================================================== */}
-        {/* TAB 2: KHẢO SÁT NỘI BỘ (FR-23 & FR-24)                         */}
-        {/* ============================================================== */}
+
         <TabsContent value="internal" className="space-y-6 mt-4">
           {/* 1. Header KPI: Điểm tổng quan, Tỷ lệ giới thiệu (NPS) & Điểm tri ân */}
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -781,7 +767,7 @@ export function AdminSurveys() {
                     <Award className="h-4 w-4 text-[#b45309]" />
                     Trung bình bốn tiêu chí trải nghiệm (FR-24)
                   </CardTitle>
-                  <span className="text-[11px] font-medium text-stone-500">Thang điểm 5.0 ⭐</span>
+                  <span className="text-[11px] font-medium text-stone-500">Thang điểm 5.0 </span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
@@ -814,7 +800,7 @@ export function AdminSurveys() {
                         Dịch vụ &amp; Phục vụ
                       </span>
                       <span className="font-mono text-sm font-bold text-blue-700">
-                        {stats?.avgService ?? "5.0"} ⭐
+                        {stats?.avgService ?? "5.0"}
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
@@ -834,7 +820,7 @@ export function AdminSurveys() {
                         Không gian &amp; Âm nhạc
                       </span>
                       <span className="font-mono text-sm font-bold text-purple-700">
-                        {stats?.avgAmbiance ?? "5.0"} ⭐
+                        {stats?.avgAmbiance ?? "5.0"}
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
@@ -854,7 +840,7 @@ export function AdminSurveys() {
                         Pairing Trà &amp; Rượu
                       </span>
                       <span className="font-mono text-sm font-bold text-emerald-700">
-                        {stats?.avgPairing ?? "5.0"} ⭐
+                        {stats?.avgPairing ?? "5.0"}
                       </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-stone-200 overflow-hidden">
@@ -895,9 +881,8 @@ export function AdminSurveys() {
                       key={item.star}
                       type="button"
                       onClick={() => setInternalStarFilter(isSelected ? 0 : item.star)}
-                      className={`w-full text-left rounded-lg p-1.5 transition-colors flex items-center gap-2.5 text-xs hover:bg-amber-500/10 ${
-                        isSelected ? "bg-amber-500/15 ring-1 ring-amber-500" : ""
-                      }`}
+                      className={`w-full text-left rounded-lg p-1.5 transition-colors flex items-center gap-2.5 text-xs hover:bg-amber-500/10 ${isSelected ? "bg-amber-500/15 ring-1 ring-amber-500" : ""
+                        }`}
                     >
                       <span className="w-10 font-mono font-semibold text-stone-700 flex items-center gap-0.5 shrink-0">
                         {item.star} <Star className="h-3 w-3 fill-amber-400 text-amber-400 inline" />
@@ -999,11 +984,10 @@ export function AdminSurveys() {
                       key={s}
                       type="button"
                       onClick={() => setInternalStarFilter(s)}
-                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                        internalStarFilter === s
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all ${internalStarFilter === s
                           ? "bg-[#b45309] text-white shadow-xs"
                           : "bg-white text-stone-700 border border-stone-200 hover:border-amber-400"
-                      }`}
+                        }`}
                     >
                       {s === 0 ? "Tất cả" : `${s}★`}
                     </button>
@@ -1058,10 +1042,10 @@ export function AdminSurveys() {
                               <span className="text-stone-400 block mb-1">Không để lại lời nhắn</span>
                             )}
                             <div className="flex flex-wrap gap-2 text-[10px] text-stone-600 font-medium">
-                              <span className="bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5">Món: {s.foodRating}⭐</span>
-                              <span className="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Dịch vụ: {s.serviceRating}⭐</span>
-                              <span className="bg-purple-50 border border-purple-200 rounded px-1.5 py-0.5">Không gian: {s.ambianceRating}⭐</span>
-                              <span className="bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">Pairing: {s.pairingRating}⭐</span>
+                              <span className="bg-orange-50 border border-orange-200 rounded px-1.5 py-0.5">Món: {s.foodRating}</span>
+                              <span className="bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">Dịch vụ: {s.serviceRating}</span>
+                              <span className="bg-purple-50 border border-purple-200 rounded px-1.5 py-0.5">Không gian: {s.ambianceRating}</span>
+                              <span className="bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">Pairing: {s.pairingRating}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
@@ -1105,9 +1089,7 @@ export function AdminSurveys() {
         </TabsContent>
       </Tabs>
 
-      {/* ============================================================== */}
-      {/* MODAL TRẢ LỜI REVIEW GOOGLE MAPS (FR-24)                       */}
-      {/* ============================================================== */}
+
       <Dialog
         open={replyingReview !== null}
         onOpenChange={(v) => !v && setReplyingReview(null)}
@@ -1153,7 +1135,7 @@ export function AdminSurveys() {
                     }
                     className="rounded-lg border border-stone-200 bg-white p-2 text-left text-[11px] text-stone-700 hover:border-amber-500 hover:bg-amber-50/50 transition-colors"
                   >
-                    🥩 <strong>Mẫu 1:</strong> Lời khen về ẩm thực &amp; Wagyu
+                    <strong>Mẫu 1:</strong> Lời khen về ẩm thực &amp; Wagyu
                   </button>
                   <button
                     type="button"
@@ -1164,7 +1146,7 @@ export function AdminSurveys() {
                     }
                     className="rounded-lg border border-stone-200 bg-white p-2 text-left text-[11px] text-stone-700 hover:border-amber-500 hover:bg-amber-50/50 transition-colors"
                   >
-                    🍵 <strong>Mẫu 2:</strong> Lời khen về Trà pairing &amp; Dịch vụ
+                    <strong>Mẫu 2:</strong> Lời khen về Trà pairing &amp; Dịch vụ
                   </button>
                 </div>
               </div>
@@ -1207,9 +1189,7 @@ export function AdminSurveys() {
         </DialogContent>
       </Dialog>
 
-      {/* ============================================================== */}
-      {/* MODAL MỜI ĐÁNH GIÁ GOOGLE MAPS QUA SMS / ZALO (FR-23)          */}
-      {/* ============================================================== */}
+
       <Dialog open={showInviteModal} onOpenChange={setShowInviteModal}>
         <DialogContent className="max-w-2xl border-amber-900/20 bg-[#faf8f3] p-6 shadow-2xl">
           <DialogHeader>
@@ -1284,11 +1264,10 @@ export function AdminSurveys() {
                   <button
                     type="button"
                     onClick={() => setInviteChannel("ZALO")}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-semibold transition-all ${
-                      inviteChannel === "ZALO"
+                    className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-semibold transition-all ${inviteChannel === "ZALO"
                         ? "border-blue-600 bg-blue-50 text-blue-800 shadow-xs ring-1 ring-blue-500"
                         : "border-stone-200 bg-white text-stone-700 hover:bg-stone-50"
-                    }`}
+                      }`}
                   >
                     <span className="font-bold text-blue-600">Zalo</span>
                     <span>ZNS Official</span>
@@ -1296,11 +1275,10 @@ export function AdminSurveys() {
                   <button
                     type="button"
                     onClick={() => setInviteChannel("SMS")}
-                    className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-semibold transition-all ${
-                      inviteChannel === "SMS"
+                    className={`flex items-center justify-center gap-1.5 rounded-lg border py-2 text-xs font-semibold transition-all ${inviteChannel === "SMS"
                         ? "border-[#b45309] bg-[#fdf0d5] text-[#92400e] shadow-xs ring-1 ring-amber-500"
                         : "border-stone-200 bg-white text-stone-700 hover:bg-stone-50"
-                    }`}
+                      }`}
                   >
                     <span>SMS</span>
                     <span>Brandname</span>
@@ -1340,11 +1318,10 @@ export function AdminSurveys() {
                   {/* Bong bóng tin nhắn */}
                   <div className="my-2 space-y-2">
                     <div
-                      className={`rounded-2xl p-2.5 leading-relaxed shadow-xs ${
-                        inviteChannel === "ZALO"
+                      className={`rounded-2xl p-2.5 leading-relaxed shadow-xs ${inviteChannel === "ZALO"
                           ? "bg-blue-50/90 text-blue-950 border border-blue-200/60"
                           : "bg-amber-50 text-stone-900 border border-amber-200/80"
-                      }`}
+                        }`}
                     >
                       <p className="font-semibold text-[10px] text-[#b45309] mb-1">
                         TRẦM Reserve xin cảm ơn Quý khách!
@@ -1359,7 +1336,7 @@ export function AdminSurveys() {
                         </span>
                       </div>
                       <div className="mt-2 flex items-center justify-between text-[9px] text-emerald-800 font-bold border-t border-dashed border-stone-300 pt-1">
-                        <span>🎁 Quà tặng tri ân:</span>
+                        <span> Quà tặng tri ân:</span>
                         <span>+200 điểm tích lũy</span>
                       </div>
                     </div>

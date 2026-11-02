@@ -239,10 +239,19 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
                   )}
                 </span>
               </p>
+              <Separator className="bg-border/60" />
+              <p className="flex justify-between gap-2 text-sm">
+                <span className="font-medium text-stone-700">
+                  Thanh toán tại nhà hàng (đã trừ cọc)
+                </span>
+                <span className="font-semibold text-[#292524]">
+                  {formatVND(Math.max(0, total - r.depositAmount))}
+                </span>
+              </p>
               <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
                 {isDepositExempt
                   ? "Áp dụng đặc quyền Hạng Nam Trầm: Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc."
-                  : "Cổng thanh toán mô phỏng — không có giao dịch thật. Phần còn lại thanh toán tại nhà hàng."}
+                  : "Cổng thanh toán mô phỏng — không có giao dịch thật. Số tiền còn lại sau khi trừ tiền cọc sẽ thanh toán tại nhà hàng khi dùng bữa."}
               </p>
             </div>
           </div>

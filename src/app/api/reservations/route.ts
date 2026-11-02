@@ -151,9 +151,10 @@ export async function POST(request: NextRequest) {
     );
 
     // FR-22: Miễn cọc hạng cao nhất — Khách Nam Trầm (>= 6 lượt đến SEATED) được miễn 100% cọc 300.000 đ/khách
+    const cleanPhone = body.phone!.replace(/[\s.-]/g, "").trim();
     const pastSeatedCount = await db.reservation.count({
       where: {
-        phone: body.phone!.trim(),
+        phone: cleanPhone,
         status: "SEATED",
       },
     });
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
     const finalNotes = isNamTram
       ? [
         body.notes?.trim(),
-        "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc]",
+        "👑 [Đặc quyền Thượng khách Nam Trầm: Miễn 100% tiền cọc (FR-22)]",
       ]
         .filter(Boolean)
         .join(" · ")
@@ -175,7 +176,7 @@ export async function POST(request: NextRequest) {
       data: {
         code,
         customerName: body.customerName!.trim(),
-        phone: body.phone!.trim(),
+        phone: cleanPhone,
         email: body.email?.trim() || null,
         partySize,
         tableId: table.id,
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
             : JSON.stringify(body.selectedDishes)
           : null,
         status: "CONFIRMED", // cọc đã "thanh toán" (mô phỏng) → xác nhận luôn
-        depositAmount: PRICES.deposit * partySize,
+        depositAmount: depositAmount,
         source: body.source === "PHONE" || body.source === "ZALO" ? body.source : "WEB",
       },
       include: { table: true },

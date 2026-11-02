@@ -73,3 +73,20 @@ CREATE TABLE IF NOT EXISTS "Survey" (
  );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Survey_reservationId_key" ON "Survey"("reservationId");
+
+-- Bổ sung khách hàng Hạng Nam Trầm (Trần Nam Trầm - 0909999999) với 7 lượt SEATED vào DB
+INSERT OR IGNORE INTO "Table" ("id", "code", "seats", "zone")
+VALUES ('tbl_b01', 'B01', 2, 'Khu cửa sổ');
+
+INSERT OR IGNORE INTO "Reservation" ("id", "code", "customerName", "phone", "email", "partySize", "tableId", "date", "slot", "pairing", "notes", "allergy", "status", "depositAmount", "source", "createdAt", "updatedAt")
+VALUES 
+('res_nt_01', 'TRM-NT01', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-02 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_02', 'TRM-NT02', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-05 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_03', 'TRM-NT03', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-08 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_04', 'TRM-NT04', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-11 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_05', 'TRM-NT05', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-15 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_06', 'TRM-NT06', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-19 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+('res_nt_07', 'TRM-NT07', 'Trần Nam Trầm', '0909999999', 'namtram@tramreserve.vn', 2, 'tbl_b01', '2026-10-23 00:00:00', 'SLOT_1945', 'WINE', '👑 Thượng khách Nam Trầm', NULL, 'SEATED', 600000, 'WEB', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+
+
