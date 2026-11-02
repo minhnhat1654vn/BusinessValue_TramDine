@@ -475,6 +475,7 @@ export function useBookingWizard() {
     tables,
     loadingTables,
     waitlistMode,
+    setWaitlistMode,
     tableId,
     setTableId,
     selectedTable,

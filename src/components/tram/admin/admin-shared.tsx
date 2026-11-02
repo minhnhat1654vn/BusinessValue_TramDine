@@ -33,7 +33,18 @@ export function useJson<T>(url: string | null) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(url)
+
+    // Thêm timestamp để tránh cache trình duyệt tuyệt đối khi reload hoặc làm mới
+    const sep = url.includes("?") ? "&" : "?";
+    const requestUrl = `${url}${sep}_t=${Date.now()}`;
+
+    fetch(requestUrl, {
+      cache: "no-store",
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+      },
+    })
       .then(async (r) => {
         const body = await r.json();
         if (!r.ok) throw new Error(body.error ?? "Lỗi tải dữ liệu");

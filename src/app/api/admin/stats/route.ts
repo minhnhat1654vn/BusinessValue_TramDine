@@ -22,6 +22,9 @@ import type {
 
 const SEATS_PER_SLOT = 42; // 5×2 + 5×4 + 2×6
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

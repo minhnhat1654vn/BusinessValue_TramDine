@@ -6,6 +6,9 @@ import { serializeWaitlist } from "@/lib/tram/server";
 import { parseISODate, toISODate } from "@/lib/tram/format";
 import { isClosedMonday } from "@/lib/tram/format";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -20,9 +23,16 @@ export async function GET(request: NextRequest) {
       where: { date: { gte: start } },
       orderBy: [{ date: "asc" }, { slot: "asc" }, { position: "asc" }],
     });
-    return NextResponse.json({
-      entries: entries.map(serializeWaitlist),
-    });
+    return NextResponse.json(
+      {
+        entries: entries.map(serializeWaitlist),
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+        },
+      },
+    );
   } catch (error) {
     console.error("GET waitlist error", error);
     return NextResponse.json(
@@ -48,7 +58,8 @@ export async function POST(request: NextRequest) {
     if (!body.name || body.name.trim().length < 2) {
       errors.push("Vui lòng nhập họ tên.");
     }
-    if (!body.phone || !/^0\d{9}$/.test(body.phone.trim())) {
+    const cleanPhone = (body.phone ?? "").replace(/[\s.-]/g, "").trim();
+    if (!cleanPhone || !/^0\d{9}$/.test(cleanPhone)) {
       errors.push("Số điện thoại không hợp lệ (vd: 0912345678).");
     }
     const partySize = Number(body.partySize);
@@ -82,7 +93,7 @@ export async function POST(request: NextRequest) {
     const created = await db.waitlistEntry.create({
       data: {
         name: body.name!.trim(),
-        phone: body.phone!.trim(),
+        phone: cleanPhone,
         partySize,
         date: dayStart,
         slot: body.slot!,

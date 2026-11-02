@@ -699,6 +699,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
     tables,
     loadingTables,
     waitlistMode,
+    setWaitlistMode,
     tableId,
     selectedTable,
     handleSelectTable,
@@ -955,20 +956,36 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  size="lg"
-                  disabled={!date || !slot || !selectedDateCheck.allowed}
-                  onClick={() => {
-                    if (validateStep1()) void goStep2();
-                  }}
-                  className="h-12 min-w-40 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e] disabled:opacity-50"
-                >
-                  {slotsSummary?.find((x) => x.slot === slot)?.remainingSeats === 0
-                    ? "Đăng ký danh sách chờ"
-                    : "Chọn bàn"}
-                  <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
-                </Button>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                {date && slot && selectedDateCheck.allowed && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (validateStep1()) {
+                        setWaitlistMode(true);
+                        setStep(2);
+                      }
+                    }}
+                    className="text-xs text-[#92400e] hover:text-[#b45309] font-medium underline underline-offset-4 decoration-amber-300 hover:decoration-amber-500 transition-colors"
+                  >
+                    ✦ Hoặc ghi danh vào Danh sách chờ (Waitlist) khung {slot === "SLOT_1730" ? "17:30" : "19:45"}
+                  </button>
+                )}
+                <div className="sm:ml-auto">
+                  <Button
+                    size="lg"
+                    disabled={!date || !slot || !selectedDateCheck.allowed}
+                    onClick={() => {
+                      if (validateStep1()) void goStep2();
+                    }}
+                    className="h-12 min-w-40 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e] disabled:opacity-50"
+                  >
+                    {slotsSummary?.find((x) => x.slot === slot)?.remainingSeats === 0
+                      ? "Đăng ký danh sách chờ"
+                      : "Chọn bàn"}
+                    <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
+                  </Button>
+                </div>
               </div>
             </motion.div>
           )}
@@ -985,19 +1002,37 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
               transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
               className="space-y-4"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="font-heading text-xl font-semibold text-[#292524]">
-                  2. Không còn bàn trống
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setStep(1)}
-                  className="h-11 rounded-full"
-                >
-                  <ArrowLeft className="mr-1 h-4 w-4" aria-hidden />
-                  Quay lại
-                </Button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-heading text-xl font-semibold text-[#292524]">
+                    2. Đăng ký danh sách chờ (Waitlist)
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Hệ thống sẽ ghi nhận thông tin và nhà hàng sẽ liên hệ ngay khi có bàn trống.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setWaitlistMode(false);
+                      void goStep2();
+                    }}
+                    className="h-9 rounded-full text-xs border-amber-300 text-[#92400e] hover:bg-amber-50"
+                  >
+                    Xem sơ đồ bàn
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setStep(1)}
+                    className="h-9 rounded-full text-xs"
+                  >
+                    <ArrowLeft className="mr-1 h-3.5 w-3.5" aria-hidden />
+                    Đổi ngày &amp; giờ
+                  </Button>
+                </div>
               </div>
               <WaitlistPanel
                 date={date}
@@ -1057,6 +1092,22 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   onSelect={handleSelectTable}
                 />
               )}
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-dashed border-amber-300/80 bg-[#fffdf5] p-3.5 text-xs text-stone-700 shadow-2xs">
+                <span className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-[#b45309] font-bold text-[10px]">!</span>
+                  <span>Chưa tìm được bàn ưng ý hoặc muốn xếp hàng cho bàn yêu thích?</span>
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setWaitlistMode(true)}
+                  className="h-8 rounded-full border-amber-400/80 text-xs font-medium text-[#92400e] hover:bg-amber-100/60 shrink-0"
+                >
+                  ✦ Đăng ký vào Danh sách chờ (Waitlist)
+                </Button>
+              </div>
 
               {selectedTable && (
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#b45309]/35 bg-[#fdf0d5]/60 p-4">

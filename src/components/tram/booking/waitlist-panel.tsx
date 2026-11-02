@@ -47,8 +47,9 @@ export function WaitlistPanel({
       toast.error("Vui lòng nhập họ tên Quý khách.");
       return;
     }
-    if (!/^0\d{9}$/.test(phone.trim())) {
-      toast.error("Số điện thoại không hợp lệ (vd: 0912345678).");
+    const cleanPhone = phone.replace(/[\s.-]/g, "").trim();
+    if (!/^0\d{9}$/.test(cleanPhone)) {
+      toast.error("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).");
       return;
     }
     setSubmitting(true);
@@ -56,7 +57,7 @@ export function WaitlistPanel({
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, partySize, date, slot }),
+        body: JSON.stringify({ name: name.trim(), phone: cleanPhone, partySize, date, slot }),
       });
       const data = await res.json();
       if (!res.ok) {

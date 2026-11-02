@@ -335,7 +335,9 @@ export function AdminView() {
 
               {activeTab === "surveys" && <AdminSurveys />}
 
-              {activeTab === "waitlist" && <AdminWaitlist />}
+              {activeTab === "waitlist" && (
+                <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
+              )}
 
               {activeTab === "settings" && (
                 <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />

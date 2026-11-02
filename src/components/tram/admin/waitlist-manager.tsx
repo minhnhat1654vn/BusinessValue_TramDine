@@ -1,7 +1,8 @@
 "use client";
 
 // 3.5 Quản lý waitlist — mời khách theo (ngày, khung), ưu tiên khách đặt trước 2 ngày
-import { useMemo, useState } from "react";
+// Hỗ trợ thêm khách thủ công, xóa/hủy lượt chờ, tự động làm mới & điều hướng nhanh
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   BellRing,
@@ -13,11 +14,27 @@ import {
   Calendar,
   Clock,
   ShieldAlert,
+  PlusCircle,
+  RefreshCw,
+  Trash2,
+  ArrowRight,
+  UserCheck,
+  CheckCircle2,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ErrorBlock,
   LoadingBlock,
@@ -29,6 +46,7 @@ import {
   formatShortDate,
   WEEKDAY_FULL_LABELS,
   weekdayOf,
+  addDays,
 } from "@/lib/tram/format";
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import type { WaitlistEntryDTO } from "@/lib/tram/types";
@@ -44,7 +62,7 @@ export function getWaitlistPriority(w: WaitlistEntryDTO, todayStr: string) {
   const todayDate = new Date(`${todayStr}T00:00:00Z`).getTime();
   const msDay = 86400000;
 
-  // Số ngày book trước ngày dùng bữa (Ví dụ: đặt ngày 30 cho ngày 31 -> 1 ngày; đặt ngày 28 cho ngày 31 -> 3 ngày)
+  // Số ngày book trước ngày dùng bữa
   const daysInAdvance = Math.round((mealDate - createdDate) / msDay);
   // Số ngày còn lại tính từ hôm nay tới ngày dùng bữa
   const daysUntilMeal = Math.round((mealDate - todayDate) / msDay);
@@ -52,19 +70,39 @@ export function getWaitlistPriority(w: WaitlistEntryDTO, todayStr: string) {
   const isBooked2DaysAdvance = daysInAdvance >= 2;
   const isWithin2Days = daysUntilMeal >= 0 && daysUntilMeal <= 2;
 
+  // Lượt đăng ký mới trong vòng 24 giờ
+  const isNewlyCreated = Date.now() - new Date(w.createdAt).getTime() < 24 * 60 * 60 * 1000;
+
   return {
     daysInAdvance,
     daysUntilMeal,
     isBooked2DaysAdvance,
     isWithin2Days,
+    isNewlyCreated,
   };
 }
 
-export function AdminWaitlist() {
+export function AdminWaitlist({
+  onNavigateToBooking,
+}: {
+  onNavigateToBooking?: () => void;
+}) {
   const today = useToday();
   const url = today ? `/api/waitlist?today=${today}` : null;
   const { data, loading, error, refresh } = useJson<WaitlistResponse>(url);
   const [inviting, setInviting] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Tự động làm mới dữ liệu khi người dùng quay lại tab trình duyệt & định kỳ 20 giây
+  useEffect(() => {
+    const handleFocus = () => refresh();
+    window.addEventListener("focus", handleFocus);
+    const interval = setInterval(refresh, 20000);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
+  }, [refresh]);
 
   // Bộ lọc & Tìm kiếm
   const [search, setSearch] = useState("");
@@ -72,6 +110,22 @@ export function AdminWaitlist() {
   const [slotFilter, setSlotFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = useState<"ALL" | "ADVANCE_2_DAYS" | "URGENT_2_DAYS">("ALL");
+
+  // Modal thêm khách thủ công
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newPartySize, setNewPartySize] = useState(2);
+  const [newDate, setNewDate] = useState("");
+  const [newSlot, setNewSlot] = useState<"SLOT_1730" | "SLOT_1945">("SLOT_1945");
+
+  // Khởi tạo ngày mặc định cho modal thêm khách
+  useEffect(() => {
+    if (today && !newDate) {
+      setNewDate(addDays(today, 1));
+    }
+  }, [today, newDate]);
 
   // Danh sách các ngày duy nhất có waitlist để làm dropdown lọc
   const uniqueDates = useMemo(() => {
@@ -127,14 +181,9 @@ export function AdminWaitlist() {
       map.get(key)!.push(w);
     }
 
-    const t = today || new Date().toISOString().slice(0, 10);
-
-    // Sắp xếp các nhóm
-    return Array.from(map.entries()).sort((a, b) => {
-      // Nhóm nào có khách book trước 2 ngày được đưa lên đầu nếu cùng ngày
-      return a[0].localeCompare(b[0]);
-    });
-  }, [filteredEntries, today]);
+    // Sắp xếp các nhóm theo ngày tăng dần
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [filteredEntries]);
 
   const hasFilters =
     search !== "" ||
@@ -173,18 +222,118 @@ export function AdminWaitlist() {
     }
   }
 
+  async function deleteEntry(entry: WaitlistEntryDTO) {
+    if (!confirm(`Xác nhận xóa lượt chờ của khách ${entry.name}?`)) return;
+    setDeletingId(entry.id);
+    try {
+      const res = await fetch(`/api/waitlist/${entry.id}`, {
+        method: "DELETE",
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        toast.error(body.error ?? "Không thể xóa lượt chờ.");
+        return;
+      }
+      toast.success(body.message ?? "Đã xóa lượt chờ.");
+      refresh();
+    } catch {
+      toast.error("Lỗi kết nối khi xóa.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function handleCreateWaitlist(e: React.FormEvent) {
+    e.preventDefault();
+    if (newName.trim().length < 2) {
+      toast.error("Vui lòng nhập họ tên khách.");
+      return;
+    }
+    const cleanPhone = newPhone.replace(/[\s.-]/g, "").trim();
+    if (!/^0\d{9}$/.test(cleanPhone)) {
+      toast.error("Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0).");
+      return;
+    }
+    if (!newDate) {
+      toast.error("Vui lòng chọn ngày dùng bữa.");
+      return;
+    }
+
+    setCreateSubmitting(true);
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newName.trim(),
+          phone: cleanPhone,
+          partySize: newPartySize,
+          date: newDate,
+          slot: newSlot,
+        }),
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        toast.error(resData.error ?? "Không thể thêm vào danh sách chờ.");
+        return;
+      }
+      toast.success(`Đã thêm ${newName} vào danh sách chờ thành công!`);
+      setCreateOpen(false);
+      setNewName("");
+      setNewPhone("");
+      refresh();
+    } catch {
+      toast.error("Lỗi kết nối khi tạo lượt chờ.");
+    } finally {
+      setCreateSubmitting(false);
+    }
+  }
+
   if (today === null) return <LoadingBlock />;
   if (loading && !data) return <LoadingBlock label="Đang tải danh sách chờ..." />;
   if (error) return <ErrorBlock message={error} onRetry={refresh} />;
 
-  // Đếm số lượng khách book trước 2 ngày
+  // Đếm số lượng khách book trước 2 ngày & khách mới đăng ký
   const t = today || new Date().toISOString().slice(0, 10);
   const totalBooked2DaysCount = (data?.entries ?? []).filter(
     (w) => getWaitlistPriority(w, t).isBooked2DaysAdvance,
   ).length;
+  const newCountToday = (data?.entries ?? []).filter(
+    (w) => getWaitlistPriority(w, t).isNewlyCreated,
+  ).length;
 
   return (
     <div className="space-y-5">
+      {/* Banner phân biệt rõ giữa Waitlist (xếp hàng chờ) và Đặt bàn chính thức */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-200/90 bg-gradient-to-r from-[#fffbf2] to-[#fffdf9] p-4 shadow-2xs">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-[#b45309]">
+            <BellRing className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-[#292524]">
+              Danh sách chờ tự động (Waitlist)
+            </h2>
+            <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
+              Dành cho khách xếp hàng khi hết chỗ. Nếu khách đã hoàn tất quy trình đặt bàn chính thức (đã chọn bàn &amp; cọc), vui lòng kiểm tra tại mục <strong>Đặt bàn &amp; Sơ đồ</strong>.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          {onNavigateToBooking && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onNavigateToBooking}
+              className="h-9 rounded-xl border-amber-300 text-xs font-semibold text-[#92400e] hover:bg-amber-100/60"
+            >
+              Xem Đặt bàn &amp; Sơ đồ
+              <ArrowRight className="ml-1 h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Thanh tìm kiếm & bộ lọc ngày, khung giờ, trạng thái và ưu tiên */}
       <div className="rounded-2xl border border-stone-200/90 bg-[#fffdf9] p-4 shadow-xs space-y-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -209,9 +358,32 @@ export function AdminWaitlist() {
             )}
           </div>
 
-          {/* Các bộ lọc */}
+          {/* Các nút thao tác & bộ lọc */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Bộ lọc Ưu tiên (Đặc biệt: Ưu tiên khách book trước 2 ngày) */}
+            {/* Nút Làm mới */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refresh()}
+              disabled={loading}
+              className="h-10 rounded-xl border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-2xs hover:bg-stone-50"
+              title="Làm mới danh sách chờ ngay lập tức"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5 mr-1.5", loading && "animate-spin text-[#b45309]")} />
+              Làm mới
+            </Button>
+
+            {/* Nút Thêm khách chờ thủ công */}
+            <Button
+              size="sm"
+              onClick={() => setCreateOpen(true)}
+              className="h-10 rounded-xl bg-[#b45309] px-3.5 text-xs font-semibold text-[#fffbf2] shadow-xs hover:bg-[#92400e]"
+            >
+              <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+              Thêm khách chờ
+            </Button>
+
+            {/* Bộ lọc Ưu tiên */}
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value as typeof priorityFilter)}
@@ -222,9 +394,9 @@ export function AdminWaitlist() {
                   : "border-stone-200 bg-white text-stone-700",
               )}
             >
-              <option value="ALL">Tất cả (Ưu tiên khách book trước ≥ 2 ngày)</option>
-              <option value="ADVANCE_2_DAYS">⭐ Chỉ khách book trước ≥ 2 ngày ({totalBooked2DaysCount})</option>
-              <option value="URGENT_2_DAYS">⏳ Khách dùng bữa trong 2 ngày tới</option>
+              <option value="ALL">Tất cả ưu tiên</option>
+              <option value="ADVANCE_2_DAYS">⭐ Khách book trước ≥ 2 ngày ({totalBooked2DaysCount})</option>
+              <option value="URGENT_2_DAYS">⏳ Dùng bữa trong 2 ngày tới</option>
             </select>
 
             {/* Lọc Ngày */}
@@ -279,11 +451,17 @@ export function AdminWaitlist() {
 
         {/* Thông tin thống kê sau khi lọc & Chú thích ưu tiên */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/60 pt-2.5 text-xs text-muted-foreground">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p>
               Hiển thị <strong className="text-amber-950 font-bold">{filteredEntries.length}</strong> / {data?.entries.length ?? 0} khách chờ
-              {groups.length > 0 && ` (${groups.length} khung giờ)`}
+              {groups.length > 0 && ` (${groups.length} nhóm ngày & khung)`}
             </p>
+            {newCountToday > 0 && (
+              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-semibold gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                Có {newCountToday} lượt đăng ký mới trong ngày
+              </Badge>
+            )}
             {totalBooked2DaysCount > 0 && (
               <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-semibold">
                 Có {totalBooked2DaysCount} khách book trước ≥ 2 ngày (Ưu tiên xếp đầu)
@@ -299,16 +477,44 @@ export function AdminWaitlist() {
 
       {groups.length === 0 && (
         <Card className="border-border/80 bg-card shadow-sm">
-          <CardContent className="flex min-h-40 flex-col items-center justify-center gap-2 text-center">
-            <BellRing className="h-8 w-8 text-[#c2a37a]" aria-hidden />
-            <p className="text-sm text-muted-foreground">
-              Không có khách nào khớp với bộ lọc danh sách chờ đã chọn.
-            </p>
+          <CardContent className="flex min-h-48 flex-col items-center justify-center gap-3 text-center p-8">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100/70 text-[#b45309]">
+              <BellRing className="h-6 w-6" aria-hidden />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-stone-800">
+                {hasFilters ? "Không có lượt chờ nào khớp với bộ lọc" : "Hiện chưa có khách nào trong danh sách chờ"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-md">
+                Khi thực khách đăng ký chờ trực tuyến hoặc qua hotline khi kín bàn, thông tin sẽ tự động xuất hiện tại đây theo từng nhóm ngày và khung giờ.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                size="sm"
+                onClick={() => setCreateOpen(true)}
+                className="h-9 rounded-xl bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e]"
+              >
+                <PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+                Thêm lượt chờ mới
+              </Button>
+              {hasFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="h-9 rounded-xl text-xs"
+                >
+                  Xóa bộ lọc
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Hiển thị các thẻ theo Ngày|Khung giờ — grid responsive tự co giãn */}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {groups.map(([key, entries]) => {
           const [dateISO, slot] = key.split("|");
           const weekday = WEEKDAY_FULL_LABELS[weekdayOf(dateISO)];
@@ -317,26 +523,31 @@ export function AdminWaitlist() {
           const sortedEntries = entries.slice().sort((a, b) => {
             const prioA = getWaitlistPriority(a, t).isBooked2DaysAdvance ? 1 : 0;
             const prioB = getWaitlistPriority(b, t).isBooked2DaysAdvance ? 1 : 0;
-            if (prioA !== prioB) return prioB - prioA; // Khách book trước 2 ngày lên trước
+            if (prioA !== prioB) return prioB - prioA;
             return a.position - b.position;
           });
 
           return (
-            <Card key={key} className="border-border/80 bg-card shadow-sm">
-              <CardHeader className="pb-3 border-b border-border/50">
-                <CardTitle className="flex flex-wrap items-center justify-between gap-2 font-heading text-lg text-[#292524]">
+            <Card key={key} className="border-border/80 bg-card shadow-sm flex flex-col">
+              <CardHeader className="pb-3 border-b border-border/50 bg-[#fffdfa] rounded-t-xl">
+                <CardTitle className="flex flex-wrap items-center justify-between gap-2 font-heading text-base text-[#292524]">
                   <span>
                     {weekday} · {formatLongDate(dateISO).split(", ")[1]}
                   </span>
-                  <Badge
-                    variant="outline"
-                    className="border-[#b45309]/40 bg-[#fdf0d5] font-medium text-[#92400e]"
-                  >
-                    Khung {SLOT_LABELS[slot as WaitlistEntryDTO["slot"]]}
-                  </Badge>
+                  <div className="flex items-center gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className="border-[#b45309]/40 bg-[#fdf0d5] font-semibold text-[#92400e] text-xs"
+                    >
+                      {SLOT_LABELS[slot as WaitlistEntryDTO["slot"]]}
+                    </Badge>
+                    <Badge variant="secondary" className="text-[11px] font-medium text-stone-600 bg-stone-100">
+                      {entries.length} khách
+                    </Badge>
+                  </div>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-3">
+              <CardContent className="pt-3 flex-1">
                 <ul className="space-y-2.5">
                   {sortedEntries.map((w) => {
                     const prio = getWaitlistPriority(w, t);
@@ -344,13 +555,15 @@ export function AdminWaitlist() {
                       <li
                         key={w.id}
                         className={cn(
-                          "flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 transition-all",
-                          prio.isBooked2DaysAdvance
-                            ? "border-amber-300/90 bg-[#fffdf5] shadow-xs"
-                            : "border-border/80 bg-[#fffdf9]",
+                          "flex flex-col gap-2 rounded-xl border p-3 transition-all sm:flex-row sm:items-center sm:justify-between",
+                          prio.isNewlyCreated
+                            ? "border-emerald-300 bg-emerald-50/20 shadow-xs ring-1 ring-emerald-400/40"
+                            : prio.isBooked2DaysAdvance
+                              ? "border-amber-300/90 bg-[#fffdf5] shadow-xs"
+                              : "border-border/80 bg-[#fffdf9]",
                         )}
                       >
-                        <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex min-w-0 items-start sm:items-center gap-3">
                           <span
                             className={cn(
                               "flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-semibold",
@@ -358,15 +571,20 @@ export function AdminWaitlist() {
                                 ? "bg-amber-500 text-white shadow-xs"
                                 : "bg-[#f5efe4] text-[#92400e]",
                             )}
-                            title={`Vị trí gốc: #${w.position}`}
+                            title={`Vị trí: #${w.position}`}
                           >
                             #{w.position}
                           </span>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <p className="truncate text-sm font-semibold text-[#292524]">
                                 {w.name}
                               </p>
+                              {prio.isNewlyCreated && (
+                                <Badge className="bg-emerald-600 text-white text-[9.5px] font-bold py-0 h-4.5">
+                                  Mới đăng ký
+                                </Badge>
+                              )}
                               {prio.isBooked2DaysAdvance && (
                                 <Badge className="gap-1 bg-amber-500/15 text-amber-900 border-amber-300 text-[10px] font-bold py-0 h-4.5">
                                   <Sparkles className="h-2.5 w-2.5 text-[#b45309]" />
@@ -379,18 +597,24 @@ export function AdminWaitlist() {
                                 </Badge>
                               )}
                             </div>
-                            <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                              <Phone className="h-3 w-3" aria-hidden />
-                              {w.phone} · <span className="font-medium text-stone-700">{w.partySize} khách</span>
-                              <span className="text-[10px] text-stone-400 ml-1">
-                                (Đăng ký: {formatShortDate(w.createdAt.slice(0, 10))})
+                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                              <span className="flex items-center gap-1 font-medium text-stone-700">
+                                <Phone className="h-3 w-3 text-stone-400" />
+                                {w.phone}
+                              </span>
+                              <span>·</span>
+                              <span className="font-semibold text-amber-900">{w.partySize} khách</span>
+                              <span>·</span>
+                              <span className="text-[10px] text-stone-400">
+                                {formatShortDate(w.createdAt.slice(0, 10))}
                               </span>
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+
+                        <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0 pt-1 sm:pt-0">
                           {w.status === "INVITED" ? (
-                            <Badge className="gap-1 border-emerald-600/40 bg-emerald-100/70 font-medium text-emerald-800 hover:bg-emerald-100/70">
+                            <Badge className="gap-1 border-emerald-600/40 bg-emerald-100/70 font-medium text-emerald-800 hover:bg-emerald-100/70 text-xs">
                               <MailCheck className="h-3 w-3" aria-hidden />
                               Đã mời
                             </Badge>
@@ -398,7 +622,7 @@ export function AdminWaitlist() {
                             <>
                               <Badge
                                 variant="outline"
-                                className="border-border bg-muted font-medium text-stone-600"
+                                className="border-border bg-muted font-medium text-stone-600 text-xs"
                               >
                                 Đang chờ
                               </Badge>
@@ -407,17 +631,27 @@ export function AdminWaitlist() {
                                 onClick={() => void invite(w)}
                                 disabled={inviting === w.id}
                                 className={cn(
-                                  "h-9 min-w-11 rounded-full px-4 text-[#fffbf2]",
+                                  "h-8 rounded-full px-3 text-xs text-[#fffbf2]",
                                   prio.isBooked2DaysAdvance
-                                    ? "bg-amber-600 hover:bg-amber-700 shadow-sm font-semibold"
+                                    ? "bg-amber-600 hover:bg-amber-700 shadow-xs font-semibold"
                                     : "bg-[#b45309] hover:bg-[#92400e]",
                                 )}
                               >
-                                <BellRing className="h-3.5 w-3.5 mr-1" aria-hidden />
-                                {prio.isBooked2DaysAdvance ? "Ưu tiên mời" : "Mời khách"}
+                                <BellRing className="h-3 w-3 mr-1" aria-hidden />
+                                {prio.isBooked2DaysAdvance ? "Ưu tiên mời" : "Mời"}
                               </Button>
                             </>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={deletingId === w.id}
+                            onClick={() => void deleteEntry(w)}
+                            className="h-8 w-8 rounded-full p-0 text-stone-400 hover:text-rose-600 hover:bg-rose-50"
+                            title="Xóa lượt chờ này"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </li>
                     );
@@ -428,6 +662,120 @@ export function AdminWaitlist() {
           );
         })}
       </div>
+
+      {/* Modal thêm khách vào danh sách chờ thủ công */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="max-w-md border-border bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg font-bold text-[#292524] flex items-center gap-2">
+              <PlusCircle className="h-5 w-5 text-[#b45309]" />
+              Thêm khách vào danh sách chờ
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Nhập thông tin khách yêu cầu xếp hàng chờ khi nhà hàng kín bàn hoặc khách liên hệ hotline/Zalo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateWaitlist} className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="create-wl-name" className="text-xs font-semibold">
+                Họ và tên khách <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="create-wl-name"
+                placeholder="vd: Nguyễn Minh Anh"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                className="h-10 text-sm"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-wl-phone" className="text-xs font-semibold">
+                Số điện thoại liên hệ <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                id="create-wl-phone"
+                placeholder="09xxxxxxxx"
+                value={newPhone}
+                onChange={(e) => setNewPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))}
+                className="h-10 text-sm"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="create-wl-date" className="text-xs font-semibold">
+                  Ngày dùng bữa <span className="text-rose-500">*</span>
+                </Label>
+                <Input
+                  id="create-wl-date"
+                  type="date"
+                  min={today || undefined}
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  className="h-10 text-xs"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold">
+                  Khung giờ <span className="text-rose-500">*</span>
+                </Label>
+                <select
+                  value={newSlot}
+                  onChange={(e) => setNewSlot(e.target.value as typeof newSlot)}
+                  className="h-10 w-full rounded-xl border border-stone-200 bg-white px-3 text-xs font-medium text-stone-800"
+                >
+                  <option value="SLOT_1730">Khung 17:30 - 19:30</option>
+                  <option value="SLOT_1945">Khung 19:45 - 21:45</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">Số lượng khách</Label>
+              <div className="flex items-center gap-3">
+                <select
+                  value={newPartySize}
+                  onChange={(e) => setNewPartySize(Number(e.target.value))}
+                  className="h-10 rounded-xl border border-stone-200 bg-white px-3 text-xs font-medium text-stone-800 w-32"
+                >
+                  {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+                    <option key={n} value={n}>
+                      {n} khách
+                    </option>
+                  ))}
+                </select>
+                <span className="text-xs text-muted-foreground">
+                  (Bàn tiêu chuẩn từ 2 đến 8 khách)
+                </span>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setCreateOpen(false)}
+                className="h-10 rounded-xl text-xs"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                disabled={createSubmitting}
+                className="h-10 rounded-xl bg-[#b45309] px-5 text-xs font-semibold text-white hover:bg-[#92400e]"
+              >
+                {createSubmitting ? "Đang lưu..." : "Xác nhận thêm"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

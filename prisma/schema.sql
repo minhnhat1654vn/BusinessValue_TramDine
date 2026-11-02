@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS "Reservation" (
     "status" TEXT NOT NULL DEFAULT 'CONFIRMED',
     "depositAmount" INTEGER NOT NULL,
     "source" TEXT NOT NULL DEFAULT 'WEB',
+    "selectedDishes" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "Reservation_tableId_fkey" 
@@ -73,6 +74,23 @@ CREATE TABLE IF NOT EXISTS "Survey" (
  );
 
 CREATE UNIQUE INDEX IF NOT EXISTS "Survey_reservationId_key" ON "Survey"("reservationId");
+
+CREATE TABLE IF NOT EXISTS "BookingSetting" (
+    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'default',
+    "programEnabled" BOOLEAN NOT NULL DEFAULT 1,
+    "programName" TEXT NOT NULL DEFAULT 'Hành trình vị Việt - Tasting Menu 7 món',
+    "programMode" TEXT NOT NULL DEFAULT 'range',
+    "programStartDate" TEXT NOT NULL DEFAULT '2026-10-18',
+    "programEndDate" TEXT NOT NULL DEFAULT '2026-11-30',
+    "programDays" TEXT NOT NULL DEFAULT '[]',
+    "closedDates" TEXT NOT NULL DEFAULT '[]',
+    "allowMonday" BOOLEAN NOT NULL DEFAULT 0,
+    "notes" TEXT DEFAULT 'Chương trình thực đơn mùa đặc sắc của TRẦM',
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT OR IGNORE INTO "BookingSetting" ("id", "programEnabled", "programName", "programMode", "programStartDate", "programEndDate", "programDays", "closedDates", "allowMonday", "notes", "updatedAt")
+VALUES ('default', 1, 'Hành trình vị Việt - Tasting Menu 7 món', 'range', '2026-10-18', '2026-11-30', '[]', '[]', 0, 'Chương trình thực đơn mùa đặc sắc của TRẦM', CURRENT_TIMESTAMP);
 
 -- Bổ sung khách hàng Hạng Nam Trầm (Trần Nam Trầm - 0909999999) với 7 lượt SEATED vào DB
 INSERT OR IGNORE INTO "Table" ("id", "code", "seats", "zone")
