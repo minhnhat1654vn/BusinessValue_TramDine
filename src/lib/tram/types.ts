@@ -62,7 +62,7 @@ export interface SlotSummary {
 export interface TableAvailability {
   table: TableDTO;
   available: boolean; // trống và đủ chỗ cho số khách
-  reason: null | "BOOKED" | "HELD" | "TOO_SMALL";
+  reason: null | "BOOKED" | "HELD" | "TOO_SMALL" | (string & {});
   reservation: ReservationDTO | null; // đặt bàn chiếm chỗ (nếu có)
   holdRemainingSeconds?: number;
 }

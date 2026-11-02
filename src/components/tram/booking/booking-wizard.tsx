@@ -366,7 +366,7 @@ function TableGrid({
     (t) => t.table.code !== "B11" && t.table.code !== "B12" && FLOORPLAN_COORDINATES[t.table.code]
   );
   const availableCount = validTables.filter((t) => t.available).length;
-  const heldCount = validTables.filter((t) => t.reason === "HELD").length;
+  const heldCount = validTables.filter((t) => (t.reason as string) === "HELD").length;
   const bookedCount = validTables.filter((t) => t.reason === "BOOKED").length;
 
   return (
@@ -391,7 +391,7 @@ function TableGrid({
                 shape: "circle",
               };
             const isSelected = selectedTableId === t.table.id;
-            const isHeld = t.reason === "HELD";
+            const isHeld = (t.reason as string) === "HELD";
             const isBooked = t.reason === "BOOKED";
             const isTooSmall = t.reason === "TOO_SMALL";
 
@@ -1682,6 +1682,8 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
                     <Mail className="h-3 w-3" aria-hidden />
                     Xác nhận &amp; thực đơn chi tiết sẽ được gửi qua Email / Zalo
+                  </p>
+                </div>
               )}
             </motion.div>
           )}
