@@ -34,7 +34,11 @@ import {
   Mail,
   MessageCircle,
   Phone,
+  UserPlus,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { AddCustomerDialog } from "./add-customer-dialog";
 import { ReEngagementDialog } from "./re-engagement-dialog";
 import { TierUpgradeDialog } from "./tier-upgrade-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -134,6 +138,32 @@ export function AdminCustomers() {
     milestone: 3 | 6;
   } | null>(null);
   const [filterUpgradedOnly, setFilterUpgradedOnly] = useState(false);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+
+  async function handleDeleteManual(phone: string, name: string) {
+    if (
+      !confirm(
+        `Bạn có chắc chắn muốn xóa khách hàng thủ công "${name}" (${phone}) khỏi danh sách?`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/customers?phone=${encodeURIComponent(phone)}`,
+        { method: "DELETE" },
+      );
+      const resData = await res.json();
+      if (!res.ok) {
+        toast.error(resData.error ?? "Không thể xóa khách hàng.");
+        return;
+      }
+      toast.success(resData.message ?? "Đã xóa khách hàng thành công.");
+      refresh();
+    } catch {
+      toast.error("Lỗi kết nối khi xóa khách hàng.");
+    }
+  }
 
   function pairingPriceOf(pairing: string): number {
     if (pairing === "WINE") return PRICES.winePairing;
@@ -221,6 +251,13 @@ export function AdminCustomers() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => setShowAddCustomer(true)}
+              className="h-9.5 gap-1.5 rounded-full bg-emerald-700 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition-all hover:scale-102"
+            >
+              <UserPlus className="h-4 w-4" />
+              + Thêm Khách Thân Thiết
+            </Button>
             <Button
               onClick={() => setShowBang8(true)}
               className="h-9.5 gap-1.5 rounded-full bg-[#b45309] text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
@@ -659,9 +696,16 @@ export function AdminCustomers() {
                       {c.name.slice(0, 1)}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-heading text-base font-bold text-[#292524] truncate transition-colors group-hover:text-[#b45309]">
-                        {c.name}
-                      </h4>
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-heading text-base font-bold text-[#292524] truncate transition-colors group-hover:text-[#b45309]">
+                          {c.name}
+                        </h4>
+                        {c.isManual && (
+                          <span className="rounded bg-amber-100 border border-amber-300 px-1.5 py-0.2 text-[9px] font-bold text-amber-900 shrink-0">
+                            Người quen
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-muted-foreground">{c.phone}</p>
                     </div>
                   </div>
@@ -853,9 +897,19 @@ export function AdminCustomers() {
                 {filteredCustomers.length} hồ sơ
               </span>
             </div>
-            <p className="text-[11px] text-stone-500">
-              Nhấp vào hàng để xem hồ sơ chi tiết &amp; lịch sử ẩm thực
-            </p>
+            <div className="flex items-center gap-2.5">
+              <Button
+                size="sm"
+                onClick={() => setShowAddCustomer(true)}
+                className="h-8 gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-2xs"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                Thêm Khách Hàng
+              </Button>
+              <p className="text-[11px] text-stone-500 hidden sm:block">
+                Nhấp vào hàng để xem hồ sơ chi tiết &amp; lịch sử ẩm thực
+              </p>
+            </div>
           </div>
 
           <div className="tram-scroll overflow-x-auto">
@@ -915,9 +969,16 @@ export function AdminCustomers() {
                             {c.name.slice(0, 1)}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-xs leading-tight text-stone-900 transition-colors group-hover:text-[#b45309] truncate">
-                              {c.name}
-                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-semibold text-xs leading-tight text-stone-900 transition-colors group-hover:text-[#b45309] truncate">
+                                {c.name}
+                              </p>
+                              {c.isManual && (
+                                <span className="rounded bg-amber-100/90 border border-amber-300 px-1.5 py-0.2 text-[9px] font-bold text-amber-900 shrink-0">
+                                  Người quen
+                                </span>
+                              )}
+                            </div>
                             <p className="mt-0.5 flex items-center gap-1 font-mono text-[11px] text-stone-500">
                               <Phone className="h-2.5 w-2.5 text-stone-400 shrink-0" />
                               <span>{c.phone}</span>
@@ -1103,6 +1164,18 @@ export function AdminCustomers() {
                             >
                               <Sparkles className="h-3 w-3 text-amber-600" />
                               Thư lên hạng
+                            </button>
+                          )}
+                          {c.isManual && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteManual(c.phone, c.name);
+                              }}
+                              title="Xóa khách hàng thủ công"
+                              className="inline-flex items-center justify-center rounded-md p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           )}
                           <button
@@ -1542,6 +1615,13 @@ export function AdminCustomers() {
           points={upgradeLetterCustomer.customer.points}
         />
       )}
+
+      {/* Modal Thêm Khách Hàng Thân Thiết (VIP Người quen / Đối tác) */}
+      <AddCustomerDialog
+        open={showAddCustomer}
+        onOpenChange={setShowAddCustomer}
+        onSuccess={refresh}
+      />
     </div>
   );
 }

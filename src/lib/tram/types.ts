@@ -93,6 +93,7 @@ export interface CustomerProfileDTO {
   nextTierPoints?: number; // Điểm cần để lên hạng tiếp theo
   nextTierName: string; // Tên hạng tiếp theo
   tierProgress: number; // 0..100 (%) tiến độ lên hạng
+  isManual?: boolean; // Khách hàng được quản lý thêm thủ công
 }
 
 export interface OccupancyPoint {

@@ -61,6 +61,7 @@ export function SiteHeader({ view, onChangeView }: SiteHeaderProps) {
               <button
                 key={item.key}
                 type="button"
+                data-nav={item.key}
                 onClick={() => onChangeView(item.key)}
                 aria-current={active ? "page" : undefined}
                 className={cn(
