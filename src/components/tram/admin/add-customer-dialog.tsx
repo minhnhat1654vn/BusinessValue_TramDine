@@ -21,13 +21,8 @@ import {
   User,
   HeartHandshake,
   Check,
-  ChevronDown,
-  ChevronUp,
-  Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import type { LoyaltyTier } from "@/lib/tram/types";
-import { formatVND } from "@/lib/tram/format";
 
 interface AddCustomerDialogProps {
   open: boolean;
@@ -66,17 +61,10 @@ export function AddCustomerDialog({
   const [selectedQuickNotes, setSelectedQuickNotes] = useState<string[]>([
     "👑 Người thân chủ quán",
   ]);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [customVisits, setCustomVisits] = useState<number>(6);
-  const [customSpend, setCustomSpend] = useState<number>(36230000);
   const [loading, setLoading] = useState(false);
 
-  // Khi đổi hạng, cập nhật lại gợi ý số lượt đến và chi tiêu
   function handleSelectTier(t: LoyaltyTier) {
     setTier(t);
-    const defaults = DEFAULT_METRICS_BY_TIER[t];
-    setCustomVisits(defaults.visits);
-    setCustomSpend(defaults.spend);
   }
 
   function toggleQuickNote(note: string) {
@@ -116,8 +104,8 @@ export function AddCustomerDialog({
           phone: cleanPhone,
           tier,
           notes: allNotes,
-          visits: Number(customVisits) || DEFAULT_METRICS_BY_TIER[tier].visits,
-          totalSpend: Number(customSpend) || DEFAULT_METRICS_BY_TIER[tier].spend,
+          visits: DEFAULT_METRICS_BY_TIER[tier].visits,
+          totalSpend: DEFAULT_METRICS_BY_TIER[tier].spend,
         }),
       });
 
@@ -336,72 +324,6 @@ export function AddCustomerDialog({
               rows={2}
               className="text-xs bg-white border-stone-300 focus-visible:ring-[#b45309]"
             />
-          </div>
-
-          {/* Tùy chỉnh thông số nâng cao (Toggle) */}
-          <div className="rounded-xl border border-stone-200 bg-white p-3">
-            <button
-              type="button"
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex w-full items-center justify-between text-xs font-semibold text-stone-700 hover:text-stone-900"
-            >
-              <span className="flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                Thông số lượt đến &amp; Chi tiêu mặc định
-              </span>
-              <span className="text-[11px] text-stone-500 flex items-center gap-1">
-                {customVisits} lượt • {formatVND(customSpend)}
-                {showAdvanced ? (
-                  <ChevronUp className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                )}
-              </span>
-            </button>
-
-            {showAdvanced && (
-              <div className="mt-3 pt-3 border-t border-stone-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-stone-600">
-                    Số lượt đến ban đầu
-                  </label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={customVisits}
-                    onChange={(e) => setCustomVisits(Number(e.target.value))}
-                    className="h-8.5 text-xs bg-white"
-                  />
-                  <p className="text-[10px] text-stone-400">
-                    Hạng Nam Trầm yêu cầu từ 6 lượt trở lên.
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-stone-600">
-                    Tổng chi tiêu ban đầu (VND)
-                  </label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={100000}
-                    value={customSpend}
-                    onChange={(e) => setCustomSpend(Number(e.target.value))}
-                    className="h-8.5 text-xs bg-white font-mono"
-                  />
-                  <p className="text-[10px] text-stone-400">
-                    Tương đương ~{Math.floor(customSpend / 1000).toLocaleString("vi-VN")} điểm tích lũy.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Notice ban */}
-          <div className="rounded-xl bg-amber-50/80 border border-amber-200/80 p-3 flex items-start gap-2 text-xs text-amber-950">
-            <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
-              Khách hàng sau khi thêm sẽ xuất hiện ngay trong bảng danh sách khách hàng và được hệ thống lưu vĩnh viễn. Khi người thân đặt bàn trực tuyến qua số điện thoại này, hệ thống sẽ tự động cấp quyền VIP tương ứng.
-            </p>
           </div>
 
           {/* Footer Actions */}

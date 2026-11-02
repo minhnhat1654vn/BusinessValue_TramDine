@@ -252,13 +252,6 @@ export function AdminCustomers() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
-              onClick={() => setShowAddCustomer(true)}
-              className="h-9.5 gap-1.5 rounded-full bg-emerald-700 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition-all hover:scale-102"
-            >
-              <UserPlus className="h-4 w-4" />
-              + Thêm Khách Thân Thiết
-            </Button>
-            <Button
               onClick={() => setShowBang8(true)}
               className="h-9.5 gap-1.5 rounded-full bg-[#b45309] text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
             >
@@ -897,23 +890,18 @@ export function AdminCustomers() {
                 {filteredCustomers.length} hồ sơ
               </span>
             </div>
-            <div className="flex items-center gap-2.5">
-              <Button
-                size="sm"
-                onClick={() => setShowAddCustomer(true)}
-                className="h-8 gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-2xs"
-              >
-                <UserPlus className="h-3.5 w-3.5" />
-                Thêm Khách Hàng
-              </Button>
-              <p className="text-[11px] text-stone-500 hidden sm:block">
-                Nhấp vào hàng để xem hồ sơ chi tiết &amp; lịch sử ẩm thực
-              </p>
-            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowAddCustomer(true)}
+              className="h-8 gap-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold shadow-2xs ml-auto"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Thêm Khách Hàng
+            </Button>
           </div>
 
           <div className="tram-scroll overflow-x-auto">
-            <Table className="w-full min-w-[980px]">
+            <Table className="w-full min-w-[1160px]">
               <TableHeader>
                 <TableRow className="border-b border-stone-200/80 bg-[#f9f5ed]/90 hover:bg-[#f9f5ed]/90 h-11">
                   <TableHead className="pl-4 pr-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
@@ -934,7 +922,7 @@ export function AdminCustomers() {
                   <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle whitespace-nowrap">
                     Lần Cuối
                   </TableHead>
-                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle min-w-[150px]">
+                  <TableHead className="px-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-left align-middle min-w-[340px]">
                     Ghi Chú &amp; Dị Ứng
                   </TableHead>
                   <TableHead className="pr-4 pl-2 text-[11px] font-bold uppercase tracking-wider text-stone-600 text-right align-middle whitespace-nowrap min-w-[170px]">
@@ -1080,9 +1068,9 @@ export function AdminCustomers() {
                       </TableCell>
 
                       {/* 7. Chip Ghi Chú & Dị Ứng */}
-                      <TableCell className="px-2 py-2.5 align-middle text-left">
+                      <TableCell className="px-2 py-2.5 align-middle text-left min-w-[340px]">
                         {c.notes && c.notes.length > 0 ? (
-                          <div className="flex items-start gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             {(() => {
                               const sortedNotes = [...c.notes].sort((a, b) => {
                                 const aIsAllergy = /dị ứng|hải sản|cồn|chay|đậu|tôm|bò|cua|hạt|sữa/i.test(a);
@@ -1095,7 +1083,7 @@ export function AdminCustomers() {
                               return (
                                 <>
                                   <span
-                                    className={`inline-flex items-start gap-1 rounded-md px-2 py-0.5 text-[11px] leading-snug font-medium whitespace-normal break-words max-w-[210px] ${
+                                    className={`inline-flex items-start gap-1.5 rounded-md px-2.5 py-1 text-[11px] leading-snug font-medium whitespace-normal break-words max-w-[460px] ${
                                       isAllergy
                                         ? "border border-rose-200/90 bg-rose-50/90 font-semibold text-rose-700 shadow-2xs"
                                         : "border border-amber-200/80 bg-amber-50/80 font-medium text-amber-900 shadow-2xs"
@@ -1113,7 +1101,7 @@ export function AdminCustomers() {
                                   </span>
                                   {sortedNotes.length > 1 && (
                                     <span
-                                      className="mt-0.5 rounded border border-stone-200/80 bg-stone-100 px-1 py-0.5 text-[9px] font-bold text-stone-600 shrink-0"
+                                      className="rounded border border-stone-200/80 bg-stone-100 px-1.5 py-0.5 text-[9px] font-bold text-stone-600 shrink-0"
                                       title={sortedNotes.slice(1).join(" • ")}
                                     >
                                       +{sortedNotes.length - 1}

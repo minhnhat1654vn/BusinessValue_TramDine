@@ -1,5 +1,19 @@
 [
   {
+    "name": "Phan Tấn Phúc",
+    "phone": "0912191845",
+    "tier": "TRAM",
+    "visits": 3,
+    "totalSpend": 12440000,
+    "lastVisit": "2026-11-02",
+    "notes": [
+      "🤝 Bạn thân thiết của chủ quán",
+      "vị giác nhạy cảm"
+    ],
+    "isManual": true,
+    "createdAt": "2026-11-02T17:05:19.497Z"
+  },
+  {
     "name": "Lê Minh Tuấn (Bạn chủ quán)",
     "phone": "0933889977",
     "tier": "NAM_TRAM",
