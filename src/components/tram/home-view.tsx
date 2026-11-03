@@ -509,9 +509,15 @@ export function HomeView({ onBookNow }: HomeViewProps) {
                 <img
                   src={detailDish.image}
                   alt={detailDish.name}
-                  className="h-full w-full object-cover"
+                  className={cn(
+                    "h-full w-full",
+                    detailDish.index === 7 ? "object-contain bg-[#0c0a09]" : "object-cover"
+                  )}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className={cn(
+                  "absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent",
+                  detailDish.index === 7 && "from-black/90 via-black/20 to-transparent"
+                )} />
                 <div className="absolute bottom-4 left-5 right-5">
                   <span className="inline-block rounded-full bg-[#b45309] px-3 py-1 text-xs font-semibold text-[#fffbf2]">
                     Món 0{detailDish.index} · {detailDish.region}
@@ -836,22 +842,36 @@ function DishScreen({
       <div className="grid min-h-full lg:h-full lg:grid-cols-2">
         {/* Ảnh món toàn chiều cao */}
         <div className="relative h-[42vh] overflow-hidden bg-stone-900 lg:h-full">
+          {item.index === 7 && (
+            <div
+              className="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center opacity-30 blur-2xl"
+              style={{ backgroundImage: `url(${item.image})` }}
+            />
+          )}
           <motion.img
             src={item.image}
             alt={item.name}
-            className="absolute inset-0 h-full w-full object-cover"
+            className={cn(
+              "absolute inset-0 h-full w-full",
+              item.index === 7
+                ? "z-10 object-contain p-2 sm:p-4 lg:p-6"
+                : "object-cover"
+            )}
             initial={false}
             animate={{ scale: active ? 1 : 1.15 }}
             transition={{ duration: 1.4, ease: "easeOut" }}
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c0a09] via-black/10 to-black/20 lg:from-black/70" />
+          <div className={cn(
+            "pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c0a09] via-black/10 to-black/20",
+            item.index === 7 ? "z-20 lg:from-black/40" : "lg:from-black/70"
+          )} />
           {/* Hòa ảnh vào nền đen ở mép phải (desktop) */}
           <div className={cn(
-            "pointer-events-none absolute inset-y-0 right-0 hidden bg-gradient-to-r from-transparent to-[#0c0a09] lg:block",
-            item.index === 7 ? "w-20" : "w-1/3"
+            "pointer-events-none absolute inset-y-0 right-0 hidden bg-gradient-to-r from-transparent to-[#0c0a09] lg:block z-20",
+            item.index === 7 ? "w-12" : "w-1/3"
           )} />
 
-          <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-xs font-semibold tracking-wider text-[#fdf0d5] backdrop-blur-md">
+          <span className="absolute left-5 top-5 z-30 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-xs font-semibold tracking-wider text-[#fdf0d5] backdrop-blur-md">
             <Icon className="h-3.5 w-3.5 text-[#d97706]" />
             {item.region}
           </span>
@@ -859,9 +879,14 @@ function DishScreen({
           <motion.span
             aria-hidden
             initial={false}
-            animate={{ opacity: active ? 1 : 0, y: active ? 0 : 40 }}
+            animate={{ opacity: active ? (item.index === 7 ? 0.35 : 1) : 0, y: active ? 0 : 40 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: active ? 0.45 : 0 }}
-            className="absolute bottom-3 left-5 font-heading text-[6rem] font-semibold leading-none text-[#fffbf2]/90 lg:bottom-6 lg:left-8 lg:text-[10rem]"
+            className={cn(
+              "absolute font-heading font-semibold leading-none text-[#fffbf2]/90 pointer-events-none z-20",
+              item.index === 7
+                ? "bottom-2 left-4 text-[4rem] lg:bottom-4 lg:left-6 lg:text-[6rem]"
+                : "bottom-3 left-5 text-[6rem] lg:bottom-6 lg:left-8 lg:text-[10rem]"
+            )}
           >
             0{item.index}
           </motion.span>
