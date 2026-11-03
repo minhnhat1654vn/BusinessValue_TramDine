@@ -1199,7 +1199,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                         {/* ẢNH THỰC TẾ CỦA MÓN */}
-                        <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-xl bg-stone-900/10 sm:h-24 sm:w-32">
+                        <div className="relative aspect-[16/10] w-full shrink-0 overflow-hidden rounded-xl bg-stone-900/10 sm:h-24 sm:w-40">
                           <img
                             src={item.image}
                             alt={item.name}

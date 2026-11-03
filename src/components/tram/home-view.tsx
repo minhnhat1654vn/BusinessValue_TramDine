@@ -846,7 +846,10 @@ function DishScreen({
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c0a09] via-black/10 to-black/20 lg:from-black/70" />
           {/* Hòa ảnh vào nền đen ở mép phải (desktop) */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-r from-transparent to-[#0c0a09] lg:block" />
+          <div className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 hidden bg-gradient-to-r from-transparent to-[#0c0a09] lg:block",
+            item.index === 7 ? "w-20" : "w-1/3"
+          )} />
 
           <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1 text-xs font-semibold tracking-wider text-[#fdf0d5] backdrop-blur-md">
             <Icon className="h-3.5 w-3.5 text-[#d97706]" />
