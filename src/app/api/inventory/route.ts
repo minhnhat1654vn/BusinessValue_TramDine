@@ -7,22 +7,26 @@ import {
 import { getIngredientPriceOverrides } from "@/lib/tram/food-cost-server";
 import { calculateInventoryReport } from "@/lib/tram/inventory";
 import {
+  adjustInventoryByDish,
   adjustInventoryByServings,
   getInventoryStockOverrides,
   resetInventoryStockOverrides,
+  saveInventoryReorderOverrides,
   saveInventoryStockOverrides,
+  type StoredInventoryData,
 } from "@/lib/tram/inventory-server";
 
-// FR-29 — API Quản lý tồn kho (tồn theo từng nguyên liệu, tổng giá trị kho cập nhật liên tục)
-// GET    /api/inventory           → Báo cáo tồn kho & tổng giá trị kho tức thời
-// PUT    /api/inventory           → Cập nhật số lượng tồn theo nguyên liệu
+// FR-29 & FR-30 — API Quản lý tồn kho & Ngưỡng đặt hàng lại
+// GET    /api/inventory           → Báo cáo tồn kho, ngưỡng đặt lại & tổng giá trị kho tức thời
+// PUT    /api/inventory           → Cập nhật số lượng tồn / mức đặt lại theo nguyên liệu
 // POST   /api/inventory           → Xuất bếp / nhập bổ sung nhanh theo số suất khách
-// DELETE /api/inventory           → Khôi phục tồn kho về định mức chuẩn
+// DELETE /api/inventory           → Khôi phục tồn kho & mức đặt lại về chuẩn
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const groupParam = searchParams.get("group");
   const qParam = searchParams.get("q")?.trim().toLowerCase() ?? "";
+  const filterParam = searchParams.get("filter"); // "ALL" | "STANDARD" | "LOW" | "OUT" | "NEEDS_REORDER"
 
   if (
     groupParam !== null &&
@@ -37,10 +41,18 @@ export async function GET(request: Request) {
   try {
     const stockStored = getInventoryStockOverrides();
     const priceStored = getIngredientPriceOverrides();
-    const report = calculateInventoryReport(stockStored.stock, priceStored.prices);
+    const report = calculateInventoryReport(
+      stockStored.stock,
+      priceStored.prices,
+      stockStored.reorderPoints,
+    );
 
     const filteredItems = report.items.filter((item) => {
       if (groupParam && item.group !== groupParam) return false;
+      if (filterParam === "STANDARD" && !item.isStandardIngredient) return false;
+      if (filterParam === "OUT" && item.stockQty > 0) return false;
+      if (filterParam === "LOW" && item.status !== "LOW") return false;
+      if (filterParam === "NEEDS_REORDER" && !item.needsReorder) return false;
       if (qParam) {
         const hitName = item.name.toLowerCase().includes(qParam);
         const hitOrigin = item.origin?.toLowerCase().includes(qParam) ?? false;
@@ -55,6 +67,7 @@ export async function GET(request: Request) {
       items: filteredItems,
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
+      reorderOverrides: stockStored.reorderPoints,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {
@@ -70,24 +83,41 @@ export async function PUT(request: Request) {
   try {
     const body = (await request.json()) as {
       stock?: Record<string, number>;
+      reorderPoints?: Record<string, number>;
       fullReplace?: boolean;
     };
 
-    if (!body || !body.stock || typeof body.stock !== "object" || Array.isArray(body.stock)) {
+    if (
+      !body ||
+      ((!body.stock || typeof body.stock !== "object" || Array.isArray(body.stock)) &&
+        (!body.reorderPoints || typeof body.reorderPoints !== "object" || Array.isArray(body.reorderPoints)))
+    ) {
       return NextResponse.json(
-        { error: "Dữ liệu tồn kho gửi lên không hợp lệ." },
+        { error: "Dữ liệu tồn kho hoặc mức đặt lại gửi lên không hợp lệ." },
         { status: 400 },
       );
     }
 
-    const stockStored = saveInventoryStockOverrides(body.stock, Boolean(body.fullReplace));
+    let stockStored = getInventoryStockOverrides();
+    if (body.stock && typeof body.stock === "object") {
+      stockStored = saveInventoryStockOverrides(body.stock, Boolean(body.fullReplace));
+    }
+    if (body.reorderPoints && typeof body.reorderPoints === "object") {
+      stockStored = saveInventoryReorderOverrides(body.reorderPoints, Boolean(body.fullReplace));
+    }
+
     const priceStored = getIngredientPriceOverrides();
-    const report = calculateInventoryReport(stockStored.stock, priceStored.prices);
+    const report = calculateInventoryReport(
+      stockStored.stock,
+      priceStored.prices,
+      stockStored.reorderPoints,
+    );
 
     return NextResponse.json({
       ...report,
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
+      reorderOverrides: stockStored.reorderPoints,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {
@@ -99,37 +129,72 @@ export async function PUT(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
-      action?: "deduct_guests" | "restock_guests";
+      action?: "deduct_guests" | "restock_guests" | "deduct_dish";
+      type?: "DISH" | "SERVINGS";
+      dishIndex?: number;
+      portions?: number;
+      optionId?: string;
       guests?: number;
+      direction?: "OUT" | "IN";
     };
 
-    if (
-      !body ||
-      (body.action !== "deduct_guests" && body.action !== "restock_guests")
+    let stockStored: StoredInventoryData;
+    let movementSummary: unknown = null;
+
+    if (body.action === "deduct_dish" || body.type === "DISH") {
+      const dishIndex = Number(body.dishIndex);
+      const portions = Number(body.portions ?? 1);
+      if (!Number.isInteger(dishIndex) || dishIndex < 1 || dishIndex > 7) {
+        return NextResponse.json(
+          { error: "Số thứ tự món ăn không hợp lệ (từ 1 đến 7)." },
+          { status: 400 },
+        );
+      }
+      if (!Number.isInteger(portions) || portions < 1 || portions > MAX_SCALE_GUESTS) {
+        return NextResponse.json(
+          { error: `Số suất xuất món phải từ 1 đến ${MAX_SCALE_GUESTS}.` },
+          { status: 400 },
+        );
+      }
+      const result = adjustInventoryByDish(dishIndex, portions, body.optionId);
+      stockStored = result.data;
+      movementSummary = result.movement;
+    } else if (
+      body.action === "deduct_guests" ||
+      body.action === "restock_guests" ||
+      body.type === "SERVINGS"
     ) {
+      const guests = Number(body.guests ?? 1);
+      if (!Number.isInteger(guests) || guests < 1 || guests > MAX_SCALE_GUESTS) {
+        return NextResponse.json(
+          { error: `Số suất phải là số nguyên từ 1 đến ${MAX_SCALE_GUESTS}.` },
+          { status: 400 },
+        );
+      }
+      const direction =
+        body.action === "restock_guests" || body.direction === "IN" ? "IN" : "OUT";
+      stockStored = adjustInventoryByServings(guests, direction);
+      movementSummary = { type: "SERVINGS", guests, direction };
+    } else {
       return NextResponse.json(
-        { error: "Thao tác kho không hợp lệ." },
+        { error: "Thao tác xuất kho không hợp lệ." },
         { status: 400 },
       );
     }
 
-    const guests = Number(body.guests);
-    if (!Number.isInteger(guests) || guests < 1 || guests > MAX_SCALE_GUESTS) {
-      return NextResponse.json(
-        { error: `Số suất phải là số nguyên từ 1 đến ${MAX_SCALE_GUESTS}.` },
-        { status: 400 },
-      );
-    }
-
-    const direction = body.action === "deduct_guests" ? "OUT" : "IN";
-    const stockStored = adjustInventoryByServings(guests, direction);
     const priceStored = getIngredientPriceOverrides();
-    const report = calculateInventoryReport(stockStored.stock, priceStored.prices);
+    const report = calculateInventoryReport(
+      stockStored.stock,
+      priceStored.prices,
+      stockStored.reorderPoints,
+    );
 
     return NextResponse.json({
       ...report,
+      movementSummary,
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
+      reorderOverrides: stockStored.reorderPoints,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {
@@ -142,12 +207,17 @@ export async function DELETE() {
   try {
     const stockStored = resetInventoryStockOverrides();
     const priceStored = getIngredientPriceOverrides();
-    const report = calculateInventoryReport(stockStored.stock, priceStored.prices);
+    const report = calculateInventoryReport(
+      stockStored.stock,
+      priceStored.prices,
+      stockStored.reorderPoints,
+    );
 
     return NextResponse.json({
       ...report,
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
+      reorderOverrides: stockStored.reorderPoints,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {

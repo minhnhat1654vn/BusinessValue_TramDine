@@ -115,7 +115,11 @@ function buildDishDetail(dishIndex: number, optionId: string | undefined, guests
   return { recipe, menuItem, defaultOptionId, activeVariant, isDefaultVariant, detail };
 }
 
-export function AdminRecipes() {
+export function AdminRecipes({
+  onNavigateTab,
+}: {
+  onNavigateTab?: (tab: string) => void;
+} = {}) {
   const [guests, setGuests] = useState(1);
   const [guestsInput, setGuestsInput] = useState("1");
   const [selectedDish, setSelectedDish] = useState(1);

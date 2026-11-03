@@ -121,7 +121,11 @@ function buildDishVariants(
   return { recipe, menuItem, activeDetail, variants };
 }
 
-export function AdminFoodCost() {
+export function AdminFoodCost({
+  onNavigateTab,
+}: {
+  onNavigateTab?: (tab: string) => void;
+} = {}) {
   const [guests, setGuests] = useState(1);
   const [guestsInput, setGuestsInput] = useState("1");
   const [selectedDish, setSelectedDish] = useState(5); // Mặc định mở món chính có tỷ trọng cao nhất hoặc món 1

@@ -18,6 +18,7 @@ import {
   TrendingUp,
   Clock,
   ChefHat,
+  ChevronDown,
   Calculator,
   Warehouse,
 } from "lucide-react";
@@ -42,7 +43,22 @@ import { LoadingBlock, useToday } from "./admin-shared";
 
 const SESSION_KEY = "tram_admin_ok";
 
-const ADMIN_NAV_ITEMS = [
+interface AdminNavSubItem {
+  key: string;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+}
+
+interface AdminNavItem {
+  key: string;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  children?: AdminNavSubItem[];
+}
+
+const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     key: "dashboard",
     label: "Dashboard",
@@ -80,22 +96,30 @@ const ADMIN_NAV_ITEMS = [
     icon: CalendarRange,
   },
   {
-    key: "recipes",
+    key: "bom-suite",
     label: "Công thức (BOM)",
-    description: "Định lượng 7 món / khách",
+    description: "BOM · Giá vốn · Kho",
     icon: ChefHat,
-  },
-  {
-    key: "food-cost",
-    label: "Giá vốn nguyên liệu",
-    description: "Đối chiếu giá menu",
-    icon: Calculator,
-  },
-  {
-    key: "inventory",
-    label: "Quản lý tồn kho",
-    description: "Bếp & kho · Giá trị tồn",
-    icon: Warehouse,
+    children: [
+      {
+        key: "recipes",
+        label: "Công thức (BOM)",
+        description: "Định lượng 7 món / khách",
+        icon: ChefHat,
+      },
+      {
+        key: "food-cost",
+        label: "Giá vốn nguyên liệu",
+        description: "Đối chiếu giá menu & food cost",
+        icon: Calculator,
+      },
+      {
+        key: "inventory",
+        label: "Quản lý tồn kho",
+        description: "Bếp & kho · Cảnh báo tồn",
+        icon: Warehouse,
+      },
+    ],
   },
   {
     key: "settings",
@@ -103,7 +127,7 @@ const ADMIN_NAV_ITEMS = [
     description: "Ngày mở / ngày nghỉ",
     icon: SlidersHorizontal,
   },
-] as const;
+];
 
 function LoginGate({ onOk }: { onOk: () => void }) {
   const [code, setCode] = useState("");
@@ -195,6 +219,17 @@ export function AdminView() {
   }, [activeTab]);
   const today = useToday();
 
+  const isBomActive =
+    activeTab === "recipes" || activeTab === "food-cost" || activeTab === "inventory";
+  const [bomDropdownOpen, setBomDropdownOpen] = useState(true);
+
+  // Tự động mở dropdown BOM khi tab tích cực là 1 trong 3 tab con
+  useEffect(() => {
+    if (isBomActive) {
+      setBomDropdownOpen(true);
+    }
+  }, [isBomActive]);
+
   useEffect(() => {
     setAuthed(sessionStorage.getItem(SESSION_KEY) === "1");
   }, []);
@@ -216,9 +251,9 @@ export function AdminView() {
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 items-start">
         {/* ==================== SIDEBAR ĐIỀU HƯỚNG BÊN TRÁI ==================== */}
         <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-20 z-20">
-          <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-sm space-y-4">
+          <div className="rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-sm flex flex-col lg:max-h-[calc(100vh-6rem)]">
             {/* Header thông tin nhà hàng & Quản trị */}
-            <div className="px-1.5 pt-1 pb-3 border-b border-border/60">
+            <div className="px-1.5 pt-1 pb-3 border-b border-border/60 shrink-0">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
                   Khu vực nội bộ
@@ -236,12 +271,139 @@ export function AdminView() {
               </p>
             </div>
 
-            {/* Menu tab danh mục: Cuộn ngang trên mobile, xếp dọc dạng Sidebar trên desktop */}
+            {/* Menu tab danh mục: Cuộn ngang trên mobile, xếp dọc cuộn êm có scroll bar trên desktop */}
             <nav
               aria-label="Menu quản trị"
-              className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-visible tram-scroll pb-1.5 lg:pb-0"
+              className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-x-hidden lg:overflow-y-auto overscroll-contain tram-scroll py-2 flex-1 min-h-0 pr-1 lg:pr-1.5"
             >
               {ADMIN_NAV_ITEMS.map((item) => {
+                if (item.children) {
+                  const hasActiveChild = item.children.some((c) => c.key === activeTab);
+                  return (
+                    <div key={item.key} className="shrink-0 lg:w-full space-y-1">
+                      {/* Nút cha Dropdown Công thức (BOM) */}
+                      <motion.button
+                        data-tab={item.key}
+                        type="button"
+                        whileHover={{ x: 2 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          if (!hasActiveChild) {
+                            setActiveTab("recipes");
+                            setBomDropdownOpen(true);
+                          } else {
+                            setBomDropdownOpen((prev) => !prev);
+                          }
+                        }}
+                        className={cn(
+                          "relative flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition-colors w-full select-none",
+                          hasActiveChild
+                            ? "border border-[#b45309]/40 bg-[#fdf0d5] font-semibold text-[#92400e] shadow-2xs"
+                            : "text-stone-700 hover:bg-[#fdf0d5]/70 hover:text-[#b45309]",
+                        )}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <item.icon
+                            className={cn(
+                              "h-4 w-4 shrink-0 transition-colors",
+                              hasActiveChild ? "text-[#b45309]" : "text-[#b45309]",
+                            )}
+                            aria-hidden
+                          />
+                          <div className="min-w-0">
+                            <div className="leading-snug truncate font-semibold">
+                              {item.label}
+                            </div>
+                            <div
+                              className={cn(
+                                "text-[10.5px] font-normal leading-tight hidden lg:block transition-colors",
+                                hasActiveChild ? "text-[#92400e]/80" : "text-muted-foreground",
+                              )}
+                            >
+                              {item.description}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span
+                            className={cn(
+                              "rounded-md px-1.5 py-0.2 text-[9.5px] font-bold tabular-nums",
+                              hasActiveChild
+                                ? "bg-[#b45309] text-white"
+                                : "bg-muted text-muted-foreground",
+                            )}
+                          >
+                            3
+                          </span>
+                          <ChevronDown
+                            className={cn(
+                              "h-3.5 w-3.5 shrink-0 text-[#b45309] transition-transform duration-200 hidden lg:block",
+                              bomDropdownOpen ? "rotate-180" : "",
+                            )}
+                            aria-hidden
+                          />
+                        </div>
+                      </motion.button>
+
+                      {/* Dropdown 3 sub-items: Công thức (BOM), Giá vốn nguyên liệu, Quản lý tồn kho */}
+                      <AnimatePresence initial={false}>
+                        {bomDropdownOpen && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.18 }}
+                            className="hidden lg:block ml-3 pl-2.5 border-l-2 border-[#b45309]/35 space-y-1 py-1"
+                          >
+                            {item.children.map((sub) => {
+                              const isSubActive = activeTab === sub.key;
+                              const SubIcon = sub.icon;
+                              return (
+                                <button
+                                  key={sub.key}
+                                  data-tab={sub.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveTab(sub.key);
+                                    if (typeof window !== "undefined")
+                                      window.scrollTo({ top: 0, behavior: "instant" });
+                                  }}
+                                  className={cn(
+                                    "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors w-full select-none",
+                                    isSubActive
+                                      ? "bg-[#b45309] text-white font-semibold shadow-xs"
+                                      : "text-stone-700 hover:bg-[#fdf0d5] hover:text-[#92400e]",
+                                  )}
+                                >
+                                  <SubIcon
+                                    className={cn(
+                                      "h-3.5 w-3.5 shrink-0",
+                                      isSubActive ? "text-white" : "text-[#b45309]",
+                                    )}
+                                    aria-hidden
+                                  />
+                                  <div className="min-w-0">
+                                    <div className="truncate font-medium">{sub.label}</div>
+                                    <div
+                                      className={cn(
+                                        "text-[9.5px] truncate leading-tight",
+                                        isSubActive ? "text-amber-100" : "text-muted-foreground",
+                                      )}
+                                    >
+                                      {sub.description}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                }
+
                 const active = activeTab === item.key;
                 const Icon = item.icon;
                 return (
@@ -253,13 +415,14 @@ export function AdminView() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       setActiveTab(item.key);
-                      if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "instant" });
+                      if (typeof window !== "undefined")
+                        window.scrollTo({ top: 0, behavior: "instant" });
                     }}
                     className={cn(
                       "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors shrink-0 lg:w-full select-none",
                       active
                         ? "text-[#fffbf2] shadow-sm font-semibold"
-                        : "text-stone-700 hover:bg-[#fdf0d5]/70 hover:text-[#b45309]"
+                        : "text-stone-700 hover:bg-[#fdf0d5]/70 hover:text-[#b45309]",
                     )}
                   >
                     {active && (
@@ -272,7 +435,7 @@ export function AdminView() {
                     <Icon
                       className={cn(
                         "h-4 w-4 shrink-0 transition-colors relative z-10",
-                        active ? "text-[#fffbf2]" : "text-[#b45309]"
+                        active ? "text-[#fffbf2]" : "text-[#b45309]",
                       )}
                       aria-hidden
                     />
@@ -281,7 +444,7 @@ export function AdminView() {
                       <div
                         className={cn(
                           "text-[10.5px] font-normal leading-tight hidden lg:block transition-colors",
-                          active ? "text-amber-100" : "text-muted-foreground"
+                          active ? "text-amber-100" : "text-muted-foreground",
                         )}
                       >
                         {item.description}
@@ -293,7 +456,7 @@ export function AdminView() {
             </nav>
 
             {/* Chân Sidebar: Thông tin phiên & Nút Đăng xuất */}
-            <div className="pt-2 border-t border-border/60">
+            <div className="pt-2 border-t border-border/60 shrink-0 mt-auto">
               <Button
                 variant="ghost"
                 size="sm"
@@ -364,11 +527,17 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {activeTab === "recipes" && <AdminRecipes />}
+              {activeTab === "recipes" && (
+                <AdminRecipes onNavigateTab={handleNavigateTab} />
+              )}
 
-              {activeTab === "food-cost" && <AdminFoodCost />}
+              {activeTab === "food-cost" && (
+                <AdminFoodCost onNavigateTab={handleNavigateTab} />
+              )}
 
-              {activeTab === "inventory" && <AdminInventory />}
+              {activeTab === "inventory" && (
+                <AdminInventory onNavigateTab={handleNavigateTab} />
+              )}
 
               {activeTab === "settings" && (
                 <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />
