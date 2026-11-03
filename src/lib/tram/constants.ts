@@ -136,7 +136,7 @@ export const MENU_ITEMS: MenuItem[] = [
     description:
       "Thăn phi-lê cá tầm áp chảo xém vàng — cùng một con cá với món Tuyết Cá Tầm mở đầu.",
     region: "Đà Lạt",
-    image: "/concept2_ThitNgoc.jpg",
+    image: "/concept2_ThitNgocApChao.png",
     story: "Tôn vinh triết lý trọn vẹn của ẩm thực đỉnh cao: sử dụng cùng một chú cá tầm quý giá từ phần trứng mở màn đến thớ thịt ngọc áp chảo thơm lừng, da giòn thịt mọng.",
     ingredients: ["Thăn cá tầm tươi", "Bơ thảo mộc núi rừng", "Sốt nhụy hoa nghệ tây và chanh vàng"],
     pairingNote: "Vang trắng Riesling hoặc Vang cam (Orange Wine)",
@@ -151,7 +151,7 @@ export const MENU_ITEMS: MenuItem[] = [
     description:
       "Gà tiến vua Đông Tảo Hưng Yên da giòn đượm hương mắc khén rừng, kèm cơm cháy gạo ST25.",
     region: "Hưng Yên · Tây Bắc",
-    image: "/concept2_DongTao.jpg",
+    image: "/concept2_Ga.png",
     story: "Đặc sản gà Đông Tảo tiến vua trứ danh với thớ thịt săn ngọt giòn sần sật, hòa quyện hương thơm nồng nàn của hạt mắc khén Tây Bắc và hạt cơm cháy ST25 vàng ruộm.",
     ingredients: ["Gà Đông Tảo Hưng Yên", "Hạt mắc khén và hạt dổi rừng", "Cơm cháy gạo tiến vua ST25"],
     pairingNote: "Vang đỏ Pinot Noir hoặc Syrah đậm đà",
