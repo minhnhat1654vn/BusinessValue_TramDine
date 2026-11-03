@@ -166,7 +166,7 @@ export const MENU_ITEMS: MenuItem[] = [
     description:
       "Nhãn lồng bọc hạt sen cung đình kết hợp nghi thức trà Shan tuyết cổ thụ 3 lần rót.",
     region: "Cung Đình Huế",
-    image: "/concept2_TramvaSen.png",
+    image: "/concept2_TramvaSen2.png",
     story: "Chương kết trọn vẹn của hành trình: hương trầm thoang thoảng quện trong vị ngọt ngào nhãn lồng hạt sen cung đình, hòa cùng nghi thức trà Shan tuyết 3 lần rót thanh tao.",
     ingredients: ["Nhãn lồng mọng nước", "Hạt sen cung đình", "Trà Shan tuyết cổ thụ 300 năm"],
     pairingNote: "Nghi thức trà Shan tuyết cổ thụ 3 lần rót độc bản",
