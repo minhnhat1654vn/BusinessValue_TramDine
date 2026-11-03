@@ -580,10 +580,6 @@ export function AdminFoodCost() {
                     Giá vốn món: {formatPercent(pkg.pct, 1)}
                   </span>
                 </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">
-                  Chênh lệch sau nguyên liệu món:{" "}
-                  <strong className="tabular-nums text-stone-700">{formatVND(pkg.margin)}</strong>/khách
-                </div>
               </div>
             ))}
           </div>
@@ -712,24 +708,7 @@ export function AdminFoodCost() {
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="border-0 bg-[#b45309] px-2 py-0.5 text-[10.5px] font-semibold text-[#fffbf2] hover:bg-[#b45309]">
-                        Món {dishView.activeDetail.dishIndex} / {DISH_RECIPES.length}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-[#b45309]/30 bg-[#fdf0d5]/60 px-2 py-0.5 text-[10.5px] font-medium text-[#92400e]"
-                      >
-                        {dishView.activeDetail.region}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-stone-300 bg-stone-50 px-2 py-0.5 text-[10.5px] font-medium text-stone-700"
-                      >
-                        Chiếm {formatPercent(dishView.activeDetail.pctOfMenuPrice, 1)} giá menu
-                      </Badge>
-                    </div>
-                    <h3 className="mt-1.5 font-heading text-xl font-bold leading-snug text-[#292524]">
+                    <h3 className="font-heading text-xl font-bold leading-snug text-[#292524]">
                       {dishView.activeDetail.name}
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
