@@ -17,6 +17,9 @@ import {
   ShieldCheck,
   TrendingUp,
   Clock,
+  ChefHat,
+  Calculator,
+  Warehouse,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +35,9 @@ import { AdminCustomers } from "./customers";
 import { AdminWaitlist } from "./waitlist-manager";
 import { AdminSurveys } from "./surveys-view";
 import { AdminBookingSettingsView } from "./booking-settings-view";
+import { AdminRecipes } from "./recipes-view";
+import { AdminFoodCost } from "./food-cost-view";
+import { AdminInventory } from "./inventory-view";
 import { LoadingBlock, useToday } from "./admin-shared";
 
 const SESSION_KEY = "tram_admin_ok";
@@ -72,6 +78,24 @@ const ADMIN_NAV_ITEMS = [
     label: "Waitlist",
     description: "Danh sách chờ",
     icon: CalendarRange,
+  },
+  {
+    key: "recipes",
+    label: "Công thức (BOM)",
+    description: "Định lượng 7 món / khách",
+    icon: ChefHat,
+  },
+  {
+    key: "food-cost",
+    label: "Giá vốn nguyên liệu",
+    description: "Đối chiếu giá menu",
+    icon: Calculator,
+  },
+  {
+    key: "inventory",
+    label: "Quản lý tồn kho",
+    description: "Bếp & kho · Giá trị tồn",
+    icon: Warehouse,
   },
   {
     key: "settings",
@@ -339,6 +363,12 @@ export function AdminView() {
               {activeTab === "waitlist" && (
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
+
+              {activeTab === "recipes" && <AdminRecipes />}
+
+              {activeTab === "food-cost" && <AdminFoodCost />}
+
+              {activeTab === "inventory" && <AdminInventory />}
 
               {activeTab === "settings" && (
                 <AdminBookingSettingsView onBackToBooking={() => setActiveTab("booking")} />

@@ -1201,11 +1201,10 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
 
         {/* Footer thu gọn (trang chủ full-page không dùng SiteFooter chung) */}
         <footer className="border-t border-border/80 bg-[#f5efe4]">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-1 px-6 py-3 text-center text-xs text-muted-foreground sm:flex-row sm:text-left">
+          <div className="mx-auto flex max-w-6xl items-center justify-center px-6 py-3 text-center text-xs text-muted-foreground">
             <span className="font-heading text-sm font-semibold tracking-[0.22em] text-[#292524]">
               TRẦM
             </span>
-            <span>Sản phẩm demo phục vụ đồ án Business Value — thanh toán mô phỏng</span>
           </div>
         </footer>
       </div>
