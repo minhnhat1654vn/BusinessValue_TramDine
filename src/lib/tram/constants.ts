@@ -162,7 +162,7 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     index: 7,
-    name: "Trầm và Sen",
+    name: "Trầm và Sen — Nhãn lồng hạt sen cung đình",
     description:
       "Nhãn lồng bọc hạt sen cung đình kết hợp nghi thức trà Shan tuyết cổ thụ 3 lần rót.",
     region: "Cung Đình Huế",
