@@ -23,9 +23,6 @@ export function SiteFooter() {
             Hotline {RESTAURANT.hotline}
           </span>
         </div>
-        <p className="text-xs text-muted-foreground/80">
-          Sản phẩm demo phục vụ đồ án Business Value — thanh toán mô phỏng
-        </p>
       </div>
     </footer>
   );
