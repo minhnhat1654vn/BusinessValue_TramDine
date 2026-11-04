@@ -120,6 +120,85 @@ const STOCK_SPEC_MAP: Record<string, InventoryStockSpec> = Object.fromEntries(
   INVENTORY_STOCK_SPECS.map((s) => [s.ingredientId, s]),
 );
 
+/** Thời hạn sử dụng / bảo quản chuẩn (số ngày) của 56 nguyên liệu tại bếp TRẦM */
+export const DEFAULT_SHELF_LIFE_DAYS: Record<string, number> = {
+  // 1 ngày (hàng tươi làm trong ngày, rất mau hỏng)
+  "bun-tuoi": 1,
+  "dau-phu": 1,
+  "hoa-chuoi": 1,
+  "kinh-gioi": 1,
+
+  // 2 ngày (đạm tươi sống & rau mọng nước ngắn ngày)
+  "ca-bop": 2,
+  "rau-dang": 2,
+  "rau-cang-cua": 2,
+  "nam-rom": 2,
+  "hanh-la": 2,
+  "rau-ram": 2,
+  "men-tuoi": 2,
+
+  // 3 ngày (cá tươi ủ lạnh, nấm, rau rừng, sữa thanh trùng)
+  "ca-loc": 3,
+  "ca-duoi": 3,
+  "sua-tuoi": 3,
+  "nam-huong": 3,
+  "rau-nhai": 3,
+  "dot-xoai": 3,
+  "la-coc": 3,
+  "bac-ha": 3,
+  "tia-to": 3,
+
+  // 4 ngày (thịt đỏ ủ mát, quả tươi)
+  "than-bo": 4,
+  "ca-chua": 4,
+  "thom": 4,
+  "nam-dui-ga": 4,
+  "la-lot": 4,
+  "la-moc-mat": 4,
+
+  // 5 ngày (quả mọng, chanh, hạt tươi)
+  "chanh": 5,
+  "nhan-xuong": 5,
+  "hat-sen": 5,
+  "ot-hiem": 5,
+
+  // 7 ngày (gia vị tươi củ rễ, bơ thủ công)
+  "bo-lat": 7,
+  "sa": 7,
+  "gung": 7,
+  "ot-chi-thien": 7,
+
+  // 14 ngày (củ tươi, sốt đặc chế)
+  "hanh-tim": 14,
+  "toi": 14,
+
+  // 30 ngày (me, đậu phộng)
+  "me-chin": 30,
+  "dau-phong": 30,
+
+  // 60-90 ngày (bột, atiso khô, rơm ủ)
+  "bot-mi": 90,
+  "bot-gao": 90,
+  "bot-nang": 90,
+  "atiso": 60,
+  "rom": 60,
+
+  // 180-365 ngày (dầu, gia vị ủ chum, rượu, muối, mắm, mật ong, trầm hương)
+  "dau-an": 180,
+  "muoi-bien": 365,
+  "muoi-ot-tn": 180,
+  "duong-trang": 365,
+  "duong-thot-not": 180,
+  "duong-phen": 365,
+  "mat-ong": 365,
+  "nuoc-mam": 365,
+  "nuoc-tuong": 365,
+  "tuong-bao-lac": 180,
+  "tieu-rung": 180,
+  "tieu-den": 180,
+  "tram-huong": 365,
+};
+
 export function getInventoryStockSpec(ingredientId: string): InventoryStockSpec | undefined {
   return STOCK_SPEC_MAP[ingredientId];
 }
@@ -239,6 +318,8 @@ export interface InventoryItem {
   isStandardIngredient: boolean;
   standardDishIndexes: number[];
   altDishIndexes: number[];
+  /** Số ngày còn sử dụng được / Thời hạn bảo quản còn lại (ngày) */
+  shelfLifeDays: number;
 }
 
 export interface InventoryGroupSummary {
@@ -293,6 +374,8 @@ interface UsageMeta {
   qtyPerGuestMaxVariant: number;
   standardDishIndexes: number[];
   altDishIndexes: number[];
+  /** Số ngày còn sử dụng được / Thời hạn bảo quản còn lại (ngày) */
+  shelfLifeDays: number;
 }
 
 function buildIngredientUsageMap(): Map<string, UsageMeta> {
@@ -461,6 +544,7 @@ export function calculateInventoryReport(
       isStandardIngredient,
       standardDishIndexes: usage.standardDishIndexes,
       altDishIndexes: usage.altDishIndexes,
+      shelfLifeDays: DEFAULT_SHELF_LIFE_DAYS[ing.id] ?? 7,
     };
   });
 

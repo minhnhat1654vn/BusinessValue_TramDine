@@ -7,11 +7,15 @@ import { StockInModal } from "./stock-in-modal";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   ArrowDownRight,
   ArrowDownToLine,
   ArrowUpRight,
+  CalendarDays,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Coins,
   Flame,
   Layers,
@@ -615,6 +619,16 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
+      {/* ==================== 3B. DỰ BÁO HẠN DÙNG NGUYÊN LIỆU THEO NGÀY ==================== */}
+      <InventoryShelfLifeSection
+        items={report.items}
+        totalWarehouseValue={report.totalValue}
+        onStockIn={(id) => {
+          setStockInTargetId(id);
+          setStockInOpen(true);
+        }}
+      />
+
       {/* ==================== 4. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
@@ -1116,6 +1130,613 @@ function InventoryStockRow({
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
           className="inline-flex h-6 items-center gap-1 rounded-md border border-[#b45309]/30 bg-[#fdf0d5]/80 px-2 text-[10.5px] font-semibold text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white"
+          title={`Nhập hàng thêm cho ${item.name}`}
+        >
+          <ArrowDownToLine className="h-3 w-3" />
+          Nhập
+        </button>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+
+// ==================== COMPONENT BẢNG HẠN DÙNG NGUYÊN LIỆU THEO NGÀY ====================
+
+function InventoryShelfLifeSection({
+  items,
+  totalWarehouseValue,
+  onStockIn,
+}: {
+  items: InventoryItem[];
+  totalWarehouseValue: number;
+  onStockIn: (id: string) => void;
+}) {
+  // Chỉ tính những nguyên liệu còn tồn trong kho (stockQty > 0)
+  const inStockItems = useMemo(() => items.filter((i) => i.stockQty > 0), [items]);
+
+  // Bộ preset ngày: 1, 2, 3, 4, 5, 7, 14
+  const PRESET_DAYS = [1, 2, 3, 4, 5, 7, 14];
+
+  // Logic tự động chọn ngày nhỏ nhất khi vào trang:
+  // "khi click vô page đó thì hiển số nguyên liệu còn dùng dc trong 1 ngày nếu 1 ngày k có thì 2 ngày,..."
+  const initialDay = useMemo(() => {
+    for (const d of [1, 2, 3, 4, 5, 7, 14, 30, 60, 90, 180, 365]) {
+      if (inStockItems.some((i) => i.shelfLifeDays === d)) {
+        return d;
+      }
+    }
+    return 1;
+  }, [inStockItems]);
+
+  const [selectedDays, setSelectedDays] = useState<number>(initialDay);
+  const [filterMode, setFilterMode] = useState<"lte" | "exact">("lte");
+  const [shelfSearch, setShelfSearch] = useState("");
+  const [shelfPage, setShelfPage] = useState(1);
+  const SHELF_PAGE_SIZE = 15;
+
+  // Cập nhật selectedDays khi initialDay được tính toán lần đầu
+  useEffect(() => {
+    setSelectedDays(initialDay);
+  }, [initialDay]);
+
+  // Số lượng nguyên liệu theo từng preset ngày (cho cả 2 chế độ lte hoặc exact)
+  const countsByDay = useMemo(() => {
+    const map: Record<number, { exact: number; lte: number }> = {};
+    for (const d of PRESET_DAYS) {
+      map[d] = {
+        exact: inStockItems.filter((i) => i.shelfLifeDays === d).length,
+        lte: inStockItems.filter((i) => i.shelfLifeDays <= d).length,
+      };
+    }
+    return map;
+  }, [inStockItems]);
+
+  // Danh sách nguyên liệu lọc được theo số ngày
+  const filteredItems = useMemo(() => {
+    let list = inStockItems;
+    if (filterMode === "lte") {
+      list = list.filter((i) => i.shelfLifeDays <= selectedDays);
+    } else {
+      list = list.filter((i) => i.shelfLifeDays === selectedDays);
+    }
+
+    if (shelfSearch.trim()) {
+      const q = shelfSearch.trim().toLowerCase();
+      list = list.filter(
+        (i) =>
+          i.name.toLowerCase().includes(q) ||
+          INGREDIENT_GROUP_LABELS[i.group].toLowerCase().includes(q) ||
+          (i.spec && i.spec.toLowerCase().includes(q)),
+      );
+    }
+
+    return list.sort((a, b) => a.shelfLifeDays - b.shelfLifeDays || b.stockValue - a.stockValue);
+  }, [inStockItems, selectedDays, filterMode, shelfSearch]);
+
+  const filteredValueTotal = useMemo(
+    () => filteredItems.reduce((sum, i) => sum + i.stockValue, 0),
+    [filteredItems],
+  );
+
+  const filteredSharePct =
+    totalWarehouseValue > 0
+      ? Math.round((filteredValueTotal / totalWarehouseValue) * 1000) / 10
+      : 0;
+
+  // Phân trang
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / SHELF_PAGE_SIZE));
+  const pagedItems = useMemo(() => {
+    const start = (shelfPage - 1) * SHELF_PAGE_SIZE;
+    return filteredItems.slice(start, start + SHELF_PAGE_SIZE);
+  }, [filteredItems, shelfPage]);
+
+  // Reset page khi đổi filter
+  useEffect(() => {
+    setShelfPage(1);
+  }, [selectedDays, filterMode, shelfSearch]);
+
+  return (
+    <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+      <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#292524]">
+              <Clock className="h-4 w-4 text-[#b45309]" aria-hidden />
+              Dự báo hạn dùng nguyên liệu (Theo số ngày còn sử dụng được)
+            </CardTitle>
+            <p className="mt-1 text-xs text-stone-500">
+              Kiểm soát hạn sử dụng thực tế của nguyên liệu còn tồn trong kho, ưu tiên xuất chế biến trước khi cận date.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Chế độ lọc: Trong vòng <= X ngày hoặc Đúng X ngày */}
+            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setFilterMode("lte")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-semibold transition-all text-xs cursor-pointer",
+                  filterMode === "lte"
+                    ? "bg-white text-[#92400e] shadow-xs"
+                    : "text-stone-600 hover:text-stone-900",
+                )}
+              >
+                Trong vòng ≤ {selectedDays} ngày
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterMode("exact")}
+                className={cn(
+                  "rounded-md px-2.5 py-1 font-semibold transition-all text-xs cursor-pointer",
+                  filterMode === "exact"
+                    ? "bg-white text-[#92400e] shadow-xs"
+                    : "text-stone-600 hover:text-stone-900",
+                )}
+              >
+                Đúng {selectedDays} ngày
+              </button>
+            </div>
+
+            {/* Ô tìm kiếm nhanh */}
+            <div className="relative w-48 sm:w-56">
+              <Search
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
+              <Input
+                type="search"
+                placeholder="Tìm nguyên liệu..."
+                value={shelfSearch}
+                onChange={(e) => setShelfSearch(e.target.value)}
+                className="h-8 pl-8 text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* BỘ LỌC CÁC NGÀY (1 ngày, 2 ngày, 3 ngày,...) */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2">
+          <span className="text-xs font-semibold text-stone-700 mr-1 flex items-center gap-1">
+            <CalendarDays className="h-3.5 w-3.5 text-[#b45309]" />
+            Bộ lọc số ngày:
+          </span>
+          {PRESET_DAYS.map((d) => {
+            const active = selectedDays === d;
+            const count = filterMode === "lte" ? countsByDay[d]?.lte ?? 0 : countsByDay[d]?.exact ?? 0;
+            return (
+              <button
+                key={d}
+                type="button"
+                onClick={() => setSelectedDays(d)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all cursor-pointer",
+                  active
+                    ? "border-[#b45309] bg-[#b45309] text-white shadow-xs"
+                    : "border-border bg-card text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/30",
+                )}
+              >
+                <span>{d} ngày</span>
+                <span
+                  className={cn(
+                    "rounded-full px-1.5 py-0.2 text-[10.5px] tabular-nums font-bold",
+                    active ? "bg-white/25 text-white" : "bg-muted text-stone-600",
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Nút xem Tất cả nguyên liệu có hạn */}
+          <button
+            type="button"
+            onClick={() => {
+              setFilterMode("lte");
+              setSelectedDays(365);
+            }}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all cursor-pointer",
+              selectedDays === 365
+                ? "border-[#b45309] bg-[#b45309] text-white shadow-xs"
+                : "border-border bg-card text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/30",
+            )}
+          >
+            <span>Tất cả kho</span>
+            <span
+              className={cn(
+                "rounded-full px-1.5 py-0.2 text-[10.5px] tabular-nums font-bold",
+                selectedDays === 365 ? "bg-white/25 text-white" : "bg-muted text-stone-600",
+              )}
+            >
+              {inStockItems.length}
+            </span>
+          </button>
+        </div>
+
+        {/* 4 THẺ TỔNG HỢP NHANH CHO BỘ LỌC NGÀY ĐANG CHỌN */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 pt-1">
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
+            <span className="text-[11px] font-medium text-stone-500">Nguyên liệu trong bộ lọc</span>
+            <div className="mt-0.5 text-base font-bold tabular-nums text-stone-900">
+              {filteredItems.length} <span className="text-xs font-normal text-muted-foreground">nguyên liệu</span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
+            <span className="text-[11px] font-medium text-stone-500">Tổng giá trị tồn cần dùng</span>
+            <div className="mt-0.5 text-base font-bold tabular-nums text-[#92400e]">
+              {formatVND(filteredValueTotal)}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
+            <span className="text-[11px] font-medium text-stone-500">Tỷ trọng so với tổng kho</span>
+            <div className="mt-0.5 text-base font-bold tabular-nums text-stone-900">
+              {formatPercent(filteredSharePct, 1)}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
+            <span className="text-[11px] font-medium text-stone-500">Mức độ ưu tiên</span>
+            <div className="mt-0.5 text-xs font-bold text-stone-900">
+              {selectedDays <= 1 ? (
+                <span className="text-rose-700 flex items-center gap-1 font-bold">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Dùng ngay
+                </span>
+              ) : selectedDays <= 3 ? (
+                <span className="text-amber-800 flex items-center gap-1 font-bold">
+                  <Clock className="h-3.5 w-3.5" /> Lưu ý: Cận date 2-3 ngày
+                </span>
+              ) : (
+                <span className="text-emerald-700 flex items-center gap-1 font-semibold">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> An toàn bảo quản
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        {filteredItems.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
+            <Search className="h-6 w-6 text-muted-foreground/60" aria-hidden />
+            <p className="text-sm text-muted-foreground">
+              Không có nguyên liệu nào còn sử dụng được trong {selectedDays} ngày.
+            </p>
+          </div>
+        ) : (
+          <Table className="min-w-[960px]">
+            <TableHeader>
+              <TableRow className="bg-[#fdf0d5]/40 hover:bg-[#fdf0d5]/40">
+                <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
+                  Nguyên liệu
+                </TableHead>
+                <TableHead className="w-24 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Món dùng
+                </TableHead>
+                <TableHead className="w-40 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Hạn sử dụng còn lại
+                </TableHead>
+                <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Số lượng tồn
+                </TableHead>
+                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Mức đặt lại
+                </TableHead>
+                <TableHead className="w-24 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Đủ phục vụ
+                </TableHead>
+                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Đơn giá kho
+                </TableHead>
+                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Giá trị tồn
+                </TableHead>
+                <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                  Thao tác
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {pagedItems.map((item) => (
+                <ShelfLifeRow
+                  key={`shelflife-${item.ingredientId}`}
+                  item={item}
+                  onStockIn={onStockIn}
+                />
+              ))}
+            </TableBody>
+
+            <TableFooter className="bg-muted/60">
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={7}
+                  className="pl-4 text-xs font-semibold text-stone-700 sm:pl-5"
+                >
+                  Tổng nguyên liệu còn dùng được trong {selectedDays === 365 ? "kho" : `${selectedDays} ngày`} · {filteredItems.length} nguyên liệu ({formatPercent(filteredSharePct, 1)} kho)
+                </TableCell>
+                <TableCell className="text-right text-sm font-bold tabular-nums text-[#92400e]">
+                  {formatVND(filteredValueTotal)}
+                </TableCell>
+                <TableCell className="pr-4 sm:pr-5" />
+              </TableRow>
+            </TableFooter>
+          </Table>
+        )}
+
+        {/* Phân trang */}
+        {filteredItems.length > SHELF_PAGE_SIZE && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
+            <div>
+              Hiển thị{" "}
+              <strong className="text-stone-800">
+                {(shelfPage - 1) * SHELF_PAGE_SIZE + 1}
+              </strong>{" "}
+              –{" "}
+              <strong className="text-stone-800">
+                {Math.min(shelfPage * SHELF_PAGE_SIZE, filteredItems.length)}
+              </strong>{" "}
+              trong tổng số{" "}
+              <strong className="text-stone-800">{filteredItems.length}</strong> nguyên liệu (tối đa 15 dòng / trang)
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={shelfPage <= 1}
+                onClick={() => setShelfPage((p) => Math.max(1, p - 1))}
+                className="h-7 px-2.5 text-xs text-stone-700"
+              >
+                <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
+              </Button>
+              <span className="px-2 text-xs font-medium">
+                {shelfPage} / {totalPages}
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={shelfPage >= totalPages}
+                onClick={() => setShelfPage((p) => Math.min(totalPages, p + 1))}
+                className="h-7 px-2.5 text-xs text-stone-700"
+              >
+                Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ShelfLifeRow({
+  item,
+  onStockIn,
+}: {
+  item: InventoryItem;
+  onStockIn: (id: string) => void;
+}) {
+  const isOut = item.stockQty === 0;
+  const isWarning = item.isWarning;
+
+  // Hạn sử dụng:
+  const days = item.shelfLifeDays;
+  const today = new Date();
+  const expiryDate = new Date(today);
+  expiryDate.setDate(today.getDate() + days);
+  const expiryDateStr = `${String(expiryDate.getDate()).padStart(2, "0")}/${String(expiryDate.getMonth() + 1).padStart(2, "0")}/${expiryDate.getFullYear()}`;
+
+  // Tone theo số ngày:
+  // 1 ngày: Đỏ khẩn cấp
+  // 2-3 ngày: Cam cảnh báo
+  // 4-5 ngày: Vàng lưu ý
+  // >= 6 ngày: Xanh an toàn
+  const urgencyStyle =
+    days <= 1
+      ? {
+          badge: "border-rose-400 bg-rose-100/90 text-rose-900 font-bold",
+          text: "Hết hạn trong 1 ngày (Dùng ngay)",
+          rowBg: "bg-rose-50/70 border-l-4 border-l-rose-600 hover:bg-rose-100/60",
+        }
+      : days <= 3
+        ? {
+            badge: "border-amber-400 bg-amber-100 text-amber-950 font-bold",
+            text: `Còn ${days} ngày sử dụng`,
+            rowBg: "bg-amber-50/40 border-l-4 border-l-amber-500 hover:bg-amber-100/40",
+          }
+        : days <= 5
+          ? {
+              badge: "border-yellow-400 bg-yellow-100 text-yellow-950 font-semibold",
+              text: `Còn ${days} ngày sử dụng`,
+              rowBg: "bg-yellow-50/20 border-l-4 border-l-yellow-400 hover:bg-yellow-50/50",
+            }
+          : {
+              badge: "border-emerald-300 bg-emerald-50 text-emerald-800 font-medium",
+              text: `Còn ${days} ngày sử dụng`,
+              rowBg: "border-l-4 border-l-emerald-500 hover:bg-muted/40",
+            };
+
+  return (
+    <TableRow className={cn("transition-colors", urgencyStyle.rowBg)}>
+      {/* 1. Nguyên liệu */}
+      <TableCell className="whitespace-normal pl-4 sm:pl-5">
+        <div className="flex flex-col gap-0.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-semibold text-[#292524]">{item.name}</span>
+            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] border shadow-xs", urgencyStyle.badge)}>
+              <Clock className="h-3 w-3" />
+              {urgencyStyle.text}
+            </span>
+            {item.isCustomPrice && (
+              <Badge
+                variant="outline"
+                className="border-amber-300 bg-amber-50 px-1.5 py-0 text-[9.5px] font-medium text-amber-800"
+              >
+                Giá mới
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground">
+            <span>HSD dự kiến: <strong className="text-stone-700">{expiryDateStr}</strong></span>
+            <span>·</span>
+            <span>Khu vực: {item.storageZone}</span>
+          </div>
+        </div>
+      </TableCell>
+
+      {/* 2. Món dùng */}
+      <TableCell>
+        <div className="flex flex-wrap gap-1">
+          {item.standardDishIndexes.map((idx) => {
+            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
+            return (
+              <span
+                key={`shelf-std-${idx}`}
+                title={`Món ${idx}: ${dishName}`}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/70 text-[10.5px] font-bold tabular-nums text-[#92400e]"
+              >
+                {idx}
+              </span>
+            );
+          })}
+          {item.altDishIndexes.map((idx) => {
+            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
+            return (
+              <span
+                key={`shelf-alt-${idx}`}
+                title={`Món ${idx} (phương án thay thế): ${dishName}`}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-stone-400 bg-stone-50 text-[10.5px] font-semibold tabular-nums text-stone-600"
+              >
+                {idx}
+              </span>
+            );
+          })}
+        </div>
+      </TableCell>
+
+      {/* 3. Hạn sử dụng còn lại */}
+      <TableCell className="text-center">
+        <div className="inline-flex flex-col items-center">
+          <span className={cn(
+            "rounded-lg px-2.5 py-1 font-heading text-xs font-bold tabular-nums border shadow-xs",
+            days <= 1 ? "bg-rose-600 text-white border-rose-700" :
+            days <= 3 ? "bg-amber-500 text-white border-amber-600" :
+            days <= 5 ? "bg-yellow-500 text-stone-900 border-yellow-600" :
+            "bg-emerald-600 text-white border-emerald-700"
+          )}>
+            {days} ngày
+          </span>
+          <span className="text-[10px] text-muted-foreground mt-0.5">
+            {expiryDateStr}
+          </span>
+        </div>
+      </TableCell>
+
+      {/* 4. Số lượng tồn kho */}
+      <TableCell className="text-right">
+        <div className="flex items-center justify-end gap-1.5">
+          <span
+            className={cn(
+              "font-heading text-sm font-bold tabular-nums",
+              isWarning ? "text-rose-700" : "text-emerald-800",
+            )}
+          >
+            {formatNumberVi(item.stockInImportUnit)} {item.importUnitLabel}
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-0.2 text-[10px] font-bold tabular-nums border",
+              isWarning
+                ? "border-rose-300 bg-rose-100 text-rose-800"
+                : "border-emerald-300 bg-emerald-100 text-emerald-800",
+            )}
+            title={`Tỷ lệ tồn: ${item.stockPercent}% so với định mức`}
+          >
+            {item.stockPercent}%
+          </span>
+        </div>
+        {item.stockQty > 0 && item.stockQty < 1000 && item.importUnit !== "ml" && (
+          <div className="text-[10px] tabular-nums text-muted-foreground">
+            ({formatQty(item.stockQty, item.unit)})
+          </div>
+        )}
+      </TableCell>
+
+      {/* 5. Mức đặt lại */}
+      <TableCell className="text-right">
+        <div
+          className={cn(
+            "text-xs font-semibold tabular-nums",
+            isWarning ? "font-bold text-rose-900" : "text-stone-700",
+          )}
+        >
+          {formatNumberVi(item.reorderPointInImportUnit)} {item.importUnitLabel}
+        </div>
+        <div
+          className={cn(
+            "text-[10px] font-medium",
+            isWarning ? "text-rose-700 font-semibold" : "text-stone-500",
+          )}
+        >
+          Ngưỡng 32%
+        </div>
+      </TableCell>
+
+      {/* 6. Đủ phục vụ */}
+      <TableCell className="text-right tabular-nums">
+        {item.estimatedGuests === null ? (
+          <span className="text-muted-foreground/60">—</span>
+        ) : (
+          <div>
+            <span
+              className={cn(
+                "text-xs font-semibold",
+                isWarning ? "text-rose-700" : "text-emerald-800",
+              )}
+            >
+              {item.estimatedGuests} suất
+            </span>
+            {!item.isStandardIngredient && (
+              <div className="text-[10px] text-muted-foreground">thay thế</div>
+            )}
+          </div>
+        )}
+      </TableCell>
+
+      {/* 7. Đơn giá kho */}
+      <TableCell className="text-right text-xs tabular-nums text-stone-600">
+        {formatVND(item.importPrice)}/{item.importUnitLabel}
+      </TableCell>
+
+      {/* 8. Giá trị tồn */}
+      <TableCell className="text-right">
+        <div
+          className={cn(
+            "font-semibold tabular-nums",
+            isWarning ? "text-rose-700" : "text-emerald-900",
+          )}
+        >
+          {formatVND(item.stockValue)}
+        </div>
+        <div className="text-[10.5px] tabular-nums text-muted-foreground">
+          {formatPercent(item.shareOfValuePct, 1)}
+        </div>
+      </TableCell>
+
+      {/* 9. Thao tác nhập hàng nhanh */}
+      <TableCell className="pr-4 text-center sm:pr-5">
+        <button
+          type="button"
+          onClick={() => onStockIn(item.ingredientId)}
+          className="inline-flex h-6 items-center gap-1 rounded-md border border-[#b45309]/30 bg-[#fdf0d5]/80 px-2 text-[10.5px] font-semibold text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white cursor-pointer"
           title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
