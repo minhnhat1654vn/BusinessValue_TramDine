@@ -34,7 +34,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/searchable-select";
 import { formatVND } from "@/lib/tram/format";
 import { formatQty } from "@/lib/tram/recipes";
 import { cn } from "@/lib/utils";
@@ -261,11 +261,7 @@ export function StockInModal({
                 <Label className="text-xs font-semibold text-stone-700">
                   Nguyên vật liệu nhập *
                 </Label>
-                {currentIng && (
-                  <span className="text-[11px] font-mono text-muted-foreground">
-                    Mã: {currentIng.id}
-                  </span>
-                )}
+
               </div>
 
               {loadingIngredients ? (

@@ -472,7 +472,7 @@ export function AdminInventory({
               Quản lý tồn kho nguyên vật liệu
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Kiểm kê định mức tồn, dự báo hạn sử dụng và tổng giá trị kho vật liệu theo thời gian thực.
+              Theo dõi định mức tồn kho, dự báo thiếu hụt theo lịch đặt bàn và nhập hàng.
             </p>
           </div>
 
@@ -1407,13 +1407,7 @@ function InventoryDemandForecastSection({
               <h3 className="font-heading text-base font-bold text-stone-900 sm:text-lg">
                 Dự báo nhu cầu & Cảnh báo thiếu hụt theo lịch đặt bàn
               </h3>
-              <Badge variant="outline" className="border-amber-400 bg-amber-100/90 text-[11px] font-bold text-amber-900">
-                Tính theo định lượng BOM
-              </Badge>
             </div>
-            <p className="mt-1 text-xs text-stone-600 sm:text-[13px]">
-              Dựa vào số bàn & số khách đã đặt trong các ngày tới, hệ thống tính toán tồn kho còn đủ dùng cho bao nhiêu ngày và số lượng còn thiếu cần nhập về để phục vụ đủ cho khách.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -1513,12 +1507,7 @@ function InventoryDemandForecastSection({
             </div>
           </div>
 
-          {autoSelectedInfo && (
-            <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 bg-amber-100/70 border border-amber-300/80 rounded-lg px-3 py-1.5">
-              <span className="text-sm">⚡</span>
-              <span>{autoSelectedInfo}</span>
-            </div>
-          )}
+
         </div>
 
         {/* 4 Thẻ chỉ số tổng quan cho mốc ngày đang chọn */}
@@ -1536,7 +1525,7 @@ function InventoryDemandForecastSection({
               </span>
             </div>
             <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-              {totalBookedGuests} suất Tasting 7 món BOM
+              {totalBookedGuests} suất thực đơn chuẩn
             </div>
           </div>
 

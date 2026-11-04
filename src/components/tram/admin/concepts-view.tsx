@@ -64,7 +64,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/searchable-select";
 import {
   Table,
   TableBody,
@@ -440,32 +440,19 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-6 items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100/80 px-2.5 text-[11px] font-bold text-amber-900">
-              <Sparkles className="h-3 w-3" />
-              QUẢN LÝ CONCEPT &amp; THỰC ĐƠN ĐA TUẦN
+            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+              Bếp &amp; kho
             </span>
           </div>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
             Concept Thực đơn &amp; Thiết kế món ăn
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Tạo mới, chỉnh sửa, xóa Concept và trực tiếp xây dựng công thức món ăn từ 56 nguyên liệu có sẵn trong kho.
+            Tạo mới, chỉnh sửa, xóa Concept và xây dựng công thức món ăn từ {warehouseIngredients.length || "các"} nguyên liệu trong kho.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {onNavigateTab && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigateTab("recipes")}
-              className="h-9 border-stone-300 text-xs text-stone-700 hover:bg-stone-50"
-            >
-              <UtensilsCrossed className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
-              Xem Bảng Định lượng BOM
-            </Button>
-          )}
 
           <Button
             type="button"
@@ -1120,7 +1107,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
                     Thêm nguyên liệu kho vào món: {targetDishForLine?.name}
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                    Chọn từ 56 nguyên liệu đã có sẵn trong kho nguyên vật liệu của TRẦM.
+                    Chọn nguyên liệu có sẵn trong kho và nhập định lượng cho 1 suất.
                   </DialogDescription>
                 </div>
               </div>

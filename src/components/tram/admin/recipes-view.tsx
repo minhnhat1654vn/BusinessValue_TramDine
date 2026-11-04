@@ -69,7 +69,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/searchable-select";
 import { cn } from "@/lib/utils";
 import { StockInModal } from "./stock-in-modal";
 import { CreateConceptModal } from "./create-concept-modal";
@@ -322,7 +322,7 @@ export function AdminRecipes({
         else setIsRefreshing(true);
         const targetCid = cid ?? selectedConceptId;
         const res = await fetch(`/api/recipes?guests=${g}&conceptId=${targetCid}`);
-        if (!res.ok) throw new Error("Không thể tải bảng định lượng từ CSDL.");
+        if (!res.ok) throw new Error("Không thể tải bảng định lượng.");
         const json: BomResponse = await res.json();
         setBomData(json);
       } catch (err: any) {
@@ -801,7 +801,7 @@ export function AdminRecipes({
 
   // Xóa nguyên liệu khỏi CSDL
   async function handleDeleteIngredient(id: string, name: string) {
-    if (!confirm(`Xác nhận xóa nguyên liệu "${name}" (${id}) khỏi CSDL kho?`)) return;
+    if (!confirm(`Xác nhận xóa nguyên liệu "${name}" khỏi kho?`)) return;
     try {
       const res = await fetch(`/api/recipes/ingredients?id=${id}`, { method: "DELETE" });
       const data = await res.json();
@@ -905,16 +905,12 @@ export function AdminRecipes({
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
             {viewMode === "food-cost"
               ? "Phân tích Food Cost & Giá vốn thực đơn"
-              : viewMode === "ingredients"
-                ? "Danh mục nguyên liệu & Đơn giá kho"
-                : "Bảng định lượng công thức (BOM)"}
+              : "Bảng định lượng công thức (BOM)"}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {viewMode === "food-cost"
-              ? "Định mức chi phí thực phẩm mục tiêu 33.5% · Đối soát giá bán 1.190.000 đ/khách"
-              : viewMode === "ingredients"
-                ? "Theo dõi đơn giá nhập và định mức sử dụng theo từng món ăn"
-                : "Định lượng chi tiết 7 món Tasting · Tính toán giá vốn nguyên liệu theo số lượng khách"}
+              ? "Định mức chi phí thực phẩm mục tiêu 33,5% · Đối soát giá bán 1.190.000 đ/khách"
+              : `Định lượng chi tiết ${bomData?.dishes?.length ? `${bomData.dishes.length} món` : "thực đơn"} · Tính toán giá vốn nguyên liệu theo suất`}
           </p>
         </div>
 
@@ -944,54 +940,6 @@ export function AdminRecipes({
               </SelectContent>
             </Select>
           </div>
-
-          {/* Quy đổi số khách */}
-          {viewMode !== "ingredients" && (
-            <div className="flex items-center rounded-xl border border-stone-200 bg-white p-1 shadow-2xs">
-              <div className="flex items-center rounded-full border border-border bg-stone-50 p-0.5">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => applyGuests(guests - 1)}
-                  disabled={guests <= 1}
-                  className="h-6 w-6 rounded-full text-stone-600 hover:bg-[#fdf0d5]"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                <span className="w-10 text-center font-heading text-xs font-bold tabular-nums text-[#92400e]">
-                  {guests}k
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => applyGuests(guests + 1)}
-                  disabled={guests >= MAX_SCALE_GUESTS}
-                  className="h-6 w-6 rounded-full text-stone-600 hover:bg-[#fdf0d5]"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-              <div className="ml-1 flex gap-0.5" role="group">
-                {[1, 4, 10, 42].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => applyGuests(n)}
-                    className={cn(
-                      "h-6 rounded px-2 text-[10.5px] font-medium tabular-nums transition-colors",
-                      guests === n
-                        ? "bg-[#b45309] text-white font-bold"
-                        : "text-stone-600 hover:bg-stone-100",
-                    )}
-                  >
-                    {n === 42 ? "42 ca" : `${n}k`}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Nhập / Xuất Excel */}
           <div className="flex items-center gap-1.5">
@@ -1023,20 +971,7 @@ export function AdminRecipes({
             </Button>
           </div>
 
-          {/* Link sang trang Concept */}
-          {onNavigateTab && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => onNavigateTab("concepts")}
-              className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
-              title="Đến trang Quản lý Concept để tạo mới, chỉnh sửa, xóa concept hoặc thiết kế món"
-            >
-              <Layers className="mr-1.5 h-3.5 w-3.5" />
-              Quản lý Concept
-            </Button>
-          )}
+
         </div>
       </div>
 
@@ -1084,7 +1019,7 @@ export function AdminRecipes({
       {loading ? (
         <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card">
           <Loader2 className="h-8 w-8 animate-spin text-[#b45309]" />
-          <p className="text-sm text-muted-foreground font-heading">Đang tải công thức định lượng từ CSDL...</p>
+          <p className="text-sm text-muted-foreground font-heading">Đang tải công thức định lượng...</p>
         </div>
       ) : viewMode === "recipes" ? (
         /* ==================== VIEW 1: CÔNG THỨC 7 MÓN ==================== */
@@ -1159,7 +1094,7 @@ export function AdminRecipes({
                 Concept này chưa có món ăn (Đang để trống)
               </h3>
               <p className="mt-1.5 text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Khi chuyển sang concept mới, toàn bộ các món ăn và định lượng của concept cũ không được hiển thị để bạn chủ động lên thực đơn mới từ đầu.
+                Hãy tạo món ăn mới hoặc nhập công thức từ file Excel để bắt đầu xây dựng định lượng.
               </p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <Button
@@ -1389,7 +1324,9 @@ export function AdminRecipes({
                           <TableCell className="font-medium text-[#292524]">
                             <div>
                               <span>{line.ingredientName}</span>
-                              <span className="block text-[10px] text-muted-foreground">{line.ingredientId}</span>
+                              {line.prepNote && (
+                                <span className="block text-[10.5px] text-muted-foreground">{line.prepNote}</span>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -1562,7 +1499,7 @@ export function AdminRecipes({
             <CardHeader className="border-b border-border/80 pb-3">
               <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
                 <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
-                Bảng xếp hạng Giá vốn 7 món Tasting
+                Bảng xếp hạng Giá vốn theo món ({bomData?.dishes?.length ?? 0} món)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -1573,7 +1510,7 @@ export function AdminRecipes({
                     <TableHead>Tên món ăn</TableHead>
                     <TableHead className="text-right">Giá vốn / suất</TableHead>
                     <TableHead className="text-right">Tỷ trọng Food Cost</TableHead>
-                    <TableHead className="text-right">Doanh thu / Ca 42k</TableHead>
+                    <TableHead className="text-right">Giá vốn ca 42 khách</TableHead>
                     <TableHead className="text-center w-28">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1627,7 +1564,7 @@ export function AdminRecipes({
                 <TableFooter className="bg-[#fdf0d5]/40 font-heading">
                   <TableRow>
                     <TableCell colSpan={2} className="font-semibold text-[#92400e]">
-                      Tổng giá vốn 7 món Tasting hoàn chỉnh:
+                      Tổng giá vốn thực đơn ({bomData?.dishes?.length ?? 0} món):
                     </TableCell>
                     <TableCell className="text-right font-bold text-[#b45309]">
                       {formatVND(totalFoodCost)}
@@ -1645,269 +1582,7 @@ export function AdminRecipes({
             </CardContent>
           </Card>
         </div>
-      ) : (
-        /* ==================== VIEW 2: KHO NGUYÊN LIỆU ==================== */
-        <Card className="border-border/80 bg-card shadow-xs">
-          <CardHeader className="border-b border-border/80 pb-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle className="font-heading text-lg font-bold text-[#292524]">
-                  Danh mục Nguyên liệu Kho CSDL ({bomData?.allIngredients.length ?? 0} loại)
-                </CardTitle>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Quản lý tồn kho thực tế, ngưỡng an toàn và đơn giá nhập tham chiếu
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative w-48 sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Tìm tên hoặc mã nguyên liệu..."
-                    value={ingSearch}
-                    onChange={(e) => setIngSearch(e.target.value)}
-                    className="h-8 pl-8 text-xs"
-                  />
-                </div>
-                <Select
-                  value={ingGroupFilter}
-                  onValueChange={(val) => setIngGroupFilter(val as any)}
-                >
-                  <SelectTrigger className="h-8 w-36 text-xs">
-                    <SelectValue placeholder="Tất cả nhóm" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">Tất cả nhóm</SelectItem>
-                    {INGREDIENT_GROUP_ORDER.map((g) => (
-                      <SelectItem key={g} value={g}>
-                        {INGREDIENT_GROUP_LABELS[g]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={ingStockFilter}
-                  onValueChange={(val) => setIngStockFilter(val as any)}
-                >
-                  <SelectTrigger className="h-8 w-36 text-xs">
-                    <SelectValue placeholder="Tất cả tồn" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">Tất cả tồn kho</SelectItem>
-                    <SelectItem value="LOW_STOCK">Sắp hết (Dưới ngưỡng)</SelectItem>
-                    <SelectItem value="OUT_OF_STOCK">Hết hàng (Tồn = 0)</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setStockInTargetId(undefined);
-                    setStockInOpen(true);
-                  }}
-                  className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
-                >
-                  <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
-                  Nhập kho
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    setEditingIng({
-                      name: "",
-                      unit: "g",
-                      group: "PROTEIN",
-                      spec: "",
-                      defaultImportPrice: 100000,
-                      currentStock: 1000,
-                      minStock: 200,
-                    });
-                    setIngModalOpen(true);
-                  }}
-                  className="h-8 bg-[#b45309] text-white hover:bg-[#92400e]"
-                >
-                  <Plus className="mr-1 h-3.5 w-3.5" /> Thêm mới
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/80 bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  <TableHead className="w-12 text-center">#</TableHead>
-                  <TableHead>Tên nguyên liệu / Mã</TableHead>
-                  <TableHead>Nhóm</TableHead>
-                  <TableHead className="text-right">Tồn kho / Ngưỡng</TableHead>
-                  <TableHead className="text-right">Đơn giá nhập (VND)</TableHead>
-                  <TableHead className="w-24 text-center">Thao tác</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAllIngredients.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-                      Không tìm thấy nguyên liệu nào trong kho.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedIngredients.map((ing, idx) => {
-                    const isLow = ing.currentStock <= ing.minStock && ing.currentStock > 0;
-                    const isOut = ing.currentStock <= 0;
-                    const itemIndex = (ingPage - 1) * ING_PAGE_SIZE + idx + 1;
-                    return (
-                      <TableRow key={ing.id} className="hover:bg-[#fffdf9]">
-                        <TableCell className="text-center text-xs text-muted-foreground">{itemIndex}</TableCell>
-                        <TableCell className="font-medium text-[#292524]">
-                          <div>
-                            <span className="font-semibold">{ing.name}</span>
-                            <span className="block text-[10px] text-muted-foreground font-mono">{ing.id}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <GroupBadge group={ing.group as IngredientGroup} />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="font-heading font-semibold text-xs text-[#292524]">
-                            {formatQty(ing.currentStock, ing.unit as any)}
-                          </div>
-                          <div className="flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
-                            <span>Ngưỡng: {formatQty(ing.minStock, ing.unit as any)}</span>
-                            {isOut ? (
-                              <Badge variant="destructive" className="px-1.5 py-0 text-[9px]">Hết</Badge>
-                            ) : isLow ? (
-                              <Badge className="bg-amber-500 text-white px-1.5 py-0 text-[9px]">Sắp hết</Badge>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-heading text-xs tabular-nums text-[#292524]">
-                          {ing.defaultImportPrice > 0
-                            ? `${formatVND(ing.defaultImportPrice)} / ${ing.unit === "ml" ? "L" : "kg"}`
-                            : "—"}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setStockInTargetId(ing.id);
-                                setStockInOpen(true);
-                              }}
-                              className="h-7 w-7 text-[#b45309] hover:bg-[#fdf0d5] hover:text-[#92400e]"
-                              title={`Nhập hàng vào kho cho ${ing.name}`}
-                            >
-                              <ArrowDownToLine className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setEditingIng({
-                                  id: ing.id,
-                                  name: ing.name,
-                                  unit: ing.unit,
-                                  group: ing.group,
-                                  spec: ing.spec || "",
-                                  defaultImportPrice: ing.defaultImportPrice,
-                                  currentStock: ing.currentStock,
-                                  minStock: ing.minStock,
-                                });
-                                setIngModalOpen(true);
-                              }}
-                              className="h-7 w-7 text-stone-600 hover:text-[#b45309]"
-                              title="Sửa thông tin nguyên liệu"
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteIngredient(ing.id, ing.name)}
-                              className="h-7 w-7 text-stone-400 hover:text-rose-600"
-                              title="Xóa nguyên liệu khỏi CSDL"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-
-          {/* Phân trang giới hạn 20 dòng / trang */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
-            <div>
-              Hiển thị{" "}
-              <strong className="text-stone-800">
-                {filteredAllIngredients.length === 0 ? 0 : (ingPage - 1) * ING_PAGE_SIZE + 1}
-              </strong>{" "}
-              –{" "}
-              <strong className="text-stone-800">
-                {Math.min(ingPage * ING_PAGE_SIZE, filteredAllIngredients.length)}
-              </strong>{" "}
-              trong tổng số{" "}
-              <strong className="text-stone-800">{filteredAllIngredients.length}</strong> nguyên liệu (giới hạn 20 dòng / trang)
-            </div>
-
-            {ingTotalPages > 1 && (
-              <div className="flex items-center gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={ingPage <= 1}
-                  onClick={() => setIngPage((p) => Math.max(1, p - 1))}
-                  className="h-7 px-2.5 text-xs text-stone-700"
-                >
-                  <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
-                </Button>
-
-                <div className="flex items-center gap-1 px-1">
-                  {Array.from({ length: ingTotalPages }, (_, i) => i + 1).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setIngPage(p)}
-                      className={cn(
-                        "h-7 w-7 rounded-md text-xs font-semibold transition-colors",
-                        ingPage === p
-                          ? "bg-[#b45309] text-white"
-                          : "text-stone-600 hover:bg-muted"
-                      )}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={ingPage >= ingTotalPages}
-                  onClick={() => setIngPage((p) => Math.min(ingTotalPages, p + 1))}
-                  className="h-7 px-2.5 text-xs text-stone-700"
-                >
-                  Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
+      ) : null}
 
       {/* ==================== DIALOG TẠO MÓN ĂN MỚI ==================== */}
       <Dialog open={createDishOpen} onOpenChange={setCreateDishOpen}>
@@ -2142,7 +1817,7 @@ export function AdminRecipes({
                   className="bg-[#b45309] text-white hover:bg-[#92400e]"
                 >
                   {submittingLine ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                  Lưu vào CSDL
+                  Lưu định lượng
                 </Button>
               </DialogFooter>
             </form>
@@ -2158,7 +1833,7 @@ export function AdminRecipes({
               {editingIng.id ? "Chỉnh sửa nguyên liệu kho" : "Thêm nguyên liệu mới vào kho"}
             </DialogTitle>
             <DialogDescription className="text-xs">
-              Nguyên liệu được lưu vào bảng `Ingredient` và dùng chung cho toàn bộ 7 món tasting.
+              Nguyên liệu được lưu vào kho và dùng chung cho các thực đơn.
             </DialogDescription>
           </DialogHeader>
 
@@ -2267,7 +1942,7 @@ export function AdminRecipes({
                 className="bg-[#b45309] text-white hover:bg-[#92400e]"
               >
                 {submittingIng ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Lưu vào CSDL
+                Lưu nguyên liệu
               </Button>
             </DialogFooter>
           </form>
@@ -2462,12 +2137,12 @@ export function AdminRecipes({
             >
               {importing ? (
                 <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang lưu vào CSDL...
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang lưu...
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                  Xác nhận lưu {previewStats.valid} dòng vào CSDL
+                  Xác nhận lưu {previewStats.valid} dòng
                 </>
               )}
             </Button>
@@ -2475,97 +2150,6 @@ export function AdminRecipes({
         </DialogContent>
       </Dialog>
 
-      {/* MODAL PHIẾU NHẬP HÀNG VÀO KHO */}
-      <StockInModal
-        open={stockInOpen}
-        onOpenChange={setStockInOpen}
-        initialIngredientId={stockInTargetId}
-        onSuccess={() => loadBom(guests, true, selectedConceptId)}
-      />
-
-      {/* MODAL TẠO CONCEPT THỰC ĐƠN TUẦN MỚI */}
-      <CreateConceptModal
-        open={createConceptOpen}
-        onOpenChange={setCreateConceptOpen}
-        existingConcepts={concepts}
-        currentActiveId={activeConceptId}
-        onSuccess={async (newId) => {
-          setSelectedConceptId(newId);
-          await loadConcepts();
-          await loadBom(guests, true, newId);
-        }}
-      />
-
-      {/* MODAL SỬA THÔNG TIN CONCEPT */}
-      <EditConceptModal
-        open={editConceptOpen}
-        onOpenChange={setEditConceptOpen}
-        concept={conceptToEdit}
-        onSuccess={async () => {
-          await loadConcepts();
-          await loadBom(guests, true, selectedConceptId);
-        }}
-      />
-
-      {/* MODAL QUẢN LÝ TẤT CẢ CONCEPTS */}
-      <ManageConceptsModal
-        open={manageConceptsOpen}
-        onOpenChange={setManageConceptsOpen}
-        concepts={concepts}
-        activeConceptId={activeConceptId}
-        onSelectConcept={(cId) => {
-          setSelectedConceptId(cId);
-          loadBom(guests, false, cId);
-        }}
-        onCreateNew={() => setCreateConceptOpen(true)}
-        onEditConcept={(c) => {
-          setConceptToEdit(c);
-          setEditConceptOpen(true);
-        }}
-        onRefresh={async () => {
-          await loadConcepts();
-          await loadBom(guests, true, selectedConceptId);
-        }}
-      />
-
-      {/* ALERT DIALOG XÁC NHẬN XÓA CONCEPT */}
-      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9]">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-2 text-rose-800 font-bold">
-              <Trash2 className="h-5 w-5 text-rose-600" />
-              <AlertDialogTitle>Xác nhận xóa Concept thực đơn?</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-xs text-stone-600 leading-relaxed pt-2">
-              Bạn có chắc chắn muốn xóa{" "}
-              <strong className="text-stone-900">{conceptToDelete?.name}</strong>?
-              <br />
-              Toàn bộ danh sách món ăn, định lượng BOM và thông số phân tích nháp của Concept này sẽ bị gỡ bỏ vĩnh viễn khỏi hệ thống.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="pt-2">
-            <AlertDialogCancel disabled={deletingConcept} className="text-xs h-9">
-              Hủy bỏ
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                void handleConfirmDeleteConcept();
-              }}
-              disabled={deletingConcept}
-              className="bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs h-9"
-            >
-              {deletingConcept ? (
-                <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang xóa...
-                </>
-              ) : (
-                "Xác nhận xóa Concept"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
