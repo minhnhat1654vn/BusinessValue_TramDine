@@ -39,6 +39,7 @@ import { AdminBookingSettingsView } from "./booking-settings-view";
 import { AdminRecipes } from "./recipes-view";
 import { AdminFoodCost } from "./food-cost-view";
 import { AdminInventory } from "./inventory-view";
+import { AdminWarehouseCost } from "./warehouse-cost-view";
 import { LoadingBlock, useToday } from "./admin-shared";
 
 const SESSION_KEY = "tram_admin_ok";
@@ -97,8 +98,8 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     key: "bom-suite",
-    label: "Công thức (BOM)",
-    description: "BOM · Giá vốn · Kho",
+    label: "Công thức & Kho",
+    description: "BOM · Giá vốn · Tồn kho",
     icon: ChefHat,
     children: [
       {
@@ -108,15 +109,9 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         icon: ChefHat,
       },
       {
-        key: "food-cost",
-        label: "Giá vốn nguyên liệu",
-        description: "Đối chiếu giá menu & food cost",
-        icon: Calculator,
-      },
-      {
-        key: "inventory",
-        label: "Quản lý tồn kho",
-        description: "Bếp & kho · Cảnh báo tồn",
+        key: "warehouse-cost",
+        label: "Kho & Giá vốn",
+        description: "Food Cost & Quản lý tồn kho",
         icon: Warehouse,
       },
     ],
@@ -220,7 +215,10 @@ export function AdminView() {
   const today = useToday();
 
   const isBomActive =
-    activeTab === "recipes" || activeTab === "food-cost" || activeTab === "inventory";
+    activeTab === "recipes" ||
+    activeTab === "warehouse-cost" ||
+    activeTab === "food-cost" ||
+    activeTab === "inventory";
   const [bomDropdownOpen, setBomDropdownOpen] = useState(true);
 
   // Tự động mở dropdown BOM khi tab tích cực là 1 trong 3 tab con
@@ -334,7 +332,7 @@ export function AdminView() {
                                 : "bg-muted text-muted-foreground",
                             )}
                           >
-                            3
+                            {item.children.length}
                           </span>
                           <ChevronDown
                             className={cn(
@@ -531,12 +529,13 @@ export function AdminView() {
                 <AdminRecipes onNavigateTab={handleNavigateTab} />
               )}
 
-              {activeTab === "food-cost" && (
-                <AdminFoodCost onNavigateTab={handleNavigateTab} />
-              )}
-
-              {activeTab === "inventory" && (
-                <AdminInventory onNavigateTab={handleNavigateTab} />
+              {(activeTab === "warehouse-cost" ||
+                activeTab === "food-cost" ||
+                activeTab === "inventory") && (
+                <AdminWarehouseCost
+                  initialSubTab={activeTab === "inventory" ? "inventory" : "cost"}
+                  onNavigateTab={handleNavigateTab}
+                />
               )}
 
               {activeTab === "settings" && (

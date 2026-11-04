@@ -5,7 +5,7 @@
 import { ChefHat, Calculator, Warehouse } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type BomTabKey = "recipes" | "food-cost" | "inventory";
+export type BomTabKey = "recipes" | "warehouse-cost" | "food-cost" | "inventory";
 
 interface BomSubNavProps {
   activeTab: BomTabKey;
@@ -26,15 +26,9 @@ export function AdminBomSubNav({
       icon: ChefHat,
     },
     {
-      key: "food-cost" as const,
-      label: "Giá vốn nguyên liệu",
-      desc: "Đơn giá kho & đối chiếu menu",
-      icon: Calculator,
-    },
-    {
-      key: "inventory" as const,
-      label: "Quản lý tồn kho",
-      desc: "Tồn thực tế & ngưỡng cảnh báo 32%",
+      key: "warehouse-cost" as const,
+      label: "Kho & Giá vốn nguyên liệu",
+      desc: "Food Cost (33,5%) & Tồn kho thực tế",
       icon: Warehouse,
     },
   ];
@@ -55,7 +49,7 @@ export function AdminBomSubNav({
         {onNavigateTab && (
           <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border/80 bg-background/90 p-1 shadow-2xs">
             {tabs.map((tab) => {
-              const active = activeTab === tab.key;
+              const active = tab.key === "recipes" ? activeTab === "recipes" : (activeTab === "warehouse-cost" || activeTab === "food-cost" || activeTab === "inventory");
               const Icon = tab.icon;
               return (
                 <button

@@ -123,8 +123,10 @@ function buildDishVariants(
 
 export function AdminFoodCost({
   onNavigateTab,
+  hideTitleHeader = false,
 }: {
   onNavigateTab?: (tab: string) => void;
+  hideTitleHeader?: boolean;
 } = {}) {
   const [guests, setGuests] = useState(1);
   const [guestsInput, setGuestsInput] = useState("1");
@@ -293,15 +295,17 @@ export function AdminFoodCost({
   return (
     <div className="space-y-6">
       {/* ==================== 1. TIÊU ĐỀ & QUY ĐỔI SỐ KHÁCH ==================== */}
-      <div className="flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-            Bếp &amp; kho
-          </span>
-          <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-            Giá vốn nguyên liệu &amp; Đối chiếu giá menu
-          </h2>
-        </div>
+      <div className={cn("flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between", hideTitleHeader && "border-b-0 pb-0")}>
+        {!hideTitleHeader && (
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+              Bếp &amp; kho
+            </span>
+            <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
+              Giá vốn nguyên liệu &amp; Đối chiếu giá menu
+            </h2>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-xs">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-stone-600">

@@ -120,8 +120,10 @@ function areMapsEqual(a: Record<string, number>, b: Record<string, number>): boo
 
 export function AdminInventory({
   onNavigateTab,
+  hideTitleHeader = false,
 }: {
   onNavigateTab?: (tab: string) => void;
+  hideTitleHeader?: boolean;
 } = {}) {
   const [loaded, setLoaded] = useState(false);
   const [savedStock, setSavedStock] = useState<Record<string, number>>({});
@@ -414,33 +416,52 @@ export function AdminInventory({
   return (
     <div className="space-y-6">
       {/* ==================== 1. TIÊU ĐỀ ==================== */}
-      <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-              Bếp &amp; kho
-            </span>
+      {!hideTitleHeader ? (
+        <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+                Bếp &amp; kho
+              </span>
+            </div>
+            <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
+              Quản lý tồn kho
+            </h2>
           </div>
-          <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-            Quản lý tồn kho
-          </h2>
-        </div>
 
-        {(report.customizedStockCount > 0 ||
+          {(report.customizedStockCount > 0 ||
+            report.customizedReorderCount > 0 ||
+            Object.keys(savedStock).length > 0 ||
+            Object.keys(savedReorder).length > 0) && (
+            <button
+              type="button"
+              disabled={isSaving || isDispatching}
+              onClick={() => void handleResetAllStock()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5]"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+              Khôi phục kho chuẩn
+            </button>
+          )}
+        </div>
+      ) : (
+        (report.customizedStockCount > 0 ||
           report.customizedReorderCount > 0 ||
           Object.keys(savedStock).length > 0 ||
-          Object.keys(savedReorder).length > 0) && (
-          <button
-            type="button"
-            disabled={isSaving || isDispatching}
-            onClick={() => void handleResetAllStock()}
-            className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5]"
-          >
-            <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-            Khôi phục kho chuẩn
-          </button>
-        )}
-      </div>
+          Object.keys(savedReorder).length > 0) ? (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              disabled={isSaving || isDispatching}
+              onClick={() => void handleResetAllStock()}
+              className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5]"
+            >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+              Khôi phục kho chuẩn
+            </button>
+          </div>
+        ) : null
+      )}
 
       {/* ==================== 2. CHỈ SỐ TỒN KHO TRỰC TIẾP ==================== */}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
