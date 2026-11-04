@@ -12,7 +12,7 @@
       "targetFoodCostPct": 33.5,
       "dishes": [
         {
-          "id": "cmw29qipg0000vohcgkl7rga0",
+          "id": "cmw2hp7l10045vovglwz5dsz0",
           "index": 1,
           "name": "Tuyết Cá Tầm",
           "region": "Lâm Đồng",
@@ -22,14 +22,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qipn0002vohc9szb6k8s",
+              "id": "cmw2hp7l30047vovg6hf7wx6b",
               "optionId": "std",
               "optionName": "Mở hộp caviar tại bàn",
               "isDefault": true,
               "note": "Chuẩn vị fine dining",
               "lines": [
                 {
-                  "id": "cmw2dbqej000cvovgm67at1z0",
+                  "id": "cmw2hp7l50049vovgkxrqoscl",
                   "ingredientId": "banh-blini",
                   "ingredientName": "Bánh blini kiều mạch",
                   "group": "STARCH",
@@ -42,7 +42,7 @@
                   "defaultImportPrice": 90000
                 },
                 {
-                  "id": "cmw2dbqe60008vovgojt6r6y0",
+                  "id": "cmw2hp7l7004bvovgjbnhrbos",
                   "ingredientId": "caviar-lam-dong",
                   "ingredientName": "Trứng cá tầm Caviar Lâm Đồng",
                   "group": "PROTEIN",
@@ -55,7 +55,7 @@
                   "defaultImportPrice": 2500000
                 },
                 {
-                  "id": "cmw2dbqer000evovgui5l2s2p",
+                  "id": "cmw2hp7la004dvovgcbim52h9",
                   "ingredientId": "he-la-nho",
                   "ingredientName": "Hẹ lá nhỏ hữu cơ",
                   "group": "PRODUCE",
@@ -68,7 +68,7 @@
                   "defaultImportPrice": 60000
                 },
                 {
-                  "id": "cmw2dbqec000avovgzkhrd1yq",
+                  "id": "cmw2hp7lc004fvovgt83qa8gp",
                   "ingredientId": "kem-chua",
                   "ingredientName": "Kem chua thảo mộc (Sour cream)",
                   "group": "DAIRY_FAT",
@@ -79,21 +79,33 @@
                   "qtyTotal": 15,
                   "prepNote": "Đánh bông mịn",
                   "defaultImportPrice": 180000
+                },
+                {
+                  "id": "line-mw2i2l1z-k9eq",
+                  "ingredientId": "ca-bop",
+                  "ingredientName": "Cá bớp sông Cửu Long",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "unit": "g",
+                  "qtyPerGuest": 45,
+                  "qtyTotal": 45,
+                  "defaultImportPrice": 100000,
+                  "prepNote": "Phi le ca bop uop lanh"
                 }
               ],
               "totalsPerGuest": {
-                "g": 70,
+                "g": 115,
                 "ml": 0
               },
               "totalsForGuests": {
-                "g": 70,
+                "g": 115,
                 "ml": 0
               }
             }
           ]
         },
         {
-          "id": "cmw29qiqd000bvohcqxr0mm4m",
+          "id": "cmw2hp7lg004gvovgxfnawvnw",
           "index": 2,
           "name": "Sá Sùng Muối Tiêu",
           "region": "Vân Đồn",
@@ -103,14 +115,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qiqi000dvohcjtlr5zsb",
+              "id": "cmw2hp7lj004ivovgx76iyyrc",
               "optionId": "std",
               "optionName": "Nướng giòn muối tiêu truyền thống",
               "isDefault": true,
               "note": "Vị ngọt hậu tự nhiên của sá sùng",
               "lines": [
                 {
-                  "id": "cmw2dbqgo000pvovg0b4u3xhh",
+                  "id": "cmw2hp7lm004kvovg9kyc7teu",
                   "ingredientId": "chanh-vang-da-lat",
                   "ingredientName": "Nước cốt chanh vàng Đà Lạt",
                   "group": "SEASONING",
@@ -123,7 +135,7 @@
                   "defaultImportPrice": 70000
                 },
                 {
-                  "id": "cmw2dbqg5000lvovgn1z1i72v",
+                  "id": "cmw2hp7lq004mvovgratqdump",
                   "ingredientId": "muoi-ham-thao-duoc",
                   "ingredientName": "Muối hầm thảo dược Hoàng Liên Sơn",
                   "group": "SEASONING",
@@ -136,7 +148,7 @@
                   "defaultImportPrice": 80000
                 },
                 {
-                  "id": "cmw2dbqh3000rvovg2q1odnli",
+                  "id": "cmw2hp7lu004ovovg15ifdqua",
                   "ingredientId": "rau-ram-rung",
                   "ingredientName": "Rau răm rừng và lá chanh",
                   "group": "PRODUCE",
@@ -149,7 +161,7 @@
                   "defaultImportPrice": 50000
                 },
                 {
-                  "id": "cmw2dbqfz000jvovgfwb72kmt",
+                  "id": "cmw2hp7lw004qvovg6trz9xw7",
                   "ingredientId": "sa-sung-van-don",
                   "ingredientName": "Sá sùng đảo Vân Đồn",
                   "group": "PROTEIN",
@@ -162,7 +174,7 @@
                   "defaultImportPrice": 4200000
                 },
                 {
-                  "id": "cmw2dbqgg000nvovg2s5g59fa",
+                  "id": "cmw2hp7ly004svovgvfr8uhud",
                   "ingredientId": "tieu-rung-phu-quoc",
                   "ingredientName": "Tiêu rừng Phú Quốc",
                   "group": "SEASONING",
@@ -185,14 +197,14 @@
               }
             },
             {
-              "id": "cmw29qir7000pvohciq44rh77",
+              "id": "cmw2hp7m0004uvovguezarzib",
               "optionId": "crispy_fried",
               "optionName": "Chiên phồng giòn rụm",
               "isDefault": false,
               "note": "Vị bùi béo đậm đà hơn",
               "lines": [
                 {
-                  "id": "cmw2dbqic000xvovg62jbg1qf",
+                  "id": "cmw2hp7m2004wvovg30rxkc6v",
                   "ingredientId": "dau-thuc-vat",
                   "ingredientName": "Dầu thực vật cao cấp",
                   "group": "DAIRY_FAT",
@@ -205,7 +217,7 @@
                   "defaultImportPrice": 65000
                 },
                 {
-                  "id": "cmw2dbqij000zvovgp06tyxlh",
+                  "id": "cmw2hp7m4004yvovgh670jdj2",
                   "ingredientId": "muoi-ham-thao-duoc",
                   "ingredientName": "Muối hầm thảo dược Hoàng Liên Sơn",
                   "group": "SEASONING",
@@ -218,7 +230,7 @@
                   "defaultImportPrice": 80000
                 },
                 {
-                  "id": "cmw2dbqho000vvovgpty2aj54",
+                  "id": "cmw2hp7m70050vovghxjjq6a1",
                   "ingredientId": "sa-sung-van-don",
                   "ingredientName": "Sá sùng đảo Vân Đồn",
                   "group": "PROTEIN",
@@ -231,7 +243,7 @@
                   "defaultImportPrice": 4200000
                 },
                 {
-                  "id": "cmw2dbqip0011vovg7l26dp89",
+                  "id": "cmw2hp7ma0052vovg4ldqlz4t",
                   "ingredientId": "tieu-rung-phu-quoc",
                   "ingredientName": "Tiêu rừng Phú Quốc",
                   "group": "SEASONING",
@@ -256,7 +268,7 @@
           ]
         },
         {
-          "id": "cmw29qirt000yvohc5nef1vf7",
+          "id": "cmw2hp7mc0053vovg5nww2q1s",
           "index": 3,
           "name": "Bào Ngư Om Rượu Nếp",
           "region": "Nha Trang",
@@ -266,14 +278,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qiry0010vohcneou8wpz",
+              "id": "cmw2hp7mf0055vovg0zjt8uly",
               "optionId": "std",
               "optionName": "Om rượu nếp sóng sánh chuẩn vị",
               "isDefault": true,
               "note": "Vị ngọt men nồng nàn",
               "lines": [
                 {
-                  "id": "cmw2dbqjb0016vovgp9i253do",
+                  "id": "cmw2hp7mi0057vovg2gt3ooak",
                   "ingredientId": "bao-ngu-nha-trang",
                   "ingredientName": "Bào ngư biển Nha Trang",
                   "group": "PROTEIN",
@@ -286,7 +298,7 @@
                   "defaultImportPrice": 1200000
                 },
                 {
-                  "id": "cmw2dbqjo001avovgdj4k2i7u",
+                  "id": "cmw2hp7mk0059vovg8qf4nbnx",
                   "ingredientId": "gung-gia-son-la",
                   "ingredientName": "Gừng già Sơn La",
                   "group": "AROMATIC",
@@ -299,7 +311,7 @@
                   "defaultImportPrice": 45000
                 },
                 {
-                  "id": "cmw2dbqji0018vovg1vn9a1ap",
+                  "id": "cmw2hp7ml005bvovgc803hqgc",
                   "ingredientId": "men-ruou-nep",
                   "ingredientName": "Rượu nếp cái hoa vàng",
                   "group": "SEASONING",
@@ -312,7 +324,7 @@
                   "defaultImportPrice": 120000
                 },
                 {
-                  "id": "cmw2dbqk3001evovg8x4ot478",
+                  "id": "cmw2hp7mn005dvovgs5s0j4e5",
                   "ingredientId": "nuoc-dung-nam",
                   "ingredientName": "Nước dùng nấm đông cô ninh cô đặc",
                   "group": "SEASONING",
@@ -325,7 +337,7 @@
                   "defaultImportPrice": 90000
                 },
                 {
-                  "id": "cmw2dbqjv001cvovgi8focb79",
+                  "id": "cmw2hp7mp005fvovg8vttm6xt",
                   "ingredientId": "tao-do-tan-cuong",
                   "ingredientName": "Táo đỏ và kỷ tử hữu cơ",
                   "group": "FRUIT_NUT",
@@ -348,14 +360,14 @@
               }
             },
             {
-              "id": "cmw29qisr001cvohcgej1v0cp",
+              "id": "cmw2hp7mt005hvovguvkdyi6u",
               "optionId": "mild_wine",
               "optionName": "Giảm độ nồng rượu (Thanh nhẹ)",
               "isDefault": false,
               "note": "Tôn vị tự nhiên của bào ngư",
               "lines": [
                 {
-                  "id": "cmw2dbqkj001ivovggkkzezbj",
+                  "id": "cmw2hp7mv005jvovg89clqkrk",
                   "ingredientId": "bao-ngu-nha-trang",
                   "ingredientName": "Bào ngư biển Nha Trang",
                   "group": "PROTEIN",
@@ -368,7 +380,7 @@
                   "defaultImportPrice": 1200000
                 },
                 {
-                  "id": "cmw2dbqkw001mvovgnw9p0id6",
+                  "id": "cmw2hp7my005lvovgf7ujki1v",
                   "ingredientId": "gung-gia-son-la",
                   "ingredientName": "Gừng già Sơn La",
                   "group": "AROMATIC",
@@ -381,7 +393,7 @@
                   "defaultImportPrice": 45000
                 },
                 {
-                  "id": "cmw2dbqkr001kvovg59vl9888",
+                  "id": "cmw2hp7n0005nvovg0s94yfw2",
                   "ingredientId": "men-ruou-nep",
                   "ingredientName": "Rượu nếp cái hoa vàng",
                   "group": "SEASONING",
@@ -394,7 +406,7 @@
                   "defaultImportPrice": 120000
                 },
                 {
-                  "id": "cmw2dbql1001ovovgolwwoeby",
+                  "id": "cmw2hp7n4005pvovg4ehe77ro",
                   "ingredientId": "nuoc-dung-nam",
                   "ingredientName": "Nước dùng nấm đông cô ninh cô đặc",
                   "group": "SEASONING",
@@ -419,7 +431,7 @@
           ]
         },
         {
-          "id": "cmw29qitd001lvohc1g4f9np0",
+          "id": "cmw2hp7n6005qvovgsrzq560l",
           "index": 4,
           "name": "Canh Ngọc Yến",
           "region": "Khánh Hòa · Hà Nội",
@@ -429,14 +441,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qith001nvohcurb0y2wt",
+              "id": "cmw2hp7nc005svovgxbpvgq9e",
               "optionId": "std",
               "optionName": "Nghi thức rót nước dùng nóng tại bàn",
               "isDefault": true,
               "note": "Nước dùng trong vắt, bốc khói nghi ngút",
               "lines": [
                 {
-                  "id": "cmw2dbqmn001zvovgfynh8vgf",
+                  "id": "cmw2hp7nf005uvovg5bzx7b0n",
                   "ingredientId": "nam-dong-trung",
                   "ingredientName": "Đông trùng hạ thảo tươi",
                   "group": "PRODUCE",
@@ -449,7 +461,7 @@
                   "defaultImportPrice": 800000
                 },
                 {
-                  "id": "cmw2dbqmj001xvovg5m7x788m",
+                  "id": "cmw2hp7nh005wvovg02qoqjn8",
                   "ingredientId": "nuoc-dung-bo-cau",
                   "ingredientName": "Nước dùng bồ câu tiềm sâm",
                   "group": "SEASONING",
@@ -462,7 +474,7 @@
                   "defaultImportPrice": 150000
                 },
                 {
-                  "id": "cmw2dbqme001vvovgfhbjv035",
+                  "id": "cmw2hp7nj005yvovgo98l297b",
                   "ingredientId": "sen-co-ngu",
                   "ingredientName": "Hạt sen Cổ Ngự Hồ Tây",
                   "group": "FRUIT_NUT",
@@ -475,7 +487,7 @@
                   "defaultImportPrice": 350000
                 },
                 {
-                  "id": "cmw2dbqma001tvovg52hdb9m1",
+                  "id": "cmw2hp7nl0060vovgsx6s3lnq",
                   "ingredientId": "yen-sao-khanh-hoa",
                   "ingredientName": "Yến sào thiên nhiên Khánh Hòa",
                   "group": "PROTEIN",
@@ -498,14 +510,14 @@
               }
             },
             {
-              "id": "cmw29qiu3001xvohcoafnjo3h",
+              "id": "cmw2hp7nq0062vovg4kjtot6a",
               "optionId": "extra_lotus",
               "optionName": "Thêm hạt sen Cổ Ngự bùi béo",
               "isDefault": false,
               "note": "Tăng độ thơm mát của sen Thăng Long",
               "lines": [
                 {
-                  "id": "cmw2dbqnf0027vovgjvmfaq66",
+                  "id": "cmw2hp7ns0064vovgm71e3e6i",
                   "ingredientId": "nuoc-dung-bo-cau",
                   "ingredientName": "Nước dùng bồ câu tiềm sâm",
                   "group": "SEASONING",
@@ -518,7 +530,7 @@
                   "defaultImportPrice": 150000
                 },
                 {
-                  "id": "cmw2dbqna0025vovgj79dw73a",
+                  "id": "cmw2hp7nu0066vovg56c8mkdj",
                   "ingredientId": "sen-co-ngu",
                   "ingredientName": "Hạt sen Cổ Ngự Hồ Tây",
                   "group": "FRUIT_NUT",
@@ -531,7 +543,7 @@
                   "defaultImportPrice": 350000
                 },
                 {
-                  "id": "cmw2dbqn50023vovgkvl63lew",
+                  "id": "cmw2hp7nx0068vovgn4t5tmmb",
                   "ingredientId": "yen-sao-khanh-hoa",
                   "ingredientName": "Yến sào thiên nhiên Khánh Hòa",
                   "group": "PROTEIN",
@@ -556,7 +568,7 @@
           ]
         },
         {
-          "id": "cmw29qiuk0024vohct7r7ndye",
+          "id": "cmw2hp7o00069vovgnimfu9j7",
           "index": 5,
           "name": "Thịt Ngọc Áp Chảo",
           "region": "Đà Lạt",
@@ -566,14 +578,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qiuo0026vohc4ohhj4qw",
+              "id": "cmw2hp7o3006bvovg2dkwjrz3",
               "optionId": "std",
               "optionName": "Áp chảo da giòn thịt mọng",
               "isDefault": true,
               "note": "Thăn cá mọng nước, da giòn rụm",
               "lines": [
                 {
-                  "id": "cmw2dbqpa002evovgd5ood1j6",
+                  "id": "cmw2hp7o5006dvovgr4pximcg",
                   "ingredientId": "bo-thao-moc",
                   "ingredientName": "Bơ thảo mộc núi rừng Đà Lạt",
                   "group": "DAIRY_FAT",
@@ -586,7 +598,7 @@
                   "defaultImportPrice": 260000
                 },
                 {
-                  "id": "cmw2dbqp3002cvovg5svzvzq7",
+                  "id": "cmw2hp7o6006fvovgfhwvw8ts",
                   "ingredientId": "ca-tam-da-lat",
                   "ingredientName": "Thăn cá tầm Đà Lạt",
                   "group": "PROTEIN",
@@ -599,7 +611,7 @@
                   "defaultImportPrice": 320000
                 },
                 {
-                  "id": "cmw2dbqpm002ivovgmr6p26pj",
+                  "id": "cmw2hp7o8006hvovgtbce2v9i",
                   "ingredientId": "mang-tay-da-lat",
                   "ingredientName": "Măng tây xanh Đà Lạt",
                   "group": "PRODUCE",
@@ -612,7 +624,7 @@
                   "defaultImportPrice": 95000
                 },
                 {
-                  "id": "cmw2dbqpg002gvovgv33t1sm3",
+                  "id": "cmw2hp7o9006jvovgnodfc4kj",
                   "ingredientId": "sot-saffron",
                   "ingredientName": "Sốt nhụy hoa nghệ tây và chanh vàng",
                   "group": "SEASONING",
@@ -635,14 +647,14 @@
               }
             },
             {
-              "id": "cmw29qivd002gvohc5tm1h2ew",
+              "id": "cmw2hp7ob006lvovg48fo7lb6",
               "optionId": "herb_steamed",
               "optionName": "Hấp thảo mộc thanh vị",
               "isDefault": false,
               "note": "Dành cho khách chuộng vị thanh đạm",
               "lines": [
                 {
-                  "id": "cmw2dbqq2002mvovgw4zkhuh9",
+                  "id": "cmw2hp7od006nvovg9uw0vqdp",
                   "ingredientId": "ca-tam-da-lat",
                   "ingredientName": "Thăn cá tầm Đà Lạt",
                   "group": "PROTEIN",
@@ -655,7 +667,7 @@
                   "defaultImportPrice": 320000
                 },
                 {
-                  "id": "cmw2dbqr8002qvovg0ct57sfv",
+                  "id": "cmw2hp7oe006pvovg7wm4r9me",
                   "ingredientId": "mang-tay-da-lat",
                   "ingredientName": "Măng tây xanh Đà Lạt",
                   "group": "PRODUCE",
@@ -668,7 +680,7 @@
                   "defaultImportPrice": 95000
                 },
                 {
-                  "id": "cmw2dbqq9002ovovgb2sgy3et",
+                  "id": "cmw2hp7of006rvovgimmgafvm",
                   "ingredientId": "sot-saffron",
                   "ingredientName": "Sốt nhụy hoa nghệ tây và chanh vàng",
                   "group": "SEASONING",
@@ -693,7 +705,7 @@
           ]
         },
         {
-          "id": "cmw29qivw002nvohcgtuvi2nb",
+          "id": "cmw2hp7og006svovggjytprzj",
           "index": 6,
           "name": "Đông Tảo Quay Mắc Khén",
           "region": "Hưng Yên · Tây Bắc",
@@ -703,14 +715,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qiw2002pvohckh8ll0cv",
+              "id": "cmw2hp7oh006uvovggc23dh4q",
               "optionId": "std",
               "optionName": "Quay da giòn kèm cơm cháy ST25",
               "isDefault": true,
               "note": "Da gà giòn sần sật, cơm cháy vàng ruộm",
               "lines": [
                 {
-                  "id": "cmw2dbqs5002zvovgrbmqsvnp",
+                  "id": "cmw2hp7oj006wvovgtktvh4al",
                   "ingredientId": "com-chay-st25",
                   "ingredientName": "Cơm cháy gạo ST25",
                   "group": "STARCH",
@@ -723,7 +735,7 @@
                   "defaultImportPrice": 80000
                 },
                 {
-                  "id": "cmw2dbqru002vvovgj3f57djf",
+                  "id": "cmw2hp7on006yvovgtgogclhd",
                   "ingredientId": "ga-dong-tao",
                   "ingredientName": "Gà tiến vua Đông Tảo Hưng Yên",
                   "group": "PROTEIN",
@@ -736,7 +748,7 @@
                   "defaultImportPrice": 450000
                 },
                 {
-                  "id": "cmw2dbqrz002xvovgptx2f212",
+                  "id": "cmw2hp7op0070vovgsugtmua8",
                   "ingredientId": "mac-khen-doi",
                   "ingredientName": "Hạt mắc khén và hạt dổi rừng",
                   "group": "AROMATIC",
@@ -749,7 +761,7 @@
                   "defaultImportPrice": 480000
                 },
                 {
-                  "id": "cmw2dbqs90031vovg8psi3usr",
+                  "id": "cmw2hp7oq0072vovghr0skqml",
                   "ingredientId": "nuoc-cham-tieu-rung",
                   "ingredientName": "Nước chấm sốt tiêu rừng và lá chanh",
                   "group": "SEASONING",
@@ -762,7 +774,7 @@
                   "defaultImportPrice": 60000
                 },
                 {
-                  "id": "cmw2dbqsg0033vovgma6xc0zy",
+                  "id": "cmw2hp7or0074vovgbyetvxyq",
                   "ingredientId": "rau-rung-tay-bac",
                   "ingredientName": "Rau thơm và hoa chuối rừng",
                   "group": "PRODUCE",
@@ -785,14 +797,14 @@
               }
             },
             {
-              "id": "cmw29qiwt0031vohcypuofbb8",
+              "id": "cmw2hp7ot0076vovgtxtyd1er",
               "optionId": "mild_spice",
               "optionName": "Giảm độ nồng mắc khén",
               "isDefault": false,
               "note": "Vị cay dịu nhẹ cho thực khách nhạy cảm",
               "lines": [
                 {
-                  "id": "cmw2dbqu2003bvovgyq4j382l",
+                  "id": "cmw2hp7ou0078vovgmmpaywqn",
                   "ingredientId": "com-chay-st25",
                   "ingredientName": "Cơm cháy gạo ST25",
                   "group": "STARCH",
@@ -805,7 +817,7 @@
                   "defaultImportPrice": 80000
                 },
                 {
-                  "id": "cmw2dbqtr0037vovg2i0nm3di",
+                  "id": "cmw2hp7ox007avovgtg15bqnb",
                   "ingredientId": "ga-dong-tao",
                   "ingredientName": "Gà tiến vua Đông Tảo Hưng Yên",
                   "group": "PROTEIN",
@@ -818,7 +830,7 @@
                   "defaultImportPrice": 450000
                 },
                 {
-                  "id": "cmw2dbqtw0039vovg23j885pz",
+                  "id": "cmw2hp7oy007cvovglg0cjah8",
                   "ingredientId": "mac-khen-doi",
                   "ingredientName": "Hạt mắc khén và hạt dổi rừng",
                   "group": "AROMATIC",
@@ -831,7 +843,7 @@
                   "defaultImportPrice": 480000
                 },
                 {
-                  "id": "cmw2dbqu8003dvovgiq7wnu58",
+                  "id": "cmw2hp7p0007evovgndlm56dx",
                   "ingredientId": "nuoc-cham-tieu-rung",
                   "ingredientName": "Nước chấm sốt tiêu rừng và lá chanh",
                   "group": "SEASONING",
@@ -856,7 +868,7 @@
           ]
         },
         {
-          "id": "cmw29qixg003avohcb65cr95s",
+          "id": "cmw2hp7p1007fvovgintj30zn",
           "index": 7,
           "name": "Trầm và Sen — Nhãn lồng hạt sen cung đình",
           "region": "Cung Đình Huế",
@@ -866,14 +878,14 @@
           "defaultOptionId": "std",
           "variants": [
             {
-              "id": "cmw29qixk003cvohcvwhld5c1",
+              "id": "cmw2hp7p2007hvovgtacqijsx",
               "optionId": "std",
               "optionName": "Ngọt thanh vương hương Trầm",
               "isDefault": true,
               "note": "Hương vị cung đình tao nhã",
               "lines": [
                 {
-                  "id": "cmw2dbqwd003svovgzfmrj0zr",
+                  "id": "cmw2hp7p4007jvovggu50q5jm",
                   "ingredientId": "canh-sen-hong",
                   "ingredientName": "Cánh sen hồng và hoa nhài tươi",
                   "group": "PRODUCE",
@@ -886,7 +898,7 @@
                   "defaultImportPrice": 150000
                 },
                 {
-                  "id": "cmw2dbqv5003mvovgd14i1qm5",
+                  "id": "cmw2hp7p6007lvovgq4umfggp",
                   "ingredientId": "duong-phen-quang-ngai",
                   "ingredientName": "Đường phèn kết tinh tự nhiên",
                   "group": "SEASONING",
@@ -899,7 +911,7 @@
                   "defaultImportPrice": 55000
                 },
                 {
-                  "id": "cmw2dbquz003kvovgbg409qhf",
+                  "id": "cmw2hp7p9007nvovg5d9x6yno",
                   "ingredientId": "hat-sen-cung-dinh",
                   "ingredientName": "Hạt sen cung đình Huế",
                   "group": "FRUIT_NUT",
@@ -912,7 +924,7 @@
                   "defaultImportPrice": 240000
                 },
                 {
-                  "id": "cmw2dbquu003ivovgr3eb8xzr",
+                  "id": "cmw2hp7pd007pvovgkg6g5zqn",
                   "ingredientId": "nhan-long-hung-yen",
                   "ingredientName": "Nhãn lồng Hưng Yên mọng nước",
                   "group": "FRUIT_NUT",
@@ -925,7 +937,7 @@
                   "defaultImportPrice": 120000
                 },
                 {
-                  "id": "cmw2dbqw4003ovovgi3ak3vra",
+                  "id": "cmw2hp7pf007rvovgl81tm77u",
                   "ingredientId": "tra-shan-tuyet",
                   "ingredientName": "Trà Shan tuyết cổ thụ Tây Côn Lĩnh",
                   "group": "AROMATIC",
@@ -938,7 +950,7 @@
                   "defaultImportPrice": 3800000
                 },
                 {
-                  "id": "cmw2dbqw8003qvovgpdp9fziq",
+                  "id": "cmw2hp7ph007tvovgbheet9qh",
                   "ingredientId": "tram-huong-quang-nam",
                   "ingredientName": "Trầm hương tự nhiên xông phòng",
                   "group": "AROMATIC",
@@ -961,14 +973,14 @@
               }
             },
             {
-              "id": "cmw29qiyk003qvohcp6d6gt4i",
+              "id": "cmw2hp7pk007vvovgagws7lcm",
               "optionId": "low_sweet",
               "optionName": "Ít ngọt thanh tao (Low sugar)",
               "isDefault": false,
               "note": "Tôn vị trà Shan tuyết nổi bật",
               "lines": [
                 {
-                  "id": "cmw2dbqx00040vovg3wp5qmcs",
+                  "id": "cmw2hp7pl007xvovgweansbvz",
                   "ingredientId": "duong-phen-quang-ngai",
                   "ingredientName": "Đường phèn kết tinh tự nhiên",
                   "group": "SEASONING",
@@ -981,7 +993,7 @@
                   "defaultImportPrice": 55000
                 },
                 {
-                  "id": "cmw2dbqww003yvovgp9bmc7y7",
+                  "id": "cmw2hp7pn007zvovgb1mu61pb",
                   "ingredientId": "hat-sen-cung-dinh",
                   "ingredientName": "Hạt sen cung đình Huế",
                   "group": "FRUIT_NUT",
@@ -994,7 +1006,7 @@
                   "defaultImportPrice": 240000
                 },
                 {
-                  "id": "cmw2dbqws003wvovg0ibt6hr6",
+                  "id": "cmw2hp7po0081vovgcvwygj8j",
                   "ingredientId": "nhan-long-hung-yen",
                   "ingredientName": "Nhãn lồng Hưng Yên mọng nước",
                   "group": "FRUIT_NUT",
@@ -1007,7 +1019,7 @@
                   "defaultImportPrice": 120000
                 },
                 {
-                  "id": "cmw2dbqx60042vovgpsdh9g8q",
+                  "id": "cmw2hp7pq0083vovgheey3yig",
                   "ingredientId": "tra-shan-tuyet",
                   "ingredientName": "Trà Shan tuyết cổ thụ Tây Côn Lĩnh",
                   "group": "AROMATIC",
@@ -1020,7 +1032,7 @@
                   "defaultImportPrice": 3800000
                 },
                 {
-                  "id": "cmw2dbqxc0044vovgjtkdvyys",
+                  "id": "cmw2hp7pr0085vovgq70i3b0r",
                   "ingredientId": "tram-huong-quang-nam",
                   "ingredientName": "Trầm hương tự nhiên xông phòng",
                   "group": "AROMATIC",
@@ -1043,10 +1055,38 @@
               }
             }
           ]
+        },
+        {
+          "id": "cmw2hp7ps0086vovgm2g8f7u4",
+          "index": 8,
+          "name": "Gỏi Tuyết Cá Tầm Đông Vị",
+          "region": "",
+          "portion": "1 khách",
+          "method": "Phi lê tái chanh rừng & Rượu nếp",
+          "note": null,
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw2hp7pu0088vovgrflk3gok",
+              "optionId": "std",
+              "optionName": "Chuẩn vị",
+              "isDefault": true,
+              "note": null,
+              "lines": [],
+              "totalsPerGuest": {
+                "g": 0,
+                "ml": 0
+              },
+              "totalsForGuests": {
+                "g": 0,
+                "ml": 0
+              }
+            }
+          ]
         }
       ],
       "createdAt": "2026-11-04T17:28:37.141Z",
-      "updatedAt": "2026-11-04T18:44:00.858Z"
+      "updatedAt": "2026-11-04T19:18:50.903Z"
     },
     {
       "id": "concept-3",
@@ -1062,21 +1102,6 @@
       "updatedAt": "2026-11-04T17:28:37.142Z",
       "startDate": "2026-11-09",
       "endDate": "2026-11-15"
-    },
-    {
-      "id": "concept-mw2fo2ns",
-      "code": "C3",
-      "name": "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
-      "description": "Thực đơn Tasting tuần mới của TRẦM",
-      "status": "UPCOMING",
-      "weekLabel": "10/11/2026 - 15/11/2026",
-      "startDate": "2026-11-10",
-      "endDate": "2026-11-15",
-      "sellingPrice": 1190000,
-      "targetFoodCostPct": 33.5,
-      "dishes": [],
-      "createdAt": "2026-11-04T18:11:34.648Z",
-      "updatedAt": "2026-11-04T18:11:34.648Z"
     }
   ]
 }

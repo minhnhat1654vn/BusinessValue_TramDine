@@ -73,6 +73,18 @@ import {
 import { cn } from "@/lib/utils";
 import { StockInModal } from "./stock-in-modal";
 import { CreateConceptModal } from "./create-concept-modal";
+import { EditConceptModal } from "./edit-concept-modal";
+import { ManageConceptsModal } from "./manage-concepts-modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MENU_ITEMS } from "@/lib/tram/constants";
 import {
   INGREDIENT_GROUP_LABELS,
@@ -217,6 +229,12 @@ export function AdminRecipes({
   const [activeConceptId, setActiveConceptId] = useState<string>("concept-2");
   const [selectedConceptId, setSelectedConceptId] = useState<string>("concept-2");
   const [createConceptOpen, setCreateConceptOpen] = useState(initialOpenConceptModal);
+  const [editConceptOpen, setEditConceptOpen] = useState(false);
+  const [conceptToEdit, setConceptToEdit] = useState<any | null>(null);
+  const [manageConceptsOpen, setManageConceptsOpen] = useState(false);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [conceptToDelete, setConceptToDelete] = useState<any | null>(null);
+  const [deletingConcept, setDeletingConcept] = useState(false);
 
   useEffect(() => {
     if (initialViewMode) {
@@ -321,6 +339,33 @@ export function AdminRecipes({
   useEffect(() => {
     loadBom(guests, false, selectedConceptId);
   }, [guests, selectedConceptId, loadBom]);
+
+  const handleConfirmDeleteConcept = async () => {
+    if (!conceptToDelete) return;
+    try {
+      setDeletingConcept(true);
+      const res = await fetch("/api/recipes/concepts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", conceptId: conceptToDelete.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi khi xóa Concept.");
+
+      toast.success(data.message || `Đã xóa "${conceptToDelete.name}" thành công!`);
+      setDeleteAlertOpen(false);
+      setConceptToDelete(null);
+
+      const nextId = activeConceptId;
+      setSelectedConceptId(nextId);
+      await loadConcepts();
+      await loadBom(guests, true, nextId);
+    } catch (err: any) {
+      toast.error(err.message || "Không thể xóa Concept.");
+    } finally {
+      setDeletingConcept(false);
+    }
+  };
 
   const handleSetActiveConcept = async (conceptId: string) => {
     try {
@@ -898,8 +943,60 @@ export function AdminRecipes({
               variant="outline"
               onClick={() => setCreateConceptOpen(true)}
               className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
+              title="Tạo Concept thực đơn tuần mới"
             >
-              <Plus className="mr-1 h-3.5 w-3.5" /> Tạo Concept mới
+              <Plus className="mr-1 h-3.5 w-3.5" /> Thêm Concept
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const cur = concepts.find((c) => c.id === selectedConceptId);
+                if (cur) {
+                  setConceptToEdit(cur);
+                  setEditConceptOpen(true);
+                }
+              }}
+              className="h-8 border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-[#fdf0d5]/50 hover:text-[#92400e]"
+              title="Sửa thông tin Concept đang chọn"
+            >
+              <Pencil className="mr-1 h-3 w-3" /> Sửa
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={selectedConceptId === activeConceptId}
+              onClick={() => {
+                const cur = concepts.find((c) => c.id === selectedConceptId);
+                if (cur) {
+                  setConceptToDelete(cur);
+                  setDeleteAlertOpen(true);
+                }
+              }}
+              className={cn(
+                "h-8 border-stone-300 bg-white text-xs font-semibold",
+                selectedConceptId === activeConceptId
+                  ? "opacity-50 cursor-not-allowed text-stone-400"
+                  : "text-rose-700 hover:bg-rose-50 hover:border-rose-300",
+              )}
+              title={selectedConceptId === activeConceptId ? "Không thể xóa Concept đang phục vụ" : "Xóa Concept này"}
+            >
+              <Trash2 className="mr-1 h-3 w-3" /> Xóa
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setManageConceptsOpen(true)}
+              className="h-8 border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-stone-50"
+              title="Xem và quản lý toàn bộ danh sách Concept"
+            >
+              <Layers className="mr-1 h-3.5 w-3.5 text-[#b45309]" /> Danh sách ({concepts.length})
             </Button>
           </div>
           {/* View mode switcher */}
@@ -1099,23 +1196,57 @@ export function AdminRecipes({
             </div>
           </div>
 
-          <Button
-            type="button"
-            size="sm"
-            disabled={activatingConcept}
-            onClick={() => handleSetActiveConcept(selectedConceptId)}
-            className="h-8 shrink-0 bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
-          >
-            {activatingConcept ? (
-              <>
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang áp dụng...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Áp dụng thực đơn này (Set Active)
-              </>
-            )}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const cur = concepts.find((c) => c.id === selectedConceptId);
+                if (cur) {
+                  setConceptToEdit(cur);
+                  setEditConceptOpen(true);
+                }
+              }}
+              className="h-8 border-amber-300 bg-white text-xs font-semibold text-amber-900 hover:bg-amber-100"
+            >
+              <Pencil className="mr-1 h-3 w-3" /> Sửa Concept
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const cur = concepts.find((c) => c.id === selectedConceptId);
+                if (cur) {
+                  setConceptToDelete(cur);
+                  setDeleteAlertOpen(true);
+                }
+              }}
+              className="h-8 border-rose-300 bg-white text-xs font-semibold text-rose-800 hover:bg-rose-100"
+            >
+              <Trash2 className="mr-1 h-3 w-3" /> Xóa
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              disabled={activatingConcept}
+              onClick={() => handleSetActiveConcept(selectedConceptId)}
+              className="h-8 shrink-0 bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
+            >
+              {activatingConcept ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang áp dụng...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Áp dụng thực đơn này (Set Active)
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -2533,6 +2664,77 @@ export function AdminRecipes({
           await loadBom(guests, true, newId);
         }}
       />
+
+      {/* MODAL SỬA THÔNG TIN CONCEPT */}
+      <EditConceptModal
+        open={editConceptOpen}
+        onOpenChange={setEditConceptOpen}
+        concept={conceptToEdit}
+        onSuccess={async () => {
+          await loadConcepts();
+          await loadBom(guests, true, selectedConceptId);
+        }}
+      />
+
+      {/* MODAL QUẢN LÝ TẤT CẢ CONCEPTS */}
+      <ManageConceptsModal
+        open={manageConceptsOpen}
+        onOpenChange={setManageConceptsOpen}
+        concepts={concepts}
+        activeConceptId={activeConceptId}
+        onSelectConcept={(cId) => {
+          setSelectedConceptId(cId);
+          loadBom(guests, false, cId);
+        }}
+        onCreateNew={() => setCreateConceptOpen(true)}
+        onEditConcept={(c) => {
+          setConceptToEdit(c);
+          setEditConceptOpen(true);
+        }}
+        onRefresh={async () => {
+          await loadConcepts();
+          await loadBom(guests, true, selectedConceptId);
+        }}
+      />
+
+      {/* ALERT DIALOG XÁC NHẬN XÓA CONCEPT */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9]">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-2 text-rose-800 font-bold">
+              <Trash2 className="h-5 w-5 text-rose-600" />
+              <AlertDialogTitle>Xác nhận xóa Concept thực đơn?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-xs text-stone-600 leading-relaxed pt-2">
+              Bạn có chắc chắn muốn xóa{" "}
+              <strong className="text-stone-900">{conceptToDelete?.name}</strong>?
+              <br />
+              Toàn bộ danh sách món ăn, định lượng BOM và thông số phân tích nháp của Concept này sẽ bị gỡ bỏ vĩnh viễn khỏi hệ thống.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-2">
+            <AlertDialogCancel disabled={deletingConcept} className="text-xs h-9">
+              Hủy bỏ
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                void handleConfirmDeleteConcept();
+              }}
+              disabled={deletingConcept}
+              className="bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs h-9"
+            >
+              {deletingConcept ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang xóa...
+                </>
+              ) : (
+                "Xác nhận xóa Concept"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

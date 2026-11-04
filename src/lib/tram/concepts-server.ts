@@ -297,6 +297,79 @@ export async function createConcept({
 }
 
 /**
+ * Cập nhật thông tin Concept thực đơn (Sửa Concept)
+ */
+export async function updateConcept({
+  conceptId,
+  name,
+  description,
+  weekLabel,
+  startDate,
+  endDate,
+  sellingPrice,
+  targetFoodCostPct,
+}: {
+  conceptId: string;
+  name?: string;
+  description?: string;
+  weekLabel?: string;
+  startDate?: string;
+  endDate?: string;
+  sellingPrice?: number;
+  targetFoodCostPct?: number;
+}): Promise<MenuConcept> {
+  const store = await ensureConceptsInitialized();
+  const target = store.concepts.find((c) => c.id === conceptId);
+  if (!target) throw new Error("Concept không tồn tại.");
+
+  if (name !== undefined && name.trim()) target.name = name.trim();
+  if (description !== undefined) target.description = description.trim();
+  if (startDate !== undefined) target.startDate = startDate || undefined;
+  if (endDate !== undefined) target.endDate = endDate || undefined;
+
+  const formatPeriod = () => {
+    if (target.startDate && target.endDate) {
+      const s = target.startDate.split("-").reverse().join("/");
+      const e = target.endDate.split("-").reverse().join("/");
+      return `${s} - ${e}`;
+    }
+    if (target.startDate) return `Áp dụng từ ${target.startDate.split("-").reverse().join("/")}`;
+    return target.weekLabel || "Kế hoạch mới";
+  };
+
+  if (weekLabel !== undefined && weekLabel.trim()) {
+    target.weekLabel = weekLabel.trim();
+  } else if (startDate || endDate) {
+    target.weekLabel = formatPeriod();
+  }
+
+  if (sellingPrice !== undefined && Number(sellingPrice) > 0) {
+    target.sellingPrice = Number(sellingPrice);
+  }
+  if (targetFoodCostPct !== undefined && Number(targetFoodCostPct) > 0) {
+    target.targetFoodCostPct = Number(targetFoodCostPct);
+  }
+
+  target.updatedAt = new Date().toISOString();
+  saveStore(store);
+
+  // Nếu là concept đang phục vụ (activeId), đồng bộ tên chương trình vào CSDL BookingSetting
+  if (conceptId === store.activeId && name) {
+    try {
+      await db.bookingSetting.upsert({
+        where: { id: "default" },
+        update: { programName: target.name },
+        create: { id: "default", programName: target.name, programEnabled: true },
+      });
+    } catch (e) {
+      console.warn("Could not sync programName to BookingSetting:", e);
+    }
+  }
+
+  return target;
+}
+
+/**
  * Áp dụng Concept làm Thực đơn chính thức (Set as Active)
  * Đồng bộ toàn bộ món ăn và dòng BOM vào CSDL SQLite DishRecipe
  */
@@ -350,6 +423,23 @@ export async function setActiveConcept(conceptId: string): Promise<MenuConcept> 
           });
 
           for (const l of v.lines) {
+            // Đảm bảo nguyên liệu tồn tại trong SQLite Ingredient để tránh Foreign Key Violation
+            const exists = await tx.ingredient.findUnique({ where: { id: l.ingredientId } });
+            if (!exists) {
+              await tx.ingredient.create({
+                data: {
+                  id: l.ingredientId,
+                  name: l.ingredientName || l.ingredientId,
+                  unit: l.unit || 'g',
+                  group: (l.group || 'SEASONING') as string,
+                  spec: l.prepNote || null,
+                  defaultImportPrice: l.defaultImportPrice || 100000,
+                  currentStock: 1000,
+                  minStock: 200,
+                },
+              });
+            }
+
             await tx.recipeLine.create({
               data: {
                 variantId: variant.id,
@@ -395,13 +485,16 @@ export async function deleteConcept(conceptId: string): Promise<boolean> {
 /**
  * Lưu chỉnh sửa dòng BOM hoặc Món ăn vào Concept cụ thể
  */
+/**
+ * Lưu chỉnh sửa dòng BOM hoặc Món ăn vào Concept cụ thể
+ */
 export async function saveDishOrLineToConcept({
   conceptId,
   action,
   payload,
 }: {
   conceptId: string;
-  action: "create-dish" | "delete-dish" | "save-line" | "delete-line";
+  action: "create-dish" | "update-dish" | "delete-dish" | "save-line" | "delete-line";
   payload: any;
 }) {
   const store = await ensureConceptsInitialized();
@@ -411,9 +504,9 @@ export async function saveDishOrLineToConcept({
   if (action === "create-dish") {
     const { name, region, portion, method, note } = payload;
     const maxIdx = concept.dishes.length > 0 ? Math.max(...concept.dishes.map((d) => d.index)) : 0;
-    const nextIdx = maxIdx + 1;
+    const nextIdx = payload.index ? Number(payload.index) : maxIdx + 1;
     const newDish: ResolvedDishRecipe = {
-      id: `dish-${Date.now().toString(36)}`,
+      id: `dish-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       index: nextIdx,
       name: name.trim(),
       region: region?.trim() || "TRẦM",
@@ -423,7 +516,7 @@ export async function saveDishOrLineToConcept({
       defaultOptionId: "std",
       variants: [
         {
-          id: `var-${Date.now().toString(36)}`,
+          id: `var-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
           optionId: "std",
           optionName: "Chuẩn vị",
           isDefault: true,
@@ -434,39 +527,104 @@ export async function saveDishOrLineToConcept({
       ],
     };
     concept.dishes.push(newDish);
+    concept.dishes.sort((a, b) => a.index - b.index);
+  } else if (action === "update-dish") {
+    const { index, name, region, portion, method, note } = payload;
+    const dish = concept.dishes.find((d) => d.index === Number(index));
+    if (dish) {
+      if (name) dish.name = name.trim();
+      if (region !== undefined) dish.region = region.trim();
+      if (portion !== undefined) dish.portion = portion.trim();
+      if (method !== undefined) dish.method = method.trim();
+      if (note !== undefined) dish.note = note.trim();
+    }
   } else if (action === "delete-dish") {
     const { index } = payload;
     concept.dishes = concept.dishes.filter((d) => d.index !== Number(index));
   } else if (action === "save-line") {
-    const { variantId, ingredientId, qtyPerGuest, unit } = payload;
-    for (const d of concept.dishes) {
-      for (const v of d.variants) {
-        if (v.id === variantId || v.optionId === "std") {
+    const { dishIndex, variantId, ingredientId, qtyPerGuest, unit, prepNote } = payload;
+    
+    // Tìm thông tin chi tiết nguyên liệu từ CSDL
+    let ingName = ingredientId;
+    let ingGroup: IngredientGroup = "SEASONING";
+    let ingGroupLabel = "Gia vị & nước chấm";
+    let ingUnit: IngredientUnit = unit || "g";
+    let importPrice = 100000;
+
+    try {
+      const dbIng = await db.ingredient.findUnique({ where: { id: ingredientId } });
+      if (dbIng) {
+        ingName = dbIng.name;
+        ingGroup = dbIng.group as IngredientGroup;
+        ingGroupLabel = INGREDIENT_GROUP_LABELS[ingGroup] ?? dbIng.group;
+        ingUnit = (unit || dbIng.unit || "g") as IngredientUnit;
+        importPrice = dbIng.defaultImportPrice;
+      }
+    } catch (e) {
+      console.warn("Could not query ingredient:", e);
+    }
+
+    const targetDish = dishIndex !== undefined 
+      ? concept.dishes.find((d) => d.index === Number(dishIndex))
+      : concept.dishes.find((d) => d.variants.some((v) => v.id === variantId));
+
+    if (targetDish) {
+      for (const v of targetDish.variants) {
+        if (!variantId || v.id === variantId || v.optionId === "std") {
           const existingLineIdx = v.lines.findIndex((l) => l.ingredientId === ingredientId);
           if (existingLineIdx >= 0) {
             v.lines[existingLineIdx].qtyPerGuest = Number(qtyPerGuest);
-            v.lines[existingLineIdx].unit = unit;
+            v.lines[existingLineIdx].qtyTotal = Number(qtyPerGuest);
+            v.lines[existingLineIdx].unit = ingUnit;
+            if (prepNote !== undefined) v.lines[existingLineIdx].prepNote = prepNote;
+            v.lines[existingLineIdx].ingredientName = ingName;
+            v.lines[existingLineIdx].group = ingGroup;
+            v.lines[existingLineIdx].groupLabel = ingGroupLabel;
+            v.lines[existingLineIdx].defaultImportPrice = importPrice;
           } else {
             v.lines.push({
-              id: `line-${Date.now().toString(36)}`,
+              id: `line-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
               ingredientId,
-              ingredientName: ingredientId,
-              group: "SEASONING",
-              groupLabel: "Gia vị",
-              unit,
+              ingredientName: ingName,
+              group: ingGroup,
+              groupLabel: ingGroupLabel,
+              unit: ingUnit,
               qtyPerGuest: Number(qtyPerGuest),
               qtyTotal: Number(qtyPerGuest),
-              defaultImportPrice: 100000,
+              defaultImportPrice: importPrice,
+              prepNote: prepNote || undefined,
             });
           }
+
+          // Recalculate variant totals
+          const totalsPerGuest = { g: 0, ml: 0 };
+          for (const l of v.lines) {
+            if (l.unit === "g" || l.unit === "ml") {
+              totalsPerGuest[l.unit] = Number((totalsPerGuest[l.unit] + l.qtyPerGuest).toFixed(2));
+            }
+          }
+          v.totalsPerGuest = totalsPerGuest;
+          v.totalsForGuests = totalsPerGuest;
         }
       }
     }
   } else if (action === "delete-line") {
-    const { lineId } = payload;
+    const { lineId, dishIndex } = payload;
     for (const d of concept.dishes) {
-      for (const v of d.variants) {
-        v.lines = v.lines.filter((l) => l.id !== lineId);
+      if (dishIndex === undefined || d.index === Number(dishIndex)) {
+        for (const v of d.variants) {
+          v.lines = v.lines.filter((l) => l.id !== lineId && l.ingredientId !== lineId);
+          
+          // Recalculate variant totals
+          const totalsPerGuest = { g: 0, ml: 0 };
+          for (const l of v.lines) {
+            if (l.unit === "g" || l.unit === "ml") {
+              totalsPerGuest[l.unit] = Number((totalsPerGuest[l.unit] + l.qtyPerGuest).toFixed(2));
+            }
+          }
+          v.totalsPerGuest = totalsPerGuest;
+          v.totalsForGuests = totalsPerGuest;
+        }
       }
     }
   }

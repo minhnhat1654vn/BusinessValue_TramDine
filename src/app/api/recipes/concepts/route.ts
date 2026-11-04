@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   getAllConcepts,
   createConcept,
+  updateConcept,
   setActiveConcept,
   deleteConcept,
   saveDishOrLineToConcept,
@@ -21,12 +22,13 @@ export async function GET() {
   }
 }
 
-// POST /api/recipes/concepts — Tạo mới, kích hoạt, hoặc xóa Concept
+// POST /api/recipes/concepts — Thêm, Sửa, Xóa, Kích hoạt Concept
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action, conceptId, name, description, weekLabel, startDate, endDate, cloneFromId, payload } = body;
 
+    // THÊM: Tạo Concept mới
     if (action === "create") {
       const concept = await createConcept({
         name,
@@ -43,6 +45,29 @@ export async function POST(request: Request) {
       });
     }
 
+    // SỬA: Cập nhật thông tin Concept
+    if (action === "update") {
+      if (!conceptId) {
+        return NextResponse.json({ error: "Thiếu mã conceptId." }, { status: 400 });
+      }
+      const updated = await updateConcept({
+        conceptId,
+        name,
+        description,
+        weekLabel,
+        startDate,
+        endDate,
+        sellingPrice: body.sellingPrice,
+        targetFoodCostPct: body.targetFoodCostPct,
+      });
+      return NextResponse.json({
+        success: true,
+        message: `Đã cập nhật thông tin "${updated.name}" thành công!`,
+        concept: updated,
+      });
+    }
+
+    // KÍCH HOẠT: Set Active làm thực đơn chính thức
     if (action === "set-active") {
       if (!conceptId) {
         return NextResponse.json({ error: "Thiếu mã conceptId." }, { status: 400 });
@@ -55,6 +80,7 @@ export async function POST(request: Request) {
       });
     }
 
+    // XÓA: Xóa Concept khỏi danh sách
     if (action === "delete") {
       if (!conceptId) {
         return NextResponse.json({ error: "Thiếu mã conceptId." }, { status: 400 });
@@ -62,10 +88,11 @@ export async function POST(request: Request) {
       await deleteConcept(conceptId);
       return NextResponse.json({
         success: true,
-        message: "Đã xóa Concept khỏi danh sách.",
+        message: "Đã xóa Concept thành công khỏi danh sách.",
       });
     }
 
+    // Chỉnh sửa món hoặc dòng BOM trong Concept
     if (action === "dish-or-line") {
       if (!conceptId || !body.subAction) {
         return NextResponse.json({ error: "Thiếu thông tin chỉnh sửa Concept." }, { status: 400 });
@@ -90,4 +117,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

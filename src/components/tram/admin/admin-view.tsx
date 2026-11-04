@@ -38,6 +38,7 @@ import { AdminWaitlist } from "./waitlist-manager";
 import { AdminSurveys } from "./surveys-view";
 import { AdminBookingSettingsView } from "./booking-settings-view";
 import { AdminRecipes } from "./recipes-view";
+import { AdminConceptsView } from "./concepts-view";
 import { AdminFoodCost } from "./food-cost-view";
 import { AdminInventory } from "./inventory-view";
 import { AdminWarehouseCost } from "./warehouse-cost-view";
@@ -538,10 +539,13 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {(activeTab === "recipes" || activeTab === "concepts" || activeTab === "food-cost") && (
+              {activeTab === "concepts" && (
+                <AdminConceptsView onNavigateTab={handleNavigateTab} />
+              )}
+
+              {(activeTab === "recipes" || activeTab === "food-cost") && (
                 <AdminRecipes
                   initialViewMode={activeTab === "food-cost" ? "food-cost" : "recipes"}
-                  initialOpenConceptModal={activeTab === "concepts"}
                   onNavigateTab={handleNavigateTab}
                 />
               )}
