@@ -1,6 +1,6 @@
 "use client";
 
-// FR-27 — Quản trị Định lượng công thức (BOM) & Kho nguyên liệu kết nối CSDL SQLite
+// FR-27 — Quản trị Định lượng công thức (BOM) & Kho nguyên liệu kết nối dữ liệu
 // Tính năng: Quản lý 7 món Tasting, Quản lý kho nguyên liệu, Preview & Import/Export Excel, CRUD định lượng.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -851,7 +851,7 @@ export function AdminRecipes({
       if (data.errors && data.errors.length > 0) {
         toast.warning(`Đã nhập ${data.insertedLines} dòng, nhưng có ${data.errors.length} dòng lỗi.`);
       } else {
-        toast.success(`Đã nhập thành công ${data.insertedLines} dòng định lượng vào CSDL SQLite!`);
+        toast.success(`Đã nhập thành công ${data.insertedLines} dòng định lượng vào hệ thống!`);
       }
       setImportModalOpen(false);
       setSelectedFile(null);
@@ -885,7 +885,7 @@ export function AdminRecipes({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-              Bếp &amp; kho · CSDL SQLite
+              Bếp &amp; kho
             </span>
             {selectedConceptId === activeConceptId ? (
               <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
