@@ -1094,32 +1094,32 @@ export function AdminRecipes({
             {[
               {
                 id: "food-cost",
-                label: scaled ? `Food Cost (${guests} khách)` : "Food Cost / 1 suất",
+                label: scaled ? `Giá vốn (${guests} khách)` : "Giá vốn / 1 suất",
                 value: formatVND(scaled ? totalFoodCost * guests : totalFoodCost),
-                sub: `${actualFoodCostPct}% giá menu 1.190.000 đ · Mục tiêu 33,5%`,
+                sub: `${actualFoodCostPct}% giá thực đơn 1.190.000 đ · Mục tiêu 33,5%`,
                 tone: actualFoodCostPct <= 34 ? "good" : "warn",
                 icon: Calculator,
               },
               {
                 id: "gross-profit",
-                label: scaled ? `Lãi gộp (${guests} khách)` : "Lãi gộp lý thuyết",
+                label: scaled ? `Lãi gộp (${guests} khách)` : "Lãi gộp / 1 suất",
                 value: formatVND(scaled ? grossProfit * guests : grossProfit),
-                sub: `${grossProfitPct}% biên lợi nhuận gộp`,
+                sub: `${grossProfitPct}% biên lãi gộp`,
                 tone: "default",
                 icon: Coins,
               },
               {
                 id: "shift-capacity",
-                label: "Chi phí ca 42 khách",
+                label: "Giá vốn ca 42 khách",
                 value: formatVND(shift42Cost),
-                sub: `Doanh thu ca: ${formatVND(shift42Revenue)}`,
+                sub: `Doanh thu ca 42 khách: ${formatVND(shift42Revenue)}`,
                 tone: "default",
                 icon: Users,
               },
               {
                 id: "highest-dish",
-                label: "Món chi phí cao nhất",
-                value: highestDish ? `Món 0${highestDish.dish.index}` : "—",
+                label: "Món giá vốn cao nhất",
+                value: highestDish ? `Món ${String(highestDish.dish.index).padStart(2, "0")}` : "—",
                 sub: highestDish
                   ? `${highestDish.dish.name} (${formatVND(highestDish.cost)} · ${totalFoodCost > 0 ? Math.round((highestDish.cost / totalFoodCost) * 1000) / 10 : 0}%)`
                   : "—",

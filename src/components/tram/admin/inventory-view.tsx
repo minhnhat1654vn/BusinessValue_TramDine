@@ -1,7 +1,7 @@
-﻿"use client";
+"use client";
 
-// FR-29 â€” Quáº£n lÃ½ tá»“n kho: theo dÃµi lÆ°á»£ng tá»“n theo tá»«ng nguyÃªn liá»‡u,
-// tá»•ng giÃ¡ trá»‹ kho cáº­p nháº­t liÃªn tá»¥c theo thá»i gian thá»±c.
+// FR-29 — Quản lý tồn kho: theo dõi lượng tồn theo từng nguyên liệu,
+// tổng giá trị kho cập nhật liên tục theo thời gian thực.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StockInModal } from "./stock-in-modal";
 import Image from "next/image";
@@ -107,13 +107,13 @@ const GROUP_STYLES: Record<
 };
 
 const SHORT_GROUP_LABELS: Record<IngredientGroup, string> = {
-  PROTEIN: "Äáº¡m",
-  STARCH: "Tinh bá»™t",
-  DAIRY_FAT: "Sá»¯a & bÃ©o",
-  PRODUCE: "Rau & náº¥m",
-  FRUIT_NUT: "TrÃ¡i cÃ¢y & háº¡t",
-  SEASONING: "Gia vá»‹",
-  AROMATIC: "HÆ°Æ¡ng liá»‡u",
+  PROTEIN: "Đạm",
+  STARCH: "Tinh bột",
+  DAIRY_FAT: "Sữa & béo",
+  PRODUCE: "Rau & nấm",
+  FRUIT_NUT: "Trái cây & hạt",
+  SEASONING: "Gia vị",
+  AROMATIC: "Hương liệu",
 };
 
 const GROUP_SECTION_STYLES: Record<
@@ -248,7 +248,7 @@ export function AdminInventory({
     pendingSyncRef.current = isPendingSync || isSaving;
   }, [isPendingSync, isSaving]);
 
-  // Táº£i tráº¡ng thÃ¡i tá»“n kho & Ä‘Æ¡n giÃ¡ nháº­p kho hiá»‡u lá»±c tá»« server
+  // Tải trạng thái tồn kho & đơn giá nhập kho hiệu lực từ server
   const fetchSnapshot = useCallback((isInitial: boolean) => {
     fetch(`/api/inventory?_t=${Date.now()}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
@@ -294,10 +294,10 @@ export function AdminInventory({
 
   const handleStockInSuccess = useCallback(() => {
     fetchSnapshot(true);
-    toast.success("ÄÃ£ ghi nháº­n phiáº¿u nháº­p kho vÃ  cáº­p nháº­t sá»‘ lÆ°á»£ng tá»“n");
+    toast.success("Đã ghi nhận phiếu nhập kho và cập nhật số lượng tồn");
   }, [fetchSnapshot]);
 
-  // Tá»± Ä‘á»™ng Ä‘á»“ng bá»™ tá»“n kho & má»©c Ä‘áº·t láº¡i lÃªn server má»—i khi chá»‰nh sá»­a (liÃªn tá»¥c, debounce 380ms)
+  // Tự động đồng bộ tồn kho & mức đặt lại lên server mỗi khi chỉnh sửa (liên tục, debounce 380ms)
   useEffect(() => {
     if (
       !loaded ||
@@ -321,7 +321,7 @@ export function AdminInventory({
       })
         .then(async (res) => {
           const body = await res.json();
-          if (!res.ok) throw new Error(body.error ?? "KhÃ´ng lÆ°u Ä‘Æ°á»£c tá»“n kho.");
+          if (!res.ok) throw new Error(body.error ?? "Không lưu được tồn kho.");
           if (!cancelled) {
             const persisted = (body.stockOverrides ?? {}) as Record<string, number>;
             const persistedReorder = (body.reorderOverrides ?? {}) as Record<string, number>;
@@ -333,7 +333,7 @@ export function AdminInventory({
         })
         .catch((err) => {
           if (!cancelled) {
-            toast.error(err instanceof Error ? err.message : "Lá»—i Ä‘á»“ng bá»™ tá»“n kho.");
+            toast.error(err instanceof Error ? err.message : "Lỗi đồng bộ tồn kho.");
           }
         })
         .finally(() => {
@@ -354,7 +354,7 @@ export function AdminInventory({
     try {
       const res = await fetch("/api/inventory", { method: "DELETE" });
       const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? "KhÃ´ng khÃ´i phá»¥c Ä‘Æ°á»£c kho chuáº©n.");
+      if (!res.ok) throw new Error(body.error ?? "Không khôi phục được kho chuẩn.");
       setSavedStock({});
       setDraftStock({});
       setSavedReorder({});
@@ -363,15 +363,15 @@ export function AdminInventory({
         setPriceOverrides(body.priceOverrides as Record<string, number>);
       }
       if (scope === "OUT" || scope === "NEEDS_REORDER") setScope("ALL");
-      toast.success("ÄÃ£ khÃ´i phá»¥c Ä‘á»‹nh má»©c tá»“n kho & ngÆ°á»¡ng Ä‘áº·t láº¡i chuáº©n.");
+      toast.success("Đã khôi phục định mức tồn kho & ngưỡng đặt lại chuẩn.");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Lá»—i khÃ´i phá»¥c tá»“n kho.");
+      toast.error(err instanceof Error ? err.message : "Lỗi khôi phục tồn kho.");
     } finally {
       setIsSaving(false);
     }
   }
 
-  // ---------- BÃ¡o cÃ¡o tá»“n kho & tá»•ng giÃ¡ trá»‹ kho tá»± tÃ­nh tá»©c thá»i ----------
+  // ---------- Báo cáo tồn kho & tổng giá trị kho tự tính tức thời ----------
   const report = useMemo(
     () => calculateInventoryReport(draftStock, priceOverrides, draftReorder),
     [draftStock, priceOverrides, draftReorder],
@@ -389,7 +389,7 @@ export function AdminInventory({
     [report.items],
   );
 
-  // TÃ¬nh tráº¡ng nguyÃªn liá»‡u cá»§a tá»«ng mÃ³n 1..7 (cáº£nh bÃ¡o náº¿u cÃ³ nguyÃªn liá»‡u < 32%)
+  // Tình trạng nguyên liệu của từng món 1..7 (cảnh báo nếu có nguyên liệu < 32%)
   const dishStatusMap = useMemo(() => {
     const map: Record<number, { hasWarning: boolean; warningIngredients: string[] }> = {};
     for (const dish of MENU_ITEMS) {
@@ -424,7 +424,7 @@ export function AdminInventory({
     });
   }, [report.items, scope, selectedGroup, search]);
 
-  // PhÃ¢n trang danh má»¥c tá»“n kho (giá»›i háº¡n 20 dÃ²ng / trang)
+  // Phân trang danh mục tồn kho (giới hạn 20 dòng / trang)
   const [invPage, setInvPage] = useState(1);
   const INV_PAGE_SIZE = 20;
 
@@ -459,20 +459,20 @@ export function AdminInventory({
 
   return (
     <div className="space-y-6">
-      {/* ==================== 1. TIÃŠU Äá»€ ==================== */}
+      {/* ==================== 1. TIÊU ĐỀ ==================== */}
       {!hideTitleHeader ? (
         <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-                Báº¿p &amp; kho
+                Bếp &amp; kho
               </span>
             </div>
             <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-              Quáº£n lÃ½ tá»“n kho nguyÃªn váº­t liá»‡u
+              Quản lý tồn kho nguyên vật liệu
             </h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Kiá»ƒm kÃª Ä‘á»‹nh má»©c tá»“n, dá»± bÃ¡o háº¡n sá»­ dá»¥ng vÃ  tá»•ng giÃ¡ trá»‹ kho váº­t liá»‡u theo thá»i gian thá»±c.
+              Kiểm kê định mức tồn, dự báo hạn sử dụng và tổng giá trị kho vật liệu theo thời gian thực.
             </p>
           </div>
 
@@ -487,7 +487,7 @@ export function AdminInventory({
               className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5]"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-              KhÃ´i phá»¥c kho chuáº©n
+              Khôi phục kho chuẩn
             </button>
           )}
         </div>
@@ -504,36 +504,36 @@ export function AdminInventory({
               className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5]"
             >
               <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-              KhÃ´i phá»¥c kho chuáº©n
+              Khôi phục kho chuẩn
             </button>
           </div>
         ) : null
       )}
 
-      {/* ==================== 2. CHá»ˆ Sá» Tá»’N KHO TRá»°C TIáº¾P ==================== */}
+      {/* ==================== 2. CHỈ SỐ TỒN KHO TRỰC TIẾP ==================== */}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {[
           {
             id: "total-value",
-            label: "Tá»•ng giÃ¡ trá»‹ kho",
+            label: "Tổng giá trị kho",
             value: formatVND(report.totalValue),
             sub:
               report.deltaVsDefaultValue === 0
-                ? `${report.inStockCount}/${report.totalIngredients} nguyÃªn liá»‡u cÃ³ tá»“n`
-                : `${formatSignedVND(report.deltaVsDefaultValue)} so vá»›i kho chuáº©n`,
+                ? `${report.inStockCount}/${report.totalIngredients} nguyên liệu có tồn`
+                : `${formatSignedVND(report.deltaVsDefaultValue)} so với kho chuẩn`,
             icon: Warehouse,
             tone: "default" as const,
           },
           {
             id: "servings-capacity",
-            label: "Äá»§ phá»¥c vá»¥ chuáº©n",
-            value: `${report.maxStandardGuests} khÃ¡ch`,
+            label: "Đủ phục vụ chuẩn",
+            value: `${report.maxStandardGuests} khách`,
             sub:
               report.needsReorderCount > 0
-                ? `${report.needsReorderCount} nguyÃªn liá»‡u cáº£nh bÃ¡o < 32%`
+                ? `${report.needsReorderCount} nguyên liệu cảnh báo < 32%`
                 : report.bottleneckIngredient
-                  ? `Giá»›i háº¡n: ${report.bottleneckIngredient.name}`
-                  : "ToÃ n bá»™ nguyÃªn liá»‡u â‰¥ 32%",
+                  ? `Giới hạn: ${report.bottleneckIngredient.name}`
+                  : "Toàn bộ nguyên liệu ≥ 32%",
             icon: Users,
             tone:
               report.maxStandardGuests === 0 || report.needsReorderCount > 0
@@ -544,17 +544,17 @@ export function AdminInventory({
           },
           {
             id: "total-volume",
-            label: "Khá»‘i lÆ°á»£ng & thá»ƒ tÃ­ch",
+            label: "Khối lượng & thể tích",
             value: formatQty(report.totalSolidG, "g"),
-            sub: `vÃ  ${formatQty(report.totalLiquidMl, "ml")} cháº¥t lá»ng`,
+            sub: `và ${formatQty(report.totalLiquidMl, "ml")} chất lỏng`,
             icon: Package,
             tone: "default" as const,
           },
           {
             id: "top-group",
-            label: "NhÃ³m giÃ¡ trá»‹ cao nháº¥t",
+            label: "Nhóm giá trị cao nhất",
             value: formatVND(topGroup.totalValue),
-            sub: `${SHORT_GROUP_LABELS[topGroup.group]} Â· ${formatPercent(topGroup.shareOfValuePct, 1)} tá»•ng kho`,
+            sub: `${SHORT_GROUP_LABELS[topGroup.group]} · ${formatPercent(topGroup.shareOfValuePct, 1)} tổng kho`,
             icon: Coins,
             tone: "default" as const,
           },
@@ -598,13 +598,13 @@ export function AdminInventory({
         ))}
       </div>
 
-      {/* ==================== 3. CÆ  Cáº¤U GIÃ TRá»Š KHO THEO NHÃ“M ==================== */}
+      {/* ==================== 3. CƠ CẤU GIÁ TRỊ KHO THEO NHÓM ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="border-b border-border/60 px-4 py-3.5 sm:px-5 [.border-b]:pb-3.5">
           <CardTitle className="flex items-center justify-between gap-2 text-base font-semibold text-[#292524]">
             <span className="flex items-center gap-2">
               <Layers className="h-4 w-4 text-[#b45309]" aria-hidden />
-              GiÃ¡ trá»‹ tá»“n kho theo nhÃ³m nguyÃªn liá»‡u
+              Giá trị tồn kho theo nhóm nguyên liệu
             </span>
             <span className="font-heading text-base font-bold tabular-nums text-[#92400e]">
               {formatVND(report.totalValue)}
@@ -613,7 +613,7 @@ export function AdminInventory({
         </CardHeader>
 
         <CardContent className="space-y-4 p-4 sm:p-5">
-          {/* Thanh phÃ¢n bá»• giÃ¡ trá»‹ tá»“n theo 7 nhÃ³m */}
+          {/* Thanh phân bổ giá trị tồn theo 7 nhóm */}
           <div className="flex h-3.5 w-full overflow-hidden rounded-full border border-border/70 bg-[#f5efe4]">
             {report.groupSummary.map((g) => {
               const widthPct =
@@ -634,7 +634,7 @@ export function AdminInventory({
             })}
           </div>
 
-          {/* 7 Ã´ nhÃ³m tÆ°Æ¡ng tÃ¡c (báº¥m Ä‘á»ƒ lá»c nhanh báº£ng bÃªn dÆ°á»›i) */}
+          {/* 7 ô nhóm tương tác (bấm để lọc nhanh bảng bên dưới) */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">
             {report.groupSummary.map((g) => {
               const active = selectedGroup === g.group;
@@ -674,7 +674,7 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* ==================== 3B. Dá»° BÃO NHU Cáº¦U & KHO THIáº¾U Há»¤T THEO Lá»ŠCH Äáº¶T BÃ€N ==================== */}
+      {/* ==================== 3B. DỰ BÁO NHU CẦU & KHO THIẾU HỤT THEO LỊCH ĐẶT BÀN ==================== */}
       <InventoryDemandForecastSection
         items={report.items}
         totalWarehouseValue={report.totalValue}
@@ -684,13 +684,13 @@ export function AdminInventory({
         }}
       />
 
-      {/* ==================== 4. Báº¢NG Tá»’N KHO THEO Tá»ªNG NGUYÃŠN LIá»†U ==================== */}
+      {/* ==================== 4. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
               <Warehouse className="h-4 w-4 text-[#7c2d12]" aria-hidden />
-              Sá»• tá»“n kho nguyÃªn liá»‡u
+              Sổ tồn kho nguyên liệu
             </CardTitle>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -704,7 +704,7 @@ export function AdminInventory({
                 className="h-9 gap-1.5 rounded-sm bg-[#7c2d12] px-3.5 font-heading text-xs font-semibold text-[#fdf0d5] shadow-none hover:bg-[#5f200c]"
               >
                 <ArrowDownToLine className="h-3.5 w-3.5" />
-                Nháº­p hÃ ng vÃ o kho
+                Nhập hàng vào kho
               </Button>
 
               <div className="relative w-full sm:w-60">
@@ -715,8 +715,8 @@ export function AdminInventory({
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="TÃ¬m nguyÃªn liá»‡u..."
-                  aria-label="TÃ¬m nguyÃªn liá»‡u trong kho"
+                  placeholder="Tìm nguyên liệu..."
+                  aria-label="Tìm nguyên liệu trong kho"
                   className="h-9 rounded-sm pl-8 text-sm"
                 />
               </div>
@@ -724,25 +724,25 @@ export function AdminInventory({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            {/* Lá»c pháº¡m vi */}
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Pháº¡m vi tá»“n kho">
+            {/* Lọc phạm vi */}
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Phạm vi tồn kho">
               {(
                 [
-                  { key: "ALL" as const, label: `Táº¥t cáº£ (${report.totalIngredients})`, tone: "neutral" as const },
-                  { key: "SAFE" as const, label: `CÃ²n hÃ ng (${report.safeCount})`, tone: "safe" as const },
+                  { key: "ALL" as const, label: `Tất cả (${report.totalIngredients})`, tone: "neutral" as const },
+                  { key: "SAFE" as const, label: `Còn hàng (${report.safeCount})`, tone: "safe" as const },
                   ...(report.needsReorderCount > 0
                     ? [
                         {
                           key: "NEEDS_REORDER" as const,
-                          label: `Cáº£nh bÃ¡o < 32% (${report.needsReorderCount})`,
+                          label: `Cảnh báo < 32% (${report.needsReorderCount})`,
                           tone: "warn" as const,
                         },
                       ]
                     : []),
                   ...(report.outOfStockCount > 0
-                    ? [{ key: "OUT" as const, label: `Háº¿t tá»“n (${report.outOfStockCount})`, tone: "out" as const }]
+                    ? [{ key: "OUT" as const, label: `Hết tồn (${report.outOfStockCount})`, tone: "out" as const }]
                     : []),
-                  { key: "STANDARD" as const, label: `Suáº¥t chuáº©n (${standardCount})`, tone: "neutral" as const },
+                  { key: "STANDARD" as const, label: `Suất chuẩn (${standardCount})`, tone: "neutral" as const },
                 ]
               ).map((tab) => {
                 const active = scope === tab.key;
@@ -767,8 +767,8 @@ export function AdminInventory({
               })}
             </div>
 
-            {/* Lá»c nhÃ³m */}
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Lá»c nhÃ³m nguyÃªn liá»‡u">
+            {/* Lọc nhóm */}
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Lọc nhóm nguyên liệu">
               {(["ALL", ...INGREDIENT_GROUP_ORDER] as const).map((g) => {
                 const active = selectedGroup === g;
                 const count =
@@ -782,13 +782,13 @@ export function AdminInventory({
                     onClick={() => setSelectedGroup(g)}
                     aria-pressed={active}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-heading text-[11px] font-medium transition-colors",
                       active
                         ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
                         : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12] hover:text-[#7c2d12]",
                     )}
                   >
-                    {g === "ALL" ? "Táº¥t cáº£ nhÃ³m" : SHORT_GROUP_LABELS[g]}
+                    {g === "ALL" ? "Tất cả nhóm" : SHORT_GROUP_LABELS[g]}
                     <span
                       className={cn(
                         "tabular-nums",
@@ -809,36 +809,36 @@ export function AdminInventory({
             <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
               <Search className="h-6 w-6 text-muted-foreground/60" aria-hidden />
               <p className="text-sm text-muted-foreground">
-                KhÃ´ng cÃ³ nguyÃªn liá»‡u phÃ¹ há»£p bá»™ lá»c.
+                Không có nguyên liệu phù hợp bộ lọc.
               </p>
             </div>
           ) : (
-            <Table className="min-w-[960px]">
+            <Table className="min-w-[960px] font-heading">
               <TableHeader>
                 <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
                   <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
-                    NguyÃªn liá»‡u
+                    Nguyên liệu
                   </TableHead>
                   <TableHead className="w-24 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    MÃ³n dÃ¹ng
+                    Món dùng
                   </TableHead>
                   <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    Sá»‘ lÆ°á»£ng tá»“n
+                    Số lượng tồn
                   </TableHead>
                   <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    Má»©c Ä‘áº·t láº¡i
+                    Mức đặt lại
                   </TableHead>
                   <TableHead className="w-24 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    Äá»§ phá»¥c vá»¥
+                    Đủ phục vụ
                   </TableHead>
                   <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    ÄÆ¡n giÃ¡ kho
+                    Đơn giá kho
                   </TableHead>
                   <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    GiÃ¡ trá»‹ tá»“n
+                    Giá trị tồn
                   </TableHead>
                   <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
-                    Thao tÃ¡c
+                    Thao tác
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -865,8 +865,8 @@ export function AdminInventory({
                     className="pl-4 text-xs font-semibold text-stone-700 sm:pl-5"
                   >
                     {scope === "ALL" && selectedGroup === "ALL" && !search.trim()
-                      ? `Tá»•ng giÃ¡ trá»‹ kho Â· ${report.totalIngredients} nguyÃªn liá»‡u`
-                      : `Tá»•ng theo bá»™ lá»c Â· ${filteredItems.length} nguyÃªn liá»‡u (${formatPercent(filteredSharePct, 1)} kho)`}
+                      ? `Tổng giá trị kho · ${report.totalIngredients} nguyên liệu`
+                      : `Tổng theo bộ lọc · ${filteredItems.length} nguyên liệu (${formatPercent(filteredSharePct, 1)} kho)`}
                   </TableCell>
                   <TableCell className="text-right text-sm font-bold tabular-nums text-[#92400e]">
                     {formatVND(filteredValueTotal)}
@@ -877,20 +877,20 @@ export function AdminInventory({
             </Table>
           )}
 
-          {/* PhÃ¢n trang giá»›i háº¡n 20 dÃ²ng / trang */}
+          {/* Phân trang giới hạn 20 dòng / trang */}
           {filteredItems.length > 0 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
               <div>
-                Hiá»ƒn thá»‹{" "}
+                Hiển thị{" "}
                 <strong className="text-stone-800">
                   {filteredItems.length === 0 ? 0 : (invPage - 1) * INV_PAGE_SIZE + 1}
                 </strong>{" "}
-                â€“{" "}
+                –{" "}
                 <strong className="text-stone-800">
                   {Math.min(invPage * INV_PAGE_SIZE, filteredItems.length)}
                 </strong>{" "}
-                trong tá»•ng sá»‘{" "}
-                <strong className="text-stone-800">{filteredItems.length}</strong> nguyÃªn liá»‡u (tá»‘i Ä‘a 20 dÃ²ng / trang)
+                trong tổng số{" "}
+                <strong className="text-stone-800">{filteredItems.length}</strong> nguyên liệu (tối đa 20 dòng / trang)
               </div>
 
               {invTotalPages > 1 && (
@@ -903,7 +903,7 @@ export function AdminInventory({
                     onClick={() => setInvPage((p) => Math.max(1, p - 1))}
                     className="h-7 px-2.5 text-xs text-stone-700"
                   >
-                    <ChevronLeft className="mr-1 h-3.5 w-3.5" /> TrÆ°á»›c
+                    <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
                   </Button>
 
                   <div className="flex items-center gap-1 px-1">
@@ -941,7 +941,7 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* MODAL PHIáº¾U NHáº¬P HÃ€NG VÃ€O KHO */}
+      {/* MODAL PHIẾU NHẬP HÀNG VÀO KHO */}
       <StockInModal
         open={stockInOpen}
         onOpenChange={setStockInOpen}
@@ -952,7 +952,7 @@ export function AdminInventory({
   );
 }
 
-// ---------- NhÃ³m dÃ²ng nguyÃªn liá»‡u & DÃ²ng hiá»ƒn thá»‹ tá»“n kho tá»± Ä‘á»™ng ----------
+// ---------- Nhóm dòng nguyên liệu & Dòng hiển thị tồn kho tự động ----------
 
 function InventoryGroupSection({
   group,
@@ -979,11 +979,11 @@ function InventoryGroupSection({
               {INGREDIENT_GROUP_LABELS[group]}
             </span>
             <span className="text-[11px] italic text-stone-600">
-              {items.length} máº·t hÃ ng
+              {items.length} mặt hàng
             </span>
             <span className="h-px w-8 bg-[#92400e]/40" aria-hidden />
             <span className="text-[11.5px] tabular-nums text-stone-700">
-              GiÃ¡ trá»‹ tá»“n nhÃ³m: <strong className="font-heading font-bold text-stone-900">{formatVND(groupSubtotal)}</strong>
+              Giá trị tồn nhóm: <strong className="font-heading font-bold text-stone-900">{formatVND(groupSubtotal)}</strong>
               <span className="ml-1 text-stone-500">({formatPercent(groupPct, 1)} kho)</span>
             </span>
           </div>
@@ -1015,35 +1015,35 @@ function InventoryStockRow({
         isOut && "bg-rose-50/40",
       )}
     >
-      {/* 1. NguyÃªn liá»‡u & NhÃ£n cáº£nh bÃ¡o */}
+      {/* 1. Nguyên liệu & Nhãn cảnh báo */}
       <TableCell className="whitespace-normal pl-4 sm:pl-5">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-heading font-semibold text-[#292524]">{item.name}</span>
           {isOut ? (
-            <span className="text-[11px] font-semibold italic text-rose-800">â€” háº¿t tá»“n</span>
+            <span className="text-[11px] font-semibold italic text-rose-800">— hết tồn</span>
           ) : isWarning ? (
-            <span className="text-[11px] font-semibold italic text-rose-700">â€” cáº§n Ä‘áº·t thÃªm</span>
+            <span className="text-[11px] font-semibold italic text-rose-700">— cần đặt thêm</span>
           ) : null}
           {item.isCustomPrice && (
             <Badge
               variant="outline"
               className="rounded-sm border-stone-300 bg-transparent px-1.5 py-0 text-[9.5px] font-medium italic text-stone-600"
             >
-              GiÃ¡ má»›i
+              Giá mới
             </Badge>
           )}
         </div>
       </TableCell>
 
-      {/* 2. MÃ³n dÃ¹ng */}
+      {/* 2. Món dùng */}
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {item.standardDishIndexes.map((idx) => {
-            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `MÃ³n ${idx}`;
+            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
             return (
               <span
                 key={`std-${idx}`}
-                title={`MÃ³n ${idx}: ${dishName}`}
+                title={`Món ${idx}: ${dishName}`}
                 className="flex h-6 w-6 items-center justify-center rounded-sm border border-stone-400 bg-transparent font-heading text-[11px] font-bold tabular-nums text-stone-800"
               >
                 {idx}
@@ -1051,11 +1051,11 @@ function InventoryStockRow({
             );
           })}
           {item.altDishIndexes.map((idx) => {
-            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `MÃ³n ${idx}`;
+            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
             return (
               <span
                 key={`alt-${idx}`}
-                title={`MÃ³n ${idx} (phÆ°Æ¡ng Ã¡n thay tháº¿): ${dishName}`}
+                title={`Món ${idx} (phương án thay thế): ${dishName}`}
                 className="flex h-6 w-6 items-center justify-center rounded-sm border border-dashed border-stone-400 bg-transparent font-heading text-[11px] font-semibold tabular-nums text-stone-500"
               >
                 {idx}
@@ -1065,7 +1065,7 @@ function InventoryStockRow({
         </div>
       </TableCell>
 
-      {/* 3. Sá»‘ lÆ°á»£ng tá»“n kho (tá»± Ä‘á»™ng tÃ­nh theo thá»i gian thá»±c) */}
+      {/* 3. Số lượng tồn kho (tự động tính theo thời gian thực) */}
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1.5">
           <span
@@ -1081,7 +1081,7 @@ function InventoryStockRow({
               "text-[10.5px] tabular-nums",
               isWarning ? "font-semibold text-rose-700" : "text-stone-500",
             )}
-            title={`Tá»· lá»‡ tá»“n: ${item.stockPercent}% so vá»›i Ä‘á»‹nh má»©c`}
+            title={`Tỷ lệ tồn: ${item.stockPercent}% so với định mức`}
           >
             ({item.stockPercent}%)
           </span>
@@ -1093,7 +1093,7 @@ function InventoryStockRow({
         )}
       </TableCell>
 
-      {/* 4. Má»©c Ä‘áº·t láº¡i (ngÆ°á»¡ng cáº£nh bÃ¡o 32%) */}
+      {/* 4. Mức đặt lại (ngưỡng cảnh báo 32%) */}
       <TableCell className="text-right">
         <div
           className={cn(
@@ -1109,14 +1109,14 @@ function InventoryStockRow({
             isWarning ? "text-rose-700 font-semibold" : "text-stone-500",
           )}
         >
-          NgÆ°á»¡ng 32%
+          Ngưỡng 32%
         </div>
       </TableCell>
 
-      {/* 5. Äá»§ phá»¥c vá»¥ */}
+      {/* 5. Đủ phục vụ */}
       <TableCell className="text-right tabular-nums">
         {item.estimatedGuests === null ? (
-          <span className="text-muted-foreground/60">â€”</span>
+          <span className="text-muted-foreground/60">—</span>
         ) : (
           <div>
             <span
@@ -1125,21 +1125,21 @@ function InventoryStockRow({
                 isWarning ? "text-rose-700" : "text-stone-800",
               )}
             >
-              {item.estimatedGuests} suáº¥t
+              {item.estimatedGuests} suất
             </span>
             {!item.isStandardIngredient && (
-              <div className="text-[10px] text-muted-foreground">thay tháº¿</div>
+              <div className="text-[10px] text-muted-foreground">thay thế</div>
             )}
           </div>
         )}
       </TableCell>
 
-      {/* 6. ÄÆ¡n giÃ¡ kho */}
+      {/* 6. Đơn giá kho */}
       <TableCell className="text-right text-xs tabular-nums text-stone-600">
         {formatVND(item.importPrice)}/{item.importUnitLabel}
       </TableCell>
 
-      {/* 7. GiÃ¡ trá»‹ tá»“n */}
+      {/* 7. Giá trị tồn */}
       <TableCell className="text-right">
         <div
           className={cn(
@@ -1154,16 +1154,16 @@ function InventoryStockRow({
         </div>
       </TableCell>
 
-      {/* 8. Thao tÃ¡c nháº­p hÃ ng nhanh */}
+      {/* 8. Thao tác nhập hàng nhanh */}
       <TableCell className="pr-4 text-center sm:pr-5">
         <button
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
           className="inline-flex h-6 items-center gap-1 rounded-sm border border-stone-400 bg-transparent px-2 text-[10.5px] font-semibold text-stone-700 transition-colors hover:border-[#92400e] hover:bg-[#92400e] hover:text-white"
-          title={`Nháº­p hÃ ng thÃªm cho ${item.name}`}
+          title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
-          Nháº­p
+          Nhập
         </button>
       </TableCell>
     </TableRow>
@@ -1171,7 +1171,7 @@ function InventoryStockRow({
 }
 
 
-// ==================== COMPONENT Báº¢NG Háº N DÃ™NG NGUYÃŠN LIá»†U THEO NGÃ€Y ====================
+// ==================== COMPONENT BẢNG HẠN DÙNG NGUYÊN LIỆU THEO NGÀY ====================
 
 interface DailyDemandSummary {
   date: string;
@@ -1214,7 +1214,7 @@ function InventoryDemandForecastSection({
   const [forecastPage, setForecastPage] = useState(1);
   const PAGE_SIZE = 15;
 
-  // Láº¥y dá»¯ liá»‡u Ä‘áº·t bÃ n cÃ¡c ngÃ y tá»›i tá»« API
+  // Lấy dữ liệu đặt bàn các ngày tới từ API
   useEffect(() => {
     let mounted = true;
     fetch("/api/inventory/demand-forecast")
@@ -1235,7 +1235,7 @@ function InventoryDemandForecastSection({
 
   const PRESET_DAYS = [1, 2, 3, 4, 5, 7, 14];
 
-  // Helper tÃ­nh nhu cáº§u vÃ  thiáº¿u há»¥t cho 1 má»‘c sá»‘ ngÃ y
+  // Helper tính nhu cầu và thiếu hụt cho 1 mốc số ngày
   const computeShortagesForDays = useCallback(
     (daysCount: number) => {
       if (dailyForecasts.length === 0) return [];
@@ -1257,7 +1257,7 @@ function InventoryDemandForecastSection({
           const cost = Math.round(shortageImportUnit * item.importPrice);
           const guestsCovered = Math.floor(item.stockQty / stdQty);
 
-          // TÃ­nh sá»‘ ngÃ y tá»“n kho Ä‘Ã¡p á»©ng Ä‘Æ°á»£c
+          // Tính số ngày tồn kho đáp ứng được
           let daysCountCovered = 0;
           let remaining = item.stockQty;
           for (const d of dailyForecasts) {
@@ -1275,9 +1275,9 @@ function InventoryDemandForecastSection({
             }
           }
 
-          let daysCoveredText = `Äá»§ ${daysCountCovered.toFixed(1)} ngÃ y`;
-          if (item.stockQty === 0) daysCoveredText = "Háº¿t hÃ ng (0 ngÃ y)";
-          else if (daysCountCovered >= 14) daysCoveredText = "> 14 ngÃ y (an toÃ n)";
+          let daysCoveredText = `Đủ ${daysCountCovered.toFixed(1)} ngày`;
+          if (item.stockQty === 0) daysCoveredText = "Hết hàng (0 ngày)";
+          else if (daysCountCovered >= 14) daysCoveredText = "> 14 ngày (an toàn)";
 
           return {
             item,
@@ -1300,8 +1300,8 @@ function InventoryDemandForecastSection({
     [dailyForecasts, items],
   );
 
-  // Logic tá»± Ä‘á»™ng chá»n ngÃ y theo yÃªu cáº§u nghiá»‡p vá»¥:
-  // "khi click vÃ´ page Ä‘Ã³ thÃ¬ hiá»ƒn sá»‘ nguyÃªn liá»‡u cÃ²n dÃ¹ng dc trong 1 ngÃ y náº¿u 1 ngÃ y k cÃ³ thÃ¬ 2 ngÃ y,..."
+  // Logic tự động chọn ngày theo yêu cầu nghiệp vụ:
+  // "khi click vô page đó thì hiển số nguyên liệu còn dùng dc trong 1 ngày nếu 1 ngày k có thì 2 ngày,..."
   useEffect(() => {
     if (dailyForecasts.length === 0) return;
 
@@ -1311,19 +1311,19 @@ function InventoryDemandForecastSection({
       if (shortageCount > 0) {
         setSelectedDays(d);
         if (d === 1) {
-          setAutoSelectedInfo(`ÄÃ£ tá»± Ä‘á»™ng chá»n má»‘c 1 ngÃ y: PhÃ¡t hiá»‡n ${shortageCount} nguyÃªn liá»‡u thiáº¿u ngay hÃ´m nay!`);
+          setAutoSelectedInfo(`Đã tự động chọn mốc 1 ngày: Phát hiện ${shortageCount} nguyên liệu thiếu ngay hôm nay!`);
         } else {
-          setAutoSelectedInfo(`ÄÃ£ tá»± Ä‘á»™ng chuyá»ƒn sang má»‘c ${d} ngÃ y (vÃ¬ má»‘c trÆ°á»›c Ä‘Ã³ Ä‘Ã£ Ä‘á»§ hÃ ng, má»‘c ${d} ngÃ y báº¯t Ä‘áº§u cÃ³ ${shortageCount} máº·t hÃ ng thiáº¿u há»¥t).`);
+          setAutoSelectedInfo(`Đã tự động chuyển sang mốc ${d} ngày (vì mốc trước đó đã đủ hàng, mốc ${d} ngày bắt đầu có ${shortageCount} mặt hàng thiếu hụt).`);
         }
         return;
       }
     }
-    // Náº¿u táº¥t cáº£ cÃ¡c má»‘c Ä‘á»u Ä‘á»§
+    // Nếu tất cả các mốc đều đủ
     setSelectedDays(3);
-    setAutoSelectedInfo("Kho hiá»‡n táº¡i Ä‘Ã¡p á»©ng tá»‘t lá»‹ch Ä‘áº·t bÃ n trong 3 ngÃ y tá»›i.");
+    setAutoSelectedInfo("Kho hiện tại đáp ứng tốt lịch đặt bàn trong 3 ngày tới.");
   }, [dailyForecasts, computeShortagesForDays]);
 
-  // Sá»‘ lÆ°á»£ng máº·t hÃ ng thiáº¿u theo tá»«ng nÃºt preset ngÃ y Ä‘á»ƒ hiá»ƒn thá»‹ nhÃ£n
+  // Số lượng mặt hàng thiếu theo từng nút preset ngày để hiển thị nhãn
   const presetShortageCounts = useMemo(() => {
     const map: Record<number, number> = {};
     for (const d of PRESET_DAYS) {
@@ -1333,12 +1333,12 @@ function InventoryDemandForecastSection({
     return map;
   }, [PRESET_DAYS, computeShortagesForDays]);
 
-  // PhÃ¢n tÃ­ch dá»¯ liá»‡u theo má»‘c ngÃ y Ä‘ang chá»n
+  // Phân tích dữ liệu theo mốc ngày đang chọn
   const currentAnalyses = useMemo(() => {
     return computeShortagesForDays(selectedDays);
   }, [computeShortagesForDays, selectedDays]);
 
-  // Thá»‘ng kÃª tá»•ng há»£p cho má»‘c Ä‘ang chá»n
+  // Thống kê tổng hợp cho mốc đang chọn
   const activeDays = useMemo(() => dailyForecasts.slice(0, selectedDays), [dailyForecasts, selectedDays]);
   const totalBookedTables = useMemo(() => activeDays.reduce((sum, d) => sum + d.tableCount, 0), [activeDays]);
   const totalBookedGuests = useMemo(() => activeDays.reduce((sum, d) => sum + d.guestCount, 0), [activeDays]);
@@ -1347,7 +1347,7 @@ function InventoryDemandForecastSection({
   const totalProcurementCost = useMemo(() => shortageItems.reduce((sum, a) => sum + a.procurementCost, 0), [shortageItems]);
   const zeroStockItems = useMemo(() => currentAnalyses.filter((a) => a.item.stockQty === 0), [currentAnalyses]);
 
-  // Lá»c theo cháº¿ Ä‘á»™ xem (Chá»‰ thiáº¿u / Táº¥t cáº£) & tá»« khÃ³a tÃ¬m kiáº¿m
+  // Lọc theo chế độ xem (Chỉ thiếu / Tất cả) & từ khóa tìm kiếm
   const displayedItems = useMemo(() => {
     let list = viewFilter === "SHORTAGE_ONLY" ? shortageItems : currentAnalyses;
 
@@ -1361,7 +1361,7 @@ function InventoryDemandForecastSection({
       );
     }
 
-    // Sáº¯p xáº¿p: Æ¯u tiÃªn háº¿t hÃ ng (0%) lÃªn Ä‘áº§u, tiáº¿p theo lÃ  sá»‘ tiá»n cáº§n nháº­p giáº£m dáº§n
+    // Sắp xếp: Ưu tiên hết hàng (0%) lên đầu, tiếp theo là số tiền cần nhập giảm dần
     return list.sort((a, b) => {
       if (a.item.stockQty === 0 && b.item.stockQty > 0) return -1;
       if (b.item.stockQty === 0 && a.item.stockQty > 0) return 1;
@@ -1375,7 +1375,7 @@ function InventoryDemandForecastSection({
     return displayedItems.slice(start, start + PAGE_SIZE);
   }, [displayedItems, forecastPage]);
 
-  // Reset trang khi Ä‘á»•i má»‘c ngÃ y hoáº·c tÃ¬m kiáº¿m
+  // Reset trang khi đổi mốc ngày hoặc tìm kiếm
   useEffect(() => {
     setForecastPage(1);
   }, [selectedDays, viewFilter, forecastSearch]);
@@ -1390,14 +1390,14 @@ function InventoryDemandForecastSection({
                 <CalendarDays className="h-4 w-4" />
               </span>
               <h3 className="font-heading text-base font-bold text-stone-900 sm:text-lg">
-                Dá»± bÃ¡o nhu cáº§u & Cáº£nh bÃ¡o thiáº¿u há»¥t theo lá»‹ch Ä‘áº·t bÃ n
+                Dự báo nhu cầu & Cảnh báo thiếu hụt theo lịch đặt bàn
               </h3>
               <Badge variant="outline" className="border-amber-400 bg-amber-100/90 text-[11px] font-bold text-amber-900">
-                TÃ­nh theo Ä‘á»‹nh lÆ°á»£ng BOM
+                Tính theo định lượng BOM
               </Badge>
             </div>
             <p className="mt-1 text-xs text-stone-600 sm:text-[13px]">
-              Dá»±a vÃ o sá»‘ bÃ n & sá»‘ khÃ¡ch Ä‘Ã£ Ä‘áº·t trong cÃ¡c ngÃ y tá»›i, há»‡ thá»‘ng tÃ­nh toÃ¡n tá»“n kho cÃ²n Ä‘á»§ dÃ¹ng cho bao nhiÃªu ngÃ y vÃ  sá»‘ lÆ°á»£ng cÃ²n thiáº¿u cáº§n nháº­p vá» Ä‘á»ƒ phá»¥c vá»¥ Ä‘á»§ cho khÃ¡ch.
+              Dựa vào số bàn & số khách đã đặt trong các ngày tới, hệ thống tính toán tồn kho còn đủ dùng cho bao nhiêu ngày và số lượng còn thiếu cần nhập về để phục vụ đủ cho khách.
             </p>
           </div>
 
@@ -1413,7 +1413,7 @@ function InventoryDemandForecastSection({
                     : "text-stone-600 hover:text-stone-900",
                 )}
               >
-                Chá»‰ hÃ ng thiáº¿u ({shortageItems.length})
+                Chỉ hàng thiếu ({shortageItems.length})
               </button>
               <button
                 type="button"
@@ -1425,7 +1425,7 @@ function InventoryDemandForecastSection({
                     : "text-stone-600 hover:text-stone-900",
                 )}
               >
-                Táº¥t cáº£ ({currentAnalyses.length})
+                Tất cả ({currentAnalyses.length})
               </button>
             </div>
 
@@ -1435,28 +1435,28 @@ function InventoryDemandForecastSection({
                 type="search"
                 value={forecastSearch}
                 onChange={(e) => setForecastSearch(e.target.value)}
-                placeholder="TÃ¬m nguyÃªn liá»‡u..."
+                placeholder="Tìm nguyên liệu..."
                 className="h-8 pl-8 text-xs bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Bá»™ lá»c sá»‘ ngÃ y */}
+        {/* Bộ lọc số ngày */}
         <div className="mt-1 flex flex-col gap-2 pt-2 border-t border-amber-200/50">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-extrabold uppercase tracking-wide text-stone-700 flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#b45309]" />
-              Khung thá»i gian Ä‘áº·t bÃ n:
+              Khung thời gian đặt bàn:
             </span>
             <div className="flex flex-wrap items-center gap-1.5">
               {PRESET_DAYS.map((days) => {
                 const isSelected = selectedDays === days;
                 const shortageCount = presetShortageCounts[days] ?? 0;
-                let dayLabel = `${days} ngÃ y`;
-                if (days === 1) dayLabel = "1 ngÃ y (HÃ´m nay)";
-                else if (days === 7) dayLabel = "7 ngÃ y (1 tuáº§n)";
-                else if (days === 14) dayLabel = "14 ngÃ y (2 tuáº§n)";
+                let dayLabel = `${days} ngày`;
+                if (days === 1) dayLabel = "1 ngày (Hôm nay)";
+                else if (days === 7) dayLabel = "7 ngày (1 tuần)";
+                else if (days === 14) dayLabel = "14 ngày (2 tuần)";
 
                 return (
                   <button
@@ -1481,7 +1481,7 @@ function InventoryDemandForecastSection({
                             : "bg-emerald-100 text-emerald-800",
                       )}
                     >
-                      {shortageCount > 0 ? `${shortageCount} thiáº¿u` : "Äá»§"}
+                      {shortageCount > 0 ? `${shortageCount} thiếu` : "Đủ"}
                     </span>
                   </button>
                 );
@@ -1491,83 +1491,83 @@ function InventoryDemandForecastSection({
 
           {autoSelectedInfo && (
             <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 bg-amber-100/70 border border-amber-300/80 rounded-lg px-3 py-1.5">
-              <span className="text-sm">âš¡</span>
+              <span className="text-sm">⚡</span>
               <span>{autoSelectedInfo}</span>
             </div>
           )}
         </div>
 
-        {/* 4 Tháº» chá»‰ sá»‘ tá»•ng quan cho má»‘c ngÃ y Ä‘ang chá»n */}
+        {/* 4 Thẻ chỉ số tổng quan cho mốc ngày đang chọn */}
         <div className="grid grid-cols-2 gap-2.5 pt-1 sm:grid-cols-4">
           <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-              Lá»‹ch Ä‘áº·t ({selectedDays} ngÃ y tá»›i)
+              Lịch đặt ({selectedDays} ngày tới)
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="font-heading text-lg font-black text-stone-900">
-                {totalBookedTables} bÃ n
+                {totalBookedTables} bàn
               </span>
               <span className="text-xs font-bold text-stone-600">
-                Â· {totalBookedGuests} khÃ¡ch
+                · {totalBookedGuests} khách
               </span>
             </div>
             <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-              {totalBookedGuests} suáº¥t Tasting 7 mÃ³n BOM
+              {totalBookedGuests} suất Tasting 7 món BOM
             </div>
           </div>
 
           <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-left shadow-2xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-800">
-              Máº·t hÃ ng thiáº¿u há»¥t
+              Mặt hàng thiếu hụt
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className={cn(
                 "font-heading text-lg font-black",
                 shortageItems.length > 0 ? "text-rose-700" : "text-emerald-700",
               )}>
-                {shortageItems.length} nguyÃªn liá»‡u
+                {shortageItems.length} nguyên liệu
               </span>
             </div>
             <div className="mt-0.5 text-[10.5px] font-medium text-rose-700">
               {zeroStockItems.length > 0
-                ? `${zeroStockItems.length} máº·t hÃ ng háº¿t sáº¡ch (0%)`
-                : "KhÃ´ng cÃ³ máº·t hÃ ng cáº¡n Ä‘Ã¡y 0%"}
+                ? `${zeroStockItems.length} mặt hàng hết sạch (0%)`
+                : "Không có mặt hàng cạn đáy 0%"}
             </div>
           </div>
 
           <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-left shadow-2xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-900">
-              Dá»± toÃ¡n tiá»n nháº­p hÃ ng
+              Dự toán tiền nhập hàng
             </span>
             <div className="mt-1 font-heading text-lg font-black text-[#92400e]">
               {formatVND(totalProcurementCost)}
             </div>
             <div className="mt-0.5 text-[10.5px] text-stone-600">
-              Chi phÃ­ nháº­p Ä‘á»§ sá»‘ lÆ°á»£ng thiáº¿u
+              Chi phí nhập đủ số lượng thiếu
             </div>
           </div>
 
           <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-              Má»©c Ä‘á»™ Æ°u tiÃªn
+              Mức độ ưu tiên
             </span>
             <div className="mt-1 text-xs font-black">
               {shortageItems.some((a) => a.item.stockQty === 0) ? (
                 <span className="text-rose-700 flex items-center gap-1 font-extrabold">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Kháº©n cáº¥p: Nháº­p hÃ ng ngay!
+                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Nhập hàng ngay!
                 </span>
               ) : shortageItems.length > 0 ? (
                 <span className="text-amber-800 flex items-center gap-1 font-extrabold">
-                  <Clock className="h-3.5 w-3.5" /> Cáº§n Ä‘áº·t hÃ ng NCC trong 24h
+                  <Clock className="h-3.5 w-3.5" /> Cần đặt hàng NCC trong 24h
                 </span>
               ) : (
                 <span className="text-emerald-700 flex items-center gap-1 font-extrabold">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> An toÃ n: Äá»§ phá»¥c vá»¥
+                  <CheckCircle2 className="h-3.5 w-3.5" /> An toàn: Đủ phục vụ
                 </span>
               )}
             </div>
             <div className="mt-0.5 text-[10.5px] text-muted-foreground">
-              {shortageItems.length > 0 ? "Theo tiáº¿n Ä‘á»™ phá»¥c vá»¥ khÃ¡ch" : "Kho Ä‘Ã¡p á»©ng 100% lá»‹ch Ä‘áº·t"}
+              {shortageItems.length > 0 ? "Theo tiến độ phục vụ khách" : "Kho đáp ứng 100% lịch đặt"}
             </div>
           </div>
         </div>
@@ -1579,8 +1579,8 @@ function InventoryDemandForecastSection({
             <CheckCircle2 className="h-8 w-8 text-emerald-600" aria-hidden />
             <p className="text-sm font-bold text-stone-800">
               {viewFilter === "SHORTAGE_ONLY"
-                ? `Tuyá»‡t vá»i! KhÃ´ng cÃ³ nguyÃªn liá»‡u nÃ o bá»‹ thiáº¿u há»¥t cho ${totalBookedTables} bÃ n (${totalBookedGuests} khÃ¡ch) trong ${selectedDays} ngÃ y tá»›i.`
-                : "KhÃ´ng tÃ¬m tháº¥y nguyÃªn liá»‡u phÃ¹ há»£p."}
+                ? `Tuyệt vời! Không có nguyên liệu nào bị thiếu hụt cho ${totalBookedTables} bàn (${totalBookedGuests} khách) trong ${selectedDays} ngày tới.`
+                : "Không tìm thấy nguyên liệu phù hợp."}
             </p>
             {viewFilter === "SHORTAGE_ONLY" && (
               <Button
@@ -1589,40 +1589,40 @@ function InventoryDemandForecastSection({
                 onClick={() => setViewFilter("ALL")}
                 className="mt-1 text-xs font-semibold"
               >
-                Xem toÃ n bá»™ báº£ng Ä‘á»‹nh má»©c ({currentAnalyses.length} nguyÃªn liá»‡u)
+                Xem toàn bộ bảng định mức ({currentAnalyses.length} nguyên liệu)
               </Button>
             )}
           </div>
         ) : (
-          <Table className="min-w-[1000px]">
+          <Table className="min-w-[1000px] font-heading">
             <TableHeader>
               <TableRow className="bg-[#fdf0d5]/40 hover:bg-[#fdf0d5]/40">
                 <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
-                  NguyÃªn liá»‡u
+                  Nguyên liệu
                 </TableHead>
                 <TableHead className="w-24 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  MÃ³n dÃ¹ng
+                  Món dùng
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Tá»“n hiá»‡n táº¡i
+                  Tồn hiện tại
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Nhu cáº§u ({totalBookedGuests} khÃ¡ch)
+                  Nhu cầu ({totalBookedGuests} khách)
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Kháº£ nÄƒng Ä‘Ã¡p á»©ng
+                  Khả năng đáp ứng
                 </TableHead>
                 <TableHead className="w-40 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Thiáº¿u há»¥t cáº§n nháº­p
+                  Thiếu hụt cần nhập
                 </TableHead>
                 <TableHead className="w-28 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  ÄÆ¡n giÃ¡ kho
+                  Đơn giá kho
                 </TableHead>
                 <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Dá»± toÃ¡n tiá»n nháº­p
+                  Dự toán tiền nhập
                 </TableHead>
                 <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
-                  Thao tÃ¡c
+                  Thao tác
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -1640,20 +1640,20 @@ function InventoryDemandForecastSection({
           </Table>
         )}
 
-        {/* PhÃ¢n trang */}
+        {/* Phân trang */}
         {displayedItems.length > PAGE_SIZE && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
             <div>
-              Hiá»ƒn thá»‹{" "}
+              Hiển thị{" "}
               <strong className="text-stone-800">
                 {(forecastPage - 1) * PAGE_SIZE + 1}
               </strong>{" "}
-              â€“{" "}
+              –{" "}
               <strong className="text-stone-800">
                 {Math.min(forecastPage * PAGE_SIZE, displayedItems.length)}
               </strong>{" "}
-              trong tá»•ng sá»‘{" "}
-              <strong className="text-stone-800">{displayedItems.length}</strong> nguyÃªn liá»‡u (tá»‘i Ä‘a 15 dÃ²ng / trang)
+              trong tổng số{" "}
+              <strong className="text-stone-800">{displayedItems.length}</strong> nguyên liệu (tối đa 15 dòng / trang)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -1665,7 +1665,7 @@ function InventoryDemandForecastSection({
                 onClick={() => setForecastPage((p) => Math.max(1, p - 1))}
                 className="h-7 px-2.5 text-xs text-stone-700 cursor-pointer"
               >
-                <ChevronLeft className="mr-1 h-3.5 w-3.5" /> TrÆ°á»›c
+                <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
               </Button>
               <span className="px-2 text-xs font-medium">
                 {forecastPage} / {totalPages}
@@ -1711,42 +1711,42 @@ function DemandForecastRow({
             : "border-l-4 border-l-emerald-500 hover:bg-muted/40",
       )}
     >
-      {/* 1. NguyÃªn liá»‡u */}
+      {/* 1. Nguyên liệu */}
       <TableCell className="whitespace-normal pl-4 sm:pl-5">
         <div className="flex flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-semibold text-[#292524]">{item.name}</span>
             {isOut ? (
               <Badge className="border-0 bg-rose-700 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-                Háº¿t tá»“n (0%)
+                Hết tồn (0%)
               </Badge>
             ) : isShortage ? (
               <Badge className="border-0 bg-rose-600 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-                Thiáº¿u {Math.round((analysis.shortageQty / analysis.totalRequiredQty) * 100)}%
+                Thiếu {Math.round((analysis.shortageQty / analysis.totalRequiredQty) * 100)}%
               </Badge>
             ) : (
               <Badge className="border border-emerald-300 bg-emerald-100 px-1.5 py-0 text-[10px] font-semibold text-emerald-800">
-                Äá»§ phá»¥c vá»¥
+                Đủ phục vụ
               </Badge>
             )}
           </div>
           <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground">
-            <span>NhÃ³m: <strong className="text-stone-700">{SHORT_GROUP_LABELS[item.group]}</strong></span>
-            <span>Â·</span>
-            <span>Khu vá»±c: {item.storageZone}</span>
+            <span>Nhóm: <strong className="text-stone-700">{SHORT_GROUP_LABELS[item.group]}</strong></span>
+            <span>·</span>
+            <span>Khu vực: {item.storageZone}</span>
           </div>
         </div>
       </TableCell>
 
-      {/* 2. MÃ³n dÃ¹ng */}
+      {/* 2. Món dùng */}
       <TableCell>
         <div className="flex flex-wrap gap-1">
           {item.standardDishIndexes.map((idx) => {
-            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `MÃ³n ${idx}`;
+            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
             return (
               <span
                 key={`forecast-std-${idx}`}
-                title={`MÃ³n ${idx}: ${dishName}`}
+                title={`Món ${idx}: ${dishName}`}
                 className="flex h-6 w-6 items-center justify-center rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/70 text-[10.5px] font-bold tabular-nums text-[#92400e]"
               >
                 {idx}
@@ -1756,7 +1756,7 @@ function DemandForecastRow({
         </div>
       </TableCell>
 
-      {/* 3. Tá»“n hiá»‡n táº¡i */}
+      {/* 3. Tồn hiện tại */}
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1.5">
           <span
@@ -1785,17 +1785,17 @@ function DemandForecastRow({
         )}
       </TableCell>
 
-      {/* 4. Nhu cáº§u Ä‘áº·t bÃ n */}
+      {/* 4. Nhu cầu đặt bàn */}
       <TableCell className="text-right">
         <div className="font-heading text-sm font-bold tabular-nums text-stone-900">
           {formatNumberVi(analysis.requiredInImportUnit)} {item.importUnitLabel}
         </div>
         <div className="text-[10px] text-muted-foreground tabular-nums">
-          ({formatQty(analysis.stdQtyPerGuest, item.unit)}/suáº¥t Ã— {totalGuests} khÃ¡ch)
+          ({formatQty(analysis.stdQtyPerGuest, item.unit)}/suất × {totalGuests} khách)
         </div>
       </TableCell>
 
-      {/* 5. Kháº£ nÄƒng Ä‘Ã¡p á»©ng */}
+      {/* 5. Khả năng đáp ứng */}
       <TableCell className="text-center">
         <div className="inline-flex flex-col items-center">
           <span
@@ -1808,7 +1808,7 @@ function DemandForecastRow({
                   : "bg-emerald-600 text-white border-emerald-700",
             )}
           >
-            {guestsCovered} suáº¥t
+            {guestsCovered} suất
           </span>
           <span className="text-[10px] font-medium text-stone-600 mt-0.5">
             {daysCoveredText}
@@ -1816,35 +1816,35 @@ function DemandForecastRow({
         </div>
       </TableCell>
 
-      {/* 6. Thiáº¿u há»¥t cáº§n nháº­p */}
+      {/* 6. Thiếu hụt cần nhập */}
       <TableCell className="text-right">
         {isShortage ? (
           <div>
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2.5 py-0.5 text-xs font-extrabold text-white shadow-xs">
-              Thiáº¿u {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel}
+              Thiếu {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel}
             </span>
             <div className="mt-0.5 text-[10px] font-semibold text-rose-700">
-              Cáº§n nháº­p trÆ°á»›c giá» phá»¥c vá»¥
+              Cần nhập trước giờ phục vụ
             </div>
           </div>
         ) : (
           <div>
             <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-              Äá»§ dÃ¹ng (+{formatNumberVi(surplusInImportUnit)} {item.importUnitLabel})
+              Đủ dùng (+{formatNumberVi(surplusInImportUnit)} {item.importUnitLabel})
             </span>
             <div className="mt-0.5 text-[10px] text-emerald-700">
-              Kho Ä‘Ã¡p á»©ng Ä‘á»§ 100%
+              Kho đáp ứng đủ 100%
             </div>
           </div>
         )}
       </TableCell>
 
-      {/* 7. ÄÆ¡n giÃ¡ kho */}
+      {/* 7. Đơn giá kho */}
       <TableCell className="text-right text-xs tabular-nums text-stone-600">
         {formatVND(item.importPrice)}/{item.importUnitLabel}
       </TableCell>
 
-      {/* 8. Dá»± toÃ¡n tiá»n nháº­p */}
+      {/* 8. Dự toán tiền nhập */}
       <TableCell className="text-right">
         {isShortage ? (
           <div>
@@ -1852,15 +1852,15 @@ function DemandForecastRow({
               {formatVND(procurementCost)}
             </div>
             <div className="text-[10px] text-muted-foreground">
-              {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel} Ã— {formatVND(item.importPrice)}
+              {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel} × {formatVND(item.importPrice)}
             </div>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground/60">â€”</span>
+          <span className="text-xs text-muted-foreground/60">—</span>
         )}
       </TableCell>
 
-      {/* 9. Thao tÃ¡c nháº­p hÃ ng nhanh */}
+      {/* 9. Thao tác nhập hàng nhanh */}
       <TableCell className="pr-4 text-center sm:pr-5">
         <button
           type="button"
@@ -1871,10 +1871,10 @@ function DemandForecastRow({
               ? "border border-rose-300 bg-rose-600 text-white hover:bg-rose-700"
               : "border border-[#b45309]/30 bg-[#fdf0d5]/80 text-[#92400e] hover:bg-[#b45309] hover:text-white",
           )}
-          title={`Nháº­p hÃ ng thÃªm cho ${item.name}`}
+          title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
-          Nháº­p
+          Nhập
         </button>
       </TableCell>
     </TableRow>
