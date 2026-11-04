@@ -72,6 +72,91 @@ const GROUP_STYLES: Record<IngredientGroup, { badge: string; dot: string; bar: s
   AROMATIC: { badge: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500", bar: "bg-violet-500" },
 };
 
+const GROUP_SECTION_STYLES: Record<
+  IngredientGroup,
+  {
+    rowBg: string;
+    border: string;
+    pillBg: string;
+    pillBorder: string;
+    textColor: string;
+    dotColor: string;
+    countBadge: string;
+    valueBadge: string;
+  }
+> = {
+  PROTEIN: {
+    rowBg: "bg-rose-50/80 hover:bg-rose-50",
+    border: "border-rose-200",
+    pillBg: "bg-rose-100",
+    pillBorder: "border-rose-400",
+    textColor: "text-rose-900",
+    dotColor: "bg-rose-600",
+    countBadge: "bg-rose-200 text-rose-950",
+    valueBadge: "text-rose-900",
+  },
+  STARCH: {
+    rowBg: "bg-amber-50/80 hover:bg-amber-50",
+    border: "border-amber-200",
+    pillBg: "bg-amber-100",
+    pillBorder: "border-amber-400",
+    textColor: "text-amber-900",
+    dotColor: "bg-amber-600",
+    countBadge: "bg-amber-200 text-amber-950",
+    valueBadge: "text-amber-900",
+  },
+  DAIRY_FAT: {
+    rowBg: "bg-yellow-50/80 hover:bg-yellow-50",
+    border: "border-yellow-200",
+    pillBg: "bg-yellow-100",
+    pillBorder: "border-yellow-400",
+    textColor: "text-yellow-950",
+    dotColor: "bg-yellow-600",
+    countBadge: "bg-yellow-200 text-yellow-950",
+    valueBadge: "text-yellow-900",
+  },
+  PRODUCE: {
+    rowBg: "bg-emerald-50/80 hover:bg-emerald-50",
+    border: "border-emerald-200",
+    pillBg: "bg-emerald-100",
+    pillBorder: "border-emerald-400",
+    textColor: "text-emerald-950",
+    dotColor: "bg-emerald-600",
+    countBadge: "bg-emerald-200 text-emerald-950",
+    valueBadge: "text-emerald-900",
+  },
+  FRUIT_NUT: {
+    rowBg: "bg-orange-50/80 hover:bg-orange-50",
+    border: "border-orange-200",
+    pillBg: "bg-orange-100",
+    pillBorder: "border-orange-400",
+    textColor: "text-orange-950",
+    dotColor: "bg-orange-600",
+    countBadge: "bg-orange-200 text-orange-950",
+    valueBadge: "text-orange-900",
+  },
+  SEASONING: {
+    rowBg: "bg-stone-100/90 hover:bg-stone-100",
+    border: "border-stone-300",
+    pillBg: "bg-stone-200/90",
+    pillBorder: "border-stone-400",
+    textColor: "text-stone-900",
+    dotColor: "bg-stone-600",
+    countBadge: "bg-stone-300 text-stone-950",
+    valueBadge: "text-stone-900",
+  },
+  AROMATIC: {
+    rowBg: "bg-violet-50/80 hover:bg-violet-50",
+    border: "border-violet-200",
+    pillBg: "bg-violet-100",
+    pillBorder: "border-violet-400",
+    textColor: "text-violet-950",
+    dotColor: "bg-violet-600",
+    countBadge: "bg-violet-200 text-violet-950",
+    valueBadge: "text-violet-900",
+  },
+};
+
 const QUICK_GUESTS = [1, 4, 10, 42];
 
 type WarehouseScope = "ALL" | "STANDARD" | "CUSTOM";
@@ -869,7 +954,7 @@ export function AdminFoodCost({
                   </TableHeader>
                   <TableBody>
                     {dishView.activeDetail.lines.map((line, idx) => (
-                      <TableRow key={line.ingredientId} className="hover:bg-muted/40">
+                      <TableRow key={line.ingredientId} className="hover:bg-[#fdf0d5]/25 transition-colors">
                         <TableCell className="pl-4 text-center text-xs tabular-nums text-muted-foreground sm:pl-5">
                           {idx + 1}
                         </TableCell>
@@ -1218,7 +1303,7 @@ function WarehouseGroupSection({
   const groupSubtotal = items.reduce((s, i) => s + i.costPerGuestStandard, 0);
   return (
     <>
-      <TableRow className="bg-muted/40 hover:bg-muted/40">
+      <TableRow className="bg-muted/40 hover:bg-[#fdf0d5]/25 transition-colors">
         <TableCell colSpan={colSpan} className="py-1.5 pl-4 sm:pl-5">
           <div className="flex items-center justify-between pr-3">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-stone-600">

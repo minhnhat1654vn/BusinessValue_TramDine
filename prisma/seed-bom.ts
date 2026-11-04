@@ -668,8 +668,13 @@ export async function seedBomDatabase() {
   console.log(`✅ Đã seed 7 món công thức BOM Concept 2 thành công!`);
 }
 
-// Chạy trực tiếp nếu file được gọi từ CLI
-if (require.main === module) {
+// Chạy trực tiếp nếu file được gọi từ CLI (tsx / node)
+const isDirectRun =
+  typeof process !== "undefined" &&
+  Array.isArray(process.argv) &&
+  Boolean(process.argv[1]?.replace(/\\/g, "/").endsWith("seed-bom.ts"));
+
+if (isDirectRun) {
   seedBomDatabase()
     .catch((e) => {
       console.error(e);
