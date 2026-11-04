@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import {
   INGREDIENT_GROUP_ORDER,
   MAX_SCALE_GUESTS,
@@ -41,10 +42,12 @@ export async function GET(request: Request) {
   try {
     const stockStored = getInventoryStockOverrides();
     const priceStored = getIngredientPriceOverrides();
+    const extraIngredients = await db.ingredient.findMany({ orderBy: { name: "asc" } });
     const report = calculateInventoryReport(
       stockStored.stock,
       priceStored.prices,
       stockStored.reorderPoints,
+      extraIngredients,
     );
 
     const filteredItems = report.items.filter((item) => {
@@ -68,6 +71,7 @@ export async function GET(request: Request) {
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
       reorderOverrides: stockStored.reorderPoints,
+      extraIngredients,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {

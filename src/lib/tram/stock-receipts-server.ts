@@ -5,7 +5,10 @@ import {
   getInventoryStockOverrides,
   saveInventoryStockOverrides,
 } from "./inventory-server";
-import { getIngredientPriceOverrides, saveIngredientPriceOverrides } from "./food-cost-server";
+import {
+  getIngredientPriceOverrides,
+  saveIngredientPriceOverrides,
+} from "./food-cost-server";
 import { calculateInventoryReport, clampStockQty } from "./inventory";
 
 const RECEIPTS_FILE = path.resolve(process.cwd(), "db/stock-receipts.json");
@@ -21,7 +24,20 @@ export interface StockReceipt {
   supplierNote: string;
   previousStock: number;
   newStock: number;
+  isNewIngredient?: boolean;
   createdAt: string;
+}
+
+function slugifyVi(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
 }
 
 function loadReceipts(): StockReceipt[] {
@@ -42,83 +58,105 @@ function saveReceipts(list: StockReceipt[]) {
 }
 
 /**
- * Xử lý nhập hàng vào kho (Goods Receipt):
- * 1. Cập nhật số lượng tồn vào CSDL SQLite (prisma.ingredient)
- * 2. Cập nhật đơn giá nhập nếu có
- * 3. Đồng bộ bộ nhớ đệm tồn kho (db/inventory-stock.json)
- * 4. Ghi nhận phiếu nhập vào lịch sử
+ * Xử lý nhập hàng vào kho (hỗ trợ cả Hàng cũ đã có trong kho VÀ Hàng mới nhập lần đầu):
  */
 export async function recordStockIn({
   ingredientId,
+  newIngredientName,
+  newIngredientGroup,
+  newIngredientUnit,
   quantity,
   pricePerUnit,
   supplierNote,
 }: {
-  ingredientId: string;
+  ingredientId?: string;
+  newIngredientName?: string;
+  newIngredientGroup?: string;
+  newIngredientUnit?: string;
   quantity: number;
   pricePerUnit?: number;
   supplierNote?: string;
 }): Promise<StockReceipt> {
-  if (!ingredientId || quantity <= 0) {
-    throw new Error("Mã nguyên liệu và số lượng nhập phải lớn hơn 0.");
+  if (quantity <= 0) {
+    throw new Error("Số lượng nhập phải lớn hơn 0.");
   }
 
-  // 1. Tìm nguyên liệu trong SQLite
+  let targetId = (ingredientId || "").trim();
+  const cleanNewName = (newIngredientName || "").trim();
+  let isNewIngredient = false;
+
+  // Nếu người dùng nhập mặt hàng mới (hoặc gõ tên mặt hàng chưa có trong kho)
+  if (cleanNewName && !targetId) {
+    const baseSlug = slugifyVi(cleanNewName) || `nl-${Date.now().toString().slice(-5)}`;
+    targetId = baseSlug;
+    isNewIngredient = true;
+  }
+
+  if (!targetId) {
+    throw new Error("Vui lòng chọn hoặc nhập tên nguyên vật liệu.");
+  }
+
+  // 1. Tìm nguyên liệu trong CSDL
   let ing = await prisma.ingredient.findUnique({
-    where: { id: ingredientId },
+    where: { id: targetId },
   });
 
-  let ingName = ingredientId;
-  let unit = "g";
-  let prevStock = 0;
-  let currentPrice = 100000;
+  // Kiểm tra trong bảng Tồn kho hiện hành
+  const extraIngredients = await prisma.ingredient.findMany();
+  const report = calculateInventoryReport(
+    getInventoryStockOverrides().stock,
+    getIngredientPriceOverrides().prices,
+    {},
+    extraIngredients,
+  );
+  const live = report.items.find((i) => i.ingredientId === targetId);
 
-  if (ing) {
-    ingName = ing.name;
-    unit = ing.unit;
-    prevStock = ing.currentStock;
-    currentPrice = ing.defaultImportPrice;
+  let ingName = cleanNewName || ing?.name || live?.name || targetId;
+  let unit = newIngredientUnit === "ml" ? "ml" : ing?.unit || live?.unit || "g";
+  let group = newIngredientGroup || ing?.group || live?.group || "PROTEIN";
+  let prevStock = live ? live.stockQty : ing ? ing.currentStock : 0;
+  let currentPrice = live ? live.importPrice : ing ? ing.defaultImportPrice : 100_000;
+
+  if (!ing && !live) {
+    isNewIngredient = true;
+    prevStock = 0;
   }
 
-  // Ưu tiên số liệu thực tế đang hiển thị ở bảng Tồn kho (đã gồm các lần kiểm kê / nhập trước)
-  try {
-    const report = calculateInventoryReport(
-      getInventoryStockOverrides().stock,
-      getIngredientPriceOverrides().prices,
-    );
-    const live = report.items.find((i) => i.ingredientId === ingredientId);
-    if (live) {
-      prevStock = live.stockQty;
-      currentPrice = live.importPrice;
-      if (!ing) {
-        ingName = live.name;
-        unit = live.unit;
-      }
-    }
-  } catch (err) {
-    console.warn("Không đọc được tồn kho hiện tại, dùng số liệu CSDL:", err);
-  }
-
-  const effectivePrice = pricePerUnit && pricePerUnit > 0 ? Math.round(pricePerUnit) : currentPrice;
+  const effectivePrice =
+    pricePerUnit && pricePerUnit > 0 ? Math.round(pricePerUnit) : currentPrice;
   const newStock = Math.max(0, prevStock + quantity);
   const totalAmount = Math.round((quantity * effectivePrice) / 1000);
 
-  // 2. Cập nhật SQLite
+  // 2. Cập nhật hoặc Tạo mới trong CSDL (prisma.ingredient)
   if (ing) {
     await prisma.ingredient.update({
-      where: { id: ingredientId },
+      where: { id: targetId },
       data: {
         currentStock: newStock,
         ...(pricePerUnit && pricePerUnit > 0 ? { defaultImportPrice: effectivePrice } : {}),
       },
     });
+  } else {
+    // Tạo mới nguyên liệu vào CSDL để đồng bộ cho cả 4 trang (Tồn kho, Concept, Công thức, Food Cost)
+    await prisma.ingredient.create({
+      data: {
+        id: targetId,
+        name: ingName,
+        unit,
+        group,
+        spec: supplierNote?.trim() || "Nhập kho mới",
+        defaultImportPrice: effectivePrice,
+        currentStock: newStock,
+        minStock: Math.max(100, Math.round(newStock * 0.32)),
+      },
+    });
   }
 
-  // 3. Đồng bộ bộ đệm tồn kho (db/inventory-stock.json & food-cost)
+  // 3. Đồng bộ bộ đệm tồn kho & đơn giá (db/inventory-stock.json & db/ingredient-prices.json)
   try {
-    saveInventoryStockOverrides({ [ingredientId]: clampStockQty(newStock) }, false);
+    saveInventoryStockOverrides({ [targetId]: clampStockQty(newStock) }, false);
     if (pricePerUnit && pricePerUnit > 0) {
-      saveIngredientPriceOverrides({ [ingredientId]: effectivePrice });
+      saveIngredientPriceOverrides({ [targetId]: effectivePrice });
     }
   } catch (err) {
     console.warn("Lỗi đồng bộ bộ nhớ đệm tồn kho:", err);
@@ -128,15 +166,16 @@ export async function recordStockIn({
   const receiptId = `REC-${Date.now().toString().slice(-6)}`;
   const receipt: StockReceipt = {
     id: receiptId,
-    ingredientId,
+    ingredientId: targetId,
     ingredientName: ingName,
     unit,
     quantity,
     pricePerUnit: effectivePrice,
     totalAmount,
-    supplierNote: (supplierNote || "").trim() || "Nhập kho thường kỳ",
+    supplierNote: (supplierNote || "").trim() || (isNewIngredient ? "Nhập mặt hàng mới vào kho" : "Nhập kho thường kỳ"),
     previousStock: prevStock,
     newStock,
+    isNewIngredient,
     createdAt: new Date().toISOString(),
   };
 
@@ -147,9 +186,6 @@ export async function recordStockIn({
   return receipt;
 }
 
-/**
- * Lấy danh sách phiếu nhập kho gần nhất
- */
 export function getRecentStockReceipts(limit: number = 20): StockReceipt[] {
   return loadReceipts().slice(0, limit);
 }

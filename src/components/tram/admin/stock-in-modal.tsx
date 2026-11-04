@@ -1,21 +1,22 @@
 "use client";
 
 // Modal Phiếu Nhập Hàng Vào Kho (Goods Receipt / Stock Inward)
-// Hỗ trợ chọn nguyên liệu, điền số lượng nhập, cập nhật đơn giá đợt này và cộng dồn tồn kho.
-import { useState, useEffect, useMemo } from "react";
+// Hỗ trợ:
+// 1. Input kèm Dropdown để chọn nguyên liệu có sẵn trong kho ("hàng cũ")
+// 2. Gõ trực tiếp tên mặt hàng mới chưa có trong kho ("hàng mới"), chọn Nhóm & Đơn vị tính để thêm mới vào kho
+import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import {
   ArrowDownToLine,
+  Check,
   CheckCircle2,
-  Clock,
-  Coins,
+  ChevronDown,
   History,
-  Layers,
   Loader2,
   PackagePlus,
-  Scale,
+  PlusCircle,
   Sparkles,
-  Warehouse,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -36,7 +37,13 @@ import {
   SelectValue,
 } from "@/components/ui/searchable-select";
 import { formatVND } from "@/lib/tram/format";
-import { formatQty } from "@/lib/tram/recipes";
+import {
+  formatQty,
+  INGREDIENT_GROUP_LABELS,
+  INGREDIENT_GROUP_ORDER,
+  type IngredientGroup,
+  type IngredientUnit,
+} from "@/lib/tram/recipes";
 import { cn } from "@/lib/utils";
 
 export interface StockInModalProps {
@@ -51,6 +58,16 @@ interface QuickOption {
   amount: number;
 }
 
+function normalizeVi(s: string) {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+}
+
 export function StockInModal({
   open,
   onOpenChange,
@@ -60,63 +77,151 @@ export function StockInModal({
   const [ingredients, setIngredients] = useState<any[]>([]);
   const [loadingIngredients, setLoadingIngredients] = useState(false);
 
+  // Input kèm Dropdown cho nguyên vật liệu (hỗ trợ cả hàng cũ lẫn hàng mới)
   const [selectedId, setSelectedId] = useState<string>("");
+  const [ingredientInput, setIngredientInput] = useState<string>("");
+  const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
+  const [forceNewMode, setForceNewMode] = useState<boolean>(false);
+
+  // Cấu hình khi nhập mặt hàng mới chưa có trong kho
+  const [newGroup, setNewGroup] = useState<IngredientGroup>("PRODUCE");
+  const [newUnit, setNewUnit] = useState<IngredientUnit>("g");
+
   const [quantity, setQuantity] = useState<number>(1000);
   const [pricePerUnit, setPricePerUnit] = useState<number>(100000);
   const [supplierNote, setSupplierNote] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+
+  const comboRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Tab chuyển đổi: Lập phiếu nhập vs Xem lịch sử nhập
   const [viewTab, setViewTab] = useState<"form" | "history">("form");
   const [recentReceipts, setRecentReceipts] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  // Tải danh mục nguyên liệu từ API
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (comboRef.current && !comboRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [dropdownOpen]);
+
+  // Tải danh mục nguyên liệu từ API (kết hợp cả bảng tồn kho và CSDL nguyên liệu)
   useEffect(() => {
     if (!open) return;
     setLoadingIngredients(true);
+    setDropdownOpen(false);
+    setForceNewMode(false);
     Promise.all([
       fetch("/api/recipes?guests=1").then((r) => (r.ok ? r.json() : null)),
       fetch("/api/inventory").then((r) => (r.ok ? r.json() : null)),
     ])
       .then(([data, inv]) => {
-        if (data && Array.isArray(data.allIngredients)) {
-          // Đồng bộ tồn kho & đơn giá với bảng Tồn kho đang hiển thị
-          const live = new Map<string, any>(
-            (inv?.items ?? []).map((it: any) => [it.ingredientId, it]),
-          );
-          const merged = data.allIngredients.map((i: any) => {
-            const l = live.get(i.id);
-            return l
-              ? { ...i, currentStock: l.stockQty, minStock: l.reorderPoint, defaultImportPrice: l.importPrice }
-              : i;
+        const byId = new Map<string, any>();
+
+        for (const i of data?.allIngredients ?? []) {
+          byId.set(i.id, {
+            id: i.id,
+            name: i.name,
+            unit: i.unit || "g",
+            group: i.group || "SEASONING",
+            currentStock: i.currentStock ?? 0,
+            minStock: i.minStock ?? 200,
+            defaultImportPrice: i.defaultImportPrice ?? 100000,
           });
-          setIngredients(merged);
-          const targetId = initialIngredientId || merged[0]?.id;
-          if (targetId) {
-            setSelectedId(targetId);
-            const found = merged.find((i: any) => i.id === targetId);
-            if (found) {
-              setPricePerUnit(found.defaultImportPrice || 100000);
-            }
-          }
+        }
+
+        for (const it of inv?.items ?? []) {
+          const existing = byId.get(it.ingredientId);
+          byId.set(it.ingredientId, {
+            id: it.ingredientId,
+            name: it.name || existing?.name || it.ingredientId,
+            unit: it.unit || existing?.unit || "g",
+            group: it.group || existing?.group || "SEASONING",
+            currentStock: it.stockQty ?? existing?.currentStock ?? 0,
+            minStock: it.reorderPoint ?? existing?.minStock ?? 200,
+            defaultImportPrice: it.importPrice ?? existing?.defaultImportPrice ?? 100000,
+          });
+        }
+
+        const merged = Array.from(byId.values()).sort((a, b) =>
+          a.name.localeCompare(b.name, "vi"),
+        );
+        setIngredients(merged);
+
+        const targetId = initialIngredientId || merged[0]?.id || "";
+        const found = merged.find((i: any) => i.id === targetId);
+        if (found) {
+          setSelectedId(found.id);
+          setIngredientInput(found.name);
+          setPricePerUnit(found.defaultImportPrice || 100000);
+        } else {
+          setSelectedId("");
+          setIngredientInput("");
         }
       })
       .catch((err) => console.error("Lỗi tải nguyên liệu:", err))
       .finally(() => setLoadingIngredients(false));
   }, [open, initialIngredientId]);
 
-  // Cập nhật giá và reset số lượng khi đổi nguyên liệu
+  // Kiểm tra xem người dùng đang chọn nguyên liệu có sẵn hay đang nhập tên mặt hàng mới
   const currentIng = useMemo(() => {
-    return ingredients.find((i) => i.id === selectedId) || null;
-  }, [ingredients, selectedId]);
-
-  const handleSelectIngredient = (id: string) => {
-    setSelectedId(id);
-    const ing = ingredients.find((i) => i.id === id);
-    if (ing) {
-      setPricePerUnit(ing.defaultImportPrice || 100000);
+    if (forceNewMode) return null;
+    if (selectedId) {
+      const byId = ingredients.find((i) => i.id === selectedId);
+      if (byId && normalizeVi(byId.name) === normalizeVi(ingredientInput)) {
+        return byId;
+      }
     }
+    const q = normalizeVi(ingredientInput);
+    if (!q) return null;
+    return ingredients.find((i) => normalizeVi(i.name) === q) || null;
+  }, [ingredients, selectedId, ingredientInput, forceNewMode]);
+
+  const isNewIngredient = useMemo(() => {
+    if (forceNewMode) return true;
+    const trimmed = ingredientInput.trim();
+    return trimmed.length > 0 && !currentIng;
+  }, [forceNewMode, ingredientInput, currentIng]);
+
+  // Lọc danh sách nguyên liệu trong dropdown theo từ khóa đang gõ
+  const filteredIngredients = useMemo(() => {
+    const q = normalizeVi(ingredientInput);
+    // Nếu đang hiển thị đúng tên nguyên liệu đã chọn và chưa gõ khác đi, hiển thị toàn bộ kèm nguyên liệu đang chọn lên đầu
+    if (!q || (currentIng && normalizeVi(currentIng.name) === q)) {
+      return ingredients;
+    }
+    return ingredients.filter((i) =>
+      normalizeVi(`${i.name} ${i.id}`).includes(q),
+    );
+  }, [ingredients, ingredientInput, currentIng]);
+
+  const handleSelectExisting = (ing: any) => {
+    setForceNewMode(false);
+    setSelectedId(ing.id);
+    setIngredientInput(ing.name);
+    setPricePerUnit(ing.defaultImportPrice || 100000);
+    setDropdownOpen(false);
+  };
+
+  const handleSwitchToNewItem = (prefillName?: string) => {
+    setForceNewMode(true);
+    setSelectedId("");
+    const nextName =
+      prefillName !== undefined
+        ? prefillName
+        : currentIng
+          ? ""
+          : ingredientInput;
+    setIngredientInput(nextName);
+    setDropdownOpen(false);
+    setTimeout(() => inputRef.current?.focus(), 20);
   };
 
   // Tải lịch sử nhập kho khi mở tab history
@@ -142,9 +247,9 @@ export function StockInModal({
   }, [open, viewTab]);
 
   // Tính toán trước
-  const unit = currentIng?.unit || "g";
-  const currentStock = currentIng?.currentStock ?? 0;
-  const minStock = currentIng?.minStock ?? 0;
+  const unit: IngredientUnit = currentIng ? currentIng.unit : newUnit;
+  const currentStock = currentIng ? (currentIng.currentStock ?? 0) : 0;
+  const minStock = currentIng ? (currentIng.minStock ?? 200) : unit === "ml" ? 200 : 200;
   const newStock = currentStock + (quantity || 0);
   const totalAmount = Math.round(((quantity || 0) * (pricePerUnit || 0)) / 1000);
 
@@ -168,11 +273,14 @@ export function StockInModal({
     ];
   }, [unit]);
 
-  // Gửi phiếu nhập kho
+  // Gửi phiếu nhập kho (hỗ trợ cả mặt hàng có sẵn và mặt hàng mới)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedId) {
-      toast.error("Vui lòng chọn nguyên vật liệu cần nhập.");
+    const trimmedName = ingredientInput.trim();
+
+    if (!currentIng && !trimmedName) {
+      toast.error("Vui lòng chọn hoặc nhập tên nguyên vật liệu cần nhập kho.");
+      inputRef.current?.focus();
       return;
     }
     if (quantity <= 0) {
@@ -182,15 +290,26 @@ export function StockInModal({
 
     setSubmitting(true);
     try {
+      const payload = currentIng
+        ? {
+            ingredientId: currentIng.id,
+            quantity,
+            pricePerUnit,
+            supplierNote: supplierNote.trim(),
+          }
+        : {
+            newIngredientName: trimmedName,
+            newIngredientGroup: newGroup,
+            newIngredientUnit: newUnit,
+            quantity,
+            pricePerUnit,
+            supplierNote: supplierNote.trim(),
+          };
+
       const res = await fetch("/api/inventory/stock-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ingredientId: selectedId,
-          quantity,
-          pricePerUnit,
-          supplierNote: supplierNote.trim(),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -249,19 +368,33 @@ export function StockInModal({
             </div>
           </div>
           <DialogDescription className="text-xs">
-            Cộng dồn số lượng vào tồn kho thực tế và cập nhật đơn giá nhập.
+            Chọn nguyên liệu có sẵn hoặc gõ tên mặt hàng mới để nhập thẳng vào kho.
           </DialogDescription>
         </DialogHeader>
 
         {viewTab === "form" ? (
-          <form onSubmit={handleSubmit} className="space-y-4 py-1">
-            {/* 1. Chọn nguyên vật liệu */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
+          <form onSubmit={handleSubmit} className="space-y-3.5 py-1">
+            {/* 1. Input kèm Dropdown: Chọn hàng có sẵn hoặc gõ tên hàng mới */}
+            <div className="space-y-1.5" ref={comboRef}>
+              <div className="flex items-center justify-between gap-2">
                 <Label className="text-xs font-semibold text-stone-700">
                   Nguyên vật liệu nhập *
                 </Label>
-
+                <div className="flex items-center gap-2">
+                  {isNewIngredient ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-[#92400e]">
+                      <Sparkles className="h-2.5 w-2.5" /> Mặt hàng mới — thêm vào kho
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchToNewItem("")}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#b45309] hover:text-[#92400e] hover:underline"
+                    >
+                      <PlusCircle className="h-3 w-3" /> Nhập mặt hàng mới
+                    </button>
+                  )}
+                </div>
               </div>
 
               {loadingIngredients ? (
@@ -269,47 +402,214 @@ export function StockInModal({
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin text-[#b45309]" /> Đang tải danh mục...
                 </div>
               ) : (
-                <Select value={selectedId} onValueChange={handleSelectIngredient}>
-                  <SelectTrigger className="h-9 text-xs">
-                    <SelectValue placeholder="Chọn nguyên vật liệu..." />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-64">
-                    {ingredients.map((ing) => (
-                      <SelectItem key={ing.id} value={ing.id}>
-                        {ing.name} ({ing.unit}) · Tồn: {formatQty(ing.currentStock, ing.unit)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                  <div
+                    className={cn(
+                      "flex h-9 w-full items-center gap-1.5 rounded-md border bg-background px-2.5 text-xs shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
+                      isNewIngredient && "border-amber-500/70 bg-amber-50/20",
+                    )}
+                  >
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={ingredientInput}
+                      placeholder="Gõ tên mặt hàng mới hoặc tìm nguyên liệu trong kho..."
+                      onFocus={() => setDropdownOpen(true)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setIngredientInput(val);
+                        setDropdownOpen(true);
+                        const exact = ingredients.find(
+                          (i) => normalizeVi(i.name) === normalizeVi(val),
+                        );
+                        if (exact) {
+                          setForceNewMode(false);
+                          setSelectedId(exact.id);
+                          setPricePerUnit(exact.defaultImportPrice || 100000);
+                        } else {
+                          setSelectedId("");
+                        }
+                      }}
+                      className="h-full w-full flex-1 bg-transparent text-xs font-medium text-stone-900 outline-none placeholder:font-normal placeholder:text-muted-foreground"
+                    />
+                    {ingredientInput && (
+                      <button
+                        type="button"
+                        title="Xóa để gõ tên mặt hàng khác"
+                        onClick={() => {
+                          setIngredientInput("");
+                          setSelectedId("");
+                          setDropdownOpen(true);
+                          inputRef.current?.focus();
+                        }}
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-stone-400 hover:bg-stone-100 hover:text-stone-700"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      title="Mở danh sách nguyên liệu trong kho"
+                      onClick={() => {
+                        setDropdownOpen((prev) => !prev);
+                        inputRef.current?.focus();
+                      }}
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded text-stone-500 hover:bg-stone-100 hover:text-stone-800"
+                    >
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 transition-transform",
+                          dropdownOpen && "rotate-180",
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Danh sách dropdown xổ xuống */}
+                  {dropdownOpen && (
+                    <div className="absolute top-full left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
+                      {/* Nút thêm nhanh mặt hàng mới nếu từ khóa gõ chưa trùng khớp hoàn toàn */}
+                      {ingredientInput.trim() && !currentIng && (
+                        <button
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSwitchToNewItem(ingredientInput.trim());
+                          }}
+                          className="mb-1 flex w-full items-center justify-between gap-2 rounded-md border border-amber-300/80 bg-amber-50/90 px-2.5 py-2 text-left text-xs font-semibold text-[#92400e] hover:bg-amber-100/80"
+                        >
+                          <span className="flex items-center gap-1.5 truncate">
+                            <PlusCircle className="h-3.5 w-3.5 shrink-0 text-[#b45309]" />
+                            Thêm mặt hàng mới: &ldquo;{ingredientInput.trim()}&rdquo;
+                          </span>
+                          <span className="shrink-0 rounded bg-white/80 px-1.5 py-0.5 text-[10px] text-[#b45309]">
+                            Hàng mới
+                          </span>
+                        </button>
+                      )}
+
+                      {filteredIngredients.length === 0 ? (
+                        <div className="px-2.5 py-3 text-center text-xs text-muted-foreground">
+                          Chưa có trong kho — nhấn Enter hoặc chọn{" "}
+                          <strong className="text-[#92400e]">Thêm mặt hàng mới</strong> ở trên để nhập vào kho.
+                        </div>
+                      ) : (
+                        filteredIngredients.map((ing) => {
+                          const isSelected = currentIng?.id === ing.id;
+                          return (
+                            <button
+                              key={ing.id}
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSelectExisting(ing);
+                              }}
+                              className={cn(
+                                "flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-stone-100",
+                                isSelected && "bg-[#fdf0d5]/70 font-semibold text-[#92400e]",
+                              )}
+                            >
+                              <span className="truncate">
+                                {ing.name} <span className="text-muted-foreground">({ing.unit})</span>
+                              </span>
+                              <span className="flex shrink-0 items-center gap-1.5 text-[11px] text-stone-500">
+                                <span>Tồn: {formatQty(ing.currentStock, ing.unit)}</span>
+                                {isSelected && <Check className="h-3.5 w-3.5 text-[#b45309]" />}
+                              </span>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Nếu là mặt hàng mới: cho chọn Nhóm nguyên liệu & Đơn vị tính */}
+              {isNewIngredient && (
+                <div className="mt-2 grid grid-cols-2 gap-2.5 rounded-xl border border-amber-300/70 bg-amber-50/40 p-2.5">
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold text-stone-700">
+                      Nhóm nguyên liệu *
+                    </Label>
+                    <Select
+                      value={newGroup}
+                      onValueChange={(v) => setNewGroup(v as IngredientGroup)}
+                    >
+                      <SelectTrigger className="h-8 w-full bg-white text-xs">
+                        <SelectValue placeholder="Chọn nhóm..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INGREDIENT_GROUP_ORDER.map((grp) => (
+                          <SelectItem key={grp} value={grp}>
+                            {INGREDIENT_GROUP_LABELS[grp]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] font-semibold text-stone-700">
+                      Đơn vị tính *
+                    </Label>
+                    <Select
+                      value={newUnit}
+                      onValueChange={(v) => setNewUnit(v as IngredientUnit)}
+                    >
+                      <SelectTrigger className="h-8 w-full bg-white text-xs">
+                        <SelectValue placeholder="Chọn đơn vị..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="g">Gram (g) — Giá theo kg</SelectItem>
+                        <SelectItem value="ml">Mililit (ml) — Giá theo Lít</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               )}
             </div>
 
             {/* 2. Thẻ hiển thị trạng thái tồn trước và sau nhập */}
-            {currentIng && (
+            {(currentIng || isNewIngredient) && (
               <div className="rounded-xl border border-border/80 bg-stone-50/70 p-3 text-xs">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-medium">Tồn hiện tại</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                      Tồn hiện tại
+                    </span>
                     <p className="mt-0.5 font-heading text-sm font-bold text-stone-700">
                       {formatQty(currentStock, unit as any)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-medium">Lượng nhập thêm</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                      Lượng nhập thêm
+                    </span>
                     <p className="mt-0.5 font-heading text-sm font-bold text-[#b45309]">
                       +{formatQty(quantity, unit as any)}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-medium">Tồn sau nhập</span>
-                    <p className={cn("mt-0.5 font-heading text-sm font-bold", newStock >= minStock ? "text-emerald-700" : "text-amber-700")}>
+                    <span className="text-[10px] text-muted-foreground uppercase font-medium">
+                      Tồn sau nhập
+                    </span>
+                    <p
+                      className={cn(
+                        "mt-0.5 font-heading text-sm font-bold",
+                        newStock >= minStock ? "text-emerald-700" : "text-amber-700",
+                      )}
+                    >
                       {formatQty(newStock, unit as any)}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-2.5 flex items-center justify-between border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
-                  <span>Mức cảnh báo tồn an toàn: <strong>{formatQty(minStock, unit as any)}</strong></span>
+                  <span>
+                    Mức cảnh báo tồn an toàn:{" "}
+                    <strong>{formatQty(minStock, unit as any)}</strong>
+                  </span>
                   {newStock >= minStock ? (
                     <span className="flex items-center gap-1 font-semibold text-emerald-700">
                       <CheckCircle2 className="h-3 w-3" /> Đạt ngưỡng an toàn
@@ -344,7 +644,9 @@ export function StockInModal({
                   className="h-9 font-heading text-sm font-bold tabular-nums"
                   required
                 />
-                <span className="shrink-0 text-xs font-semibold text-stone-600 w-8">{unit}</span>
+                <span className="w-8 shrink-0 text-xs font-semibold text-stone-600">
+                  {unit}
+                </span>
               </div>
 
               {/* Pills số lượng nhanh */}
@@ -430,7 +732,9 @@ export function StockInModal({
                 ) : (
                   <>
                     <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
-                    Xác nhận nhập {formatQty(quantity, unit as any)} vào kho
+                    {isNewIngredient
+                      ? `Thêm mới & nhập ${formatQty(quantity, unit as any)} vào kho`
+                      : `Xác nhận nhập ${formatQty(quantity, unit as any)} vào kho`}
                   </>
                 )}
               </Button>
@@ -466,21 +770,40 @@ export function StockInModal({
                     key={rec.id}
                     className="rounded-xl border border-border/80 bg-stone-50/60 p-2.5 text-xs transition-colors hover:bg-stone-50"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-stone-900">{rec.ingredientName}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex items-center gap-1.5 font-semibold text-stone-900">
+                        {rec.ingredientName}
+                        {rec.isNewIngredient && (
+                          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-[#92400e]">
+                            Mặt hàng mới
+                          </span>
+                        )}
+                      </span>
                       <span className="font-heading font-bold text-[#b45309]">
                         +{formatQty(rec.quantity, rec.unit)}
                       </span>
                     </div>
 
                     <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span>Đơn giá: {formatVND(rec.pricePerUnit)}/{rec.unit === "ml" ? "L" : "kg"}</span>
-                      <span className="font-medium text-stone-800">Thành tiền: {formatVND(rec.totalAmount)}</span>
+                      <span>
+                        Đơn giá: {formatVND(rec.pricePerUnit)}/
+                        {rec.unit === "ml" ? "L" : "kg"}
+                      </span>
+                      <span className="font-medium text-stone-800">
+                        Thành tiền: {formatVND(rec.totalAmount)}
+                      </span>
                     </div>
 
                     <div className="mt-1 flex items-center justify-between border-t border-border/40 pt-1 text-[10px] text-muted-foreground">
-                      <span className="truncate">{rec.supplierNote || "Nhập kho thường kỳ"}</span>
-                      <span className="shrink-0">{new Date(rec.createdAt).toLocaleDateString("vi-VN", { hour: "2-digit", minute: "2-digit" })}</span>
+                      <span className="truncate">
+                        {rec.supplierNote || "Nhập kho thường kỳ"}
+                      </span>
+                      <span className="shrink-0">
+                        {new Date(rec.createdAt).toLocaleDateString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -504,4 +827,3 @@ export function StockInModal({
     </Dialog>
   );
 }
-

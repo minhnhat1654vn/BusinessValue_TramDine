@@ -60,14 +60,13 @@ export function getInventoryStockOverrides(): StoredInventoryData {
       for (const [id, val] of Object.entries(parsed.stock)) {
         const spec = getInventoryStockSpec(id);
         if (
-          spec &&
           typeof val === "number" &&
           Number.isFinite(val) &&
           val >= 0 &&
           val <= MAX_STOCK_BASE_QTY
         ) {
           const clamped = clampStockQty(val);
-          if (clamped !== spec.defaultStockQty) {
+          if (!spec || clamped !== spec.defaultStockQty) {
             cleanStock[id] = clamped;
           }
         }
@@ -78,14 +77,13 @@ export function getInventoryStockOverrides(): StoredInventoryData {
       for (const [id, val] of Object.entries(parsed.reorderPoints)) {
         const spec = getInventoryStockSpec(id);
         if (
-          spec &&
           typeof val === "number" &&
           Number.isFinite(val) &&
           val >= 0 &&
           val <= MAX_STOCK_BASE_QTY
         ) {
           const clamped = clampStockQty(val);
-          if (clamped !== spec.defaultReorderPoint) {
+          if (!spec || clamped !== spec.defaultReorderPoint) {
             cleanReorder[id] = clamped;
           }
         }
@@ -117,9 +115,6 @@ export function saveInventoryStockOverrides(
 
   for (const [id, rawVal] of Object.entries(updates)) {
     const spec = getInventoryStockSpec(id);
-    if (!spec) {
-      throw new Error(`Mã nguyên liệu không hợp lệ: "${id}".`);
-    }
     if (
       typeof rawVal !== "number" ||
       !Number.isFinite(rawVal) ||
@@ -131,7 +126,7 @@ export function saveInventoryStockOverrides(
       );
     }
     const clamped = clampStockQty(rawVal);
-    if (clamped === spec.defaultStockQty) {
+    if (spec && clamped === spec.defaultStockQty) {
       delete nextStock[id];
     } else {
       nextStock[id] = clamped;
@@ -153,9 +148,6 @@ export function saveInventoryReorderOverrides(
 
   for (const [id, rawVal] of Object.entries(updates)) {
     const spec = getInventoryStockSpec(id);
-    if (!spec) {
-      throw new Error(`Mã nguyên liệu không hợp lệ: "${id}".`);
-    }
     if (
       typeof rawVal !== "number" ||
       !Number.isFinite(rawVal) ||
@@ -167,7 +159,7 @@ export function saveInventoryReorderOverrides(
       );
     }
     const clamped = clampStockQty(rawVal);
-    if (clamped === spec.defaultReorderPoint) {
+    if (spec && clamped === spec.defaultReorderPoint) {
       delete nextReorder[id];
     } else {
       nextReorder[id] = clamped;

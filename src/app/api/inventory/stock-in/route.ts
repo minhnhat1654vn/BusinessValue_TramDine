@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { recordStockIn, getRecentStockReceipts } from "@/lib/tram/stock-receipts-server";
 
-// GET /api/inventory/stock-in → Lấy lịch sử phiếu nhập hàng gần nhất
+// GET /api/inventory/stock-in — Lấy lịch sử phiếu nhập hàng gần nhất
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit") || 20)));
@@ -18,15 +18,26 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/inventory/stock-in → Tạo phiếu nhập hàng vào kho (Goods Receipt)
+// POST /api/inventory/stock-in — Tạo phiếu nhập hàng vào kho (hỗ trợ cả hàng cũ và hàng mới)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { ingredientId, quantity, pricePerUnit, supplierNote } = body;
+    const {
+      ingredientId,
+      newIngredientName,
+      newIngredientGroup,
+      newIngredientUnit,
+      quantity,
+      pricePerUnit,
+      supplierNote,
+    } = body;
 
-    if (!ingredientId || typeof ingredientId !== "string") {
+    if (
+      (!ingredientId || typeof ingredientId !== "string" || !ingredientId.trim()) &&
+      (!newIngredientName || typeof newIngredientName !== "string" || !newIngredientName.trim())
+    ) {
       return NextResponse.json(
-        { error: "Vui lòng chọn nguyên vật liệu cần nhập kho." },
+        { error: "Vui lòng chọn nguyên liệu có sẵn hoặc nhập tên mặt hàng mới." },
         { status: 400 }
       );
     }
@@ -48,14 +59,19 @@ export async function POST(request: Request) {
     }
 
     const receipt = await recordStockIn({
-      ingredientId,
+      ingredientId: typeof ingredientId === "string" ? ingredientId : undefined,
+      newIngredientName: typeof newIngredientName === "string" ? newIngredientName : undefined,
+      newIngredientGroup: typeof newIngredientGroup === "string" ? newIngredientGroup : undefined,
+      newIngredientUnit: typeof newIngredientUnit === "string" ? newIngredientUnit : undefined,
       quantity: qty,
       pricePerUnit: price,
       supplierNote,
     });
 
     return NextResponse.json({
-      message: `Đã nhập thành công ${qty} ${receipt.unit} "${receipt.ingredientName}" vào kho!`,
+      message: receipt.isNewIngredient
+        ? `Đã thêm mặt hàng mới "${receipt.ingredientName}" và nhập ${qty} ${receipt.unit} vào kho!`
+        : `Đã nhập thành công ${qty} ${receipt.unit} "${receipt.ingredientName}" vào kho!`,
       receipt,
     });
   } catch (error: any) {
@@ -66,4 +82,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

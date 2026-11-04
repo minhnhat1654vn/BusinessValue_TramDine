@@ -55,6 +55,7 @@ import {
   applyDishMovement,
   applyStandardServingsMovement,
   calculateInventoryReport,
+  type ExtraInventoryIngredient,
   type InventoryItem,
 } from "@/lib/tram/inventory";
 
@@ -226,6 +227,7 @@ export function AdminInventory({
   const [savedReorder, setSavedReorder] = useState<Record<string, number>>({});
   const [draftReorder, setDraftReorder] = useState<Record<string, number>>({});
   const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
+  const [extraIngredients, setExtraIngredients] = useState<ExtraInventoryIngredient[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const [scope, setScope] = useState<StockScope>("ALL");
@@ -272,6 +274,9 @@ export function AdminInventory({
         setSavedReorder(nextReorder);
         setDraftReorder(nextReorder);
         setPriceOverrides(nextPrices);
+        if (Array.isArray(data.extraIngredients)) {
+          setExtraIngredients(data.extraIngredients as ExtraInventoryIngredient[]);
+        }
         setLoaded(true);
       })
       .catch(() => {
@@ -373,8 +378,8 @@ export function AdminInventory({
 
   // ---------- Báo cáo tồn kho & tổng giá trị kho tự tính tức thời ----------
   const report = useMemo(
-    () => calculateInventoryReport(draftStock, priceOverrides, draftReorder),
-    [draftStock, priceOverrides, draftReorder],
+    () => calculateInventoryReport(draftStock, priceOverrides, draftReorder, extraIngredients),
+    [draftStock, priceOverrides, draftReorder, extraIngredients],
   );
 
   const topGroup = useMemo(() => {

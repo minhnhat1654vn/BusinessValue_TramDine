@@ -210,14 +210,28 @@ export function clampStockQty(raw: number): number {
 }
 
 /** Lấy lượng tồn hiệu lực của một nguyên liệu (ưu tiên override hợp lệ kể cả khi bằng 0) */
+export interface ExtraInventoryIngredient {
+  id: string;
+  name: string;
+  group: string;
+  unit: string;
+  spec?: string | null;
+  defaultImportPrice?: number;
+  currentStock?: number;
+  minStock?: number;
+}
+
 export function getEffectiveStockQty(
   ingredientId: string,
   stockOverrides: Record<string, number> = {},
+  fallbackDefaultStock = 1_000,
 ): { stockQty: number; defaultStockQty: number; isCustomStock: boolean; storageZone: StorageZone } {
-  const spec = getInventoryStockSpec(ingredientId);
-  if (!spec) {
-    throw new Error(`Thiếu cấu hình tồn kho cho nguyên liệu "${ingredientId}".`);
-  }
+  const spec = getInventoryStockSpec(ingredientId) ?? {
+    ingredientId,
+    defaultStockQty: fallbackDefaultStock,
+    defaultReorderPoint: Math.round((fallbackDefaultStock * WARNING_THRESHOLD_PERCENT) / 100),
+    storageZone: "Kho mát 8–12°C" as StorageZone,
+  };
   const override = stockOverrides[ingredientId];
   const hasValidOverride =
     typeof override === "number" &&
@@ -238,11 +252,14 @@ export function getEffectiveStockQty(
 export function getEffectiveReorderPoint(
   ingredientId: string,
   reorderOverrides: Record<string, number> = {},
+  fallbackDefaultStock = 1_000,
 ): { reorderPoint: number; defaultReorderPoint: number; isCustomReorderPoint: boolean } {
-  const spec = getInventoryStockSpec(ingredientId);
-  if (!spec) {
-    throw new Error(`Thiếu cấu hình tồn kho cho nguyên liệu "${ingredientId}".`);
-  }
+  const spec = getInventoryStockSpec(ingredientId) ?? {
+    ingredientId,
+    defaultStockQty: fallbackDefaultStock,
+    defaultReorderPoint: Math.round((fallbackDefaultStock * WARNING_THRESHOLD_PERCENT) / 100),
+    storageZone: "Kho mát 8–12°C" as StorageZone,
+  };
   const defaultReorderPoint = Math.round(
     (spec.defaultStockQty * WARNING_THRESHOLD_PERCENT) / 100,
   );
@@ -386,6 +403,7 @@ function buildIngredientUsageMap(): Map<string, UsageMeta> {
       qtyPerGuestMaxVariant: 0,
       standardDishIndexes: [],
       altDishIndexes: [],
+      shelfLifeDays: 7,
     });
   }
 
@@ -441,6 +459,7 @@ export function calculateInventoryReport(
   stockOverrides: Record<string, number> = {},
   priceOverrides: Record<string, number> = {},
   reorderOverrides: Record<string, number> = {},
+  extraIngredients: ExtraInventoryIngredient[] = [],
 ): InventoryReport {
   let totalValue = 0;
   let defaultTotalValue = 0;
@@ -452,10 +471,41 @@ export function calculateInventoryReport(
   let customizedStockCount = 0;
   let customizedReorderCount = 0;
 
-  const rawItems: Omit<InventoryItem, "shareOfValuePct">[] = INGREDIENTS.map((ing) => {
-    const stockInfo = getEffectiveStockQty(ing.id, stockOverrides);
-    const priceInfo = getEffectiveImportPrice(ing.id, priceOverrides);
-    const reorderInfo = getEffectiveReorderPoint(ing.id, reorderOverrides);
+  const staticIds = new Set(INGREDIENTS.map((i) => i.id));
+  const mergedIngredients: Array<{
+    id: string;
+    name: string;
+    group: IngredientGroup;
+    unit: IngredientUnit;
+    spec?: string;
+    fallbackStock?: number;
+    fallbackPrice?: number;
+  }> = [
+    ...INGREDIENTS.map((i) => ({ ...i })),
+    ...extraIngredients
+      .filter((e) => e && e.id && !staticIds.has(e.id))
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        group: (INGREDIENT_GROUP_ORDER.includes(e.group as IngredientGroup)
+          ? e.group
+          : "PROTEIN") as IngredientGroup,
+        unit: (e.unit === "ml" ? "ml" : "g") as IngredientUnit,
+        spec: e.spec ?? undefined,
+        fallbackStock: typeof e.currentStock === "number" && e.currentStock > 0 ? e.currentStock : 1_000,
+        fallbackPrice: typeof e.defaultImportPrice === "number" && e.defaultImportPrice > 0 ? e.defaultImportPrice : 100_000,
+      })),
+  ];
+
+  const rawItems: Omit<InventoryItem, "shareOfValuePct">[] = mergedIngredients.map((ing) => {
+    const stockInfo = getEffectiveStockQty(ing.id, stockOverrides, ing.fallbackStock ?? 1_000);
+    const priceInfo = getEffectiveImportPrice(
+      ing.id,
+      priceOverrides,
+      ing.fallbackPrice ?? 100_000,
+      ing.unit === "ml" ? "l" : "kg",
+    );
+    const reorderInfo = getEffectiveReorderPoint(ing.id, reorderOverrides, ing.fallbackStock ?? 1_000);
     const factor = getImportUnitFactor(priceInfo.importUnit);
     const usage = USAGE_MAP.get(ing.id) ?? {
       qtyPerGuestStandard: 0,
