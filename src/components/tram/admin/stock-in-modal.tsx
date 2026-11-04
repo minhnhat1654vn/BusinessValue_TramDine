@@ -75,15 +75,27 @@ export function StockInModal({
   useEffect(() => {
     if (!open) return;
     setLoadingIngredients(true);
-    fetch("/api/recipes?guests=1")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
+    Promise.all([
+      fetch("/api/recipes?guests=1").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/inventory").then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([data, inv]) => {
         if (data && Array.isArray(data.allIngredients)) {
-          setIngredients(data.allIngredients);
-          const targetId = initialIngredientId || data.allIngredients[0]?.id;
+          // Đồng bộ tồn kho & đơn giá với bảng Tồn kho đang hiển thị
+          const live = new Map<string, any>(
+            (inv?.items ?? []).map((it: any) => [it.ingredientId, it]),
+          );
+          const merged = data.allIngredients.map((i: any) => {
+            const l = live.get(i.id);
+            return l
+              ? { ...i, currentStock: l.stockQty, minStock: l.reorderPoint, defaultImportPrice: l.importPrice }
+              : i;
+          });
+          setIngredients(merged);
+          const targetId = initialIngredientId || merged[0]?.id;
           if (targetId) {
             setSelectedId(targetId);
-            const found = data.allIngredients.find((i: any) => i.id === targetId);
+            const found = merged.find((i: any) => i.id === targetId);
             if (found) {
               setPricePerUnit(found.defaultImportPrice || 100000);
             }

@@ -5,8 +5,8 @@ import {
   getInventoryStockOverrides,
   saveInventoryStockOverrides,
 } from "./inventory-server";
-import { saveIngredientPriceOverrides } from "./food-cost-server";
-import { clampStockQty } from "./inventory";
+import { getIngredientPriceOverrides, saveIngredientPriceOverrides } from "./food-cost-server";
+import { calculateInventoryReport, clampStockQty } from "./inventory";
 
 const RECEIPTS_FILE = path.resolve(process.cwd(), "db/stock-receipts.json");
 
@@ -80,6 +80,25 @@ export async function recordStockIn({
     currentPrice = ing.defaultImportPrice;
   }
 
+  // Ưu tiên số liệu thực tế đang hiển thị ở bảng Tồn kho (đã gồm các lần kiểm kê / nhập trước)
+  try {
+    const report = calculateInventoryReport(
+      getInventoryStockOverrides().stock,
+      getIngredientPriceOverrides().prices,
+    );
+    const live = report.items.find((i) => i.ingredientId === ingredientId);
+    if (live) {
+      prevStock = live.stockQty;
+      currentPrice = live.importPrice;
+      if (!ing) {
+        ingName = live.name;
+        unit = live.unit;
+      }
+    }
+  } catch (err) {
+    console.warn("Không đọc được tồn kho hiện tại, dùng số liệu CSDL:", err);
+  }
+
   const effectivePrice = pricePerUnit && pricePerUnit > 0 ? Math.round(pricePerUnit) : currentPrice;
   const newStock = Math.max(0, prevStock + quantity);
   const totalAmount = Math.round((quantity * effectivePrice) / 1000);
@@ -99,7 +118,7 @@ export async function recordStockIn({
   try {
     saveInventoryStockOverrides({ [ingredientId]: clampStockQty(newStock) }, false);
     if (pricePerUnit && pricePerUnit > 0) {
-      saveIngredientPriceOverrides({ [ingredientId]: effectivePrice }, false);
+      saveIngredientPriceOverrides({ [ingredientId]: effectivePrice });
     }
   } catch (err) {
     console.warn("Lỗi đồng bộ bộ nhớ đệm tồn kho:", err);
