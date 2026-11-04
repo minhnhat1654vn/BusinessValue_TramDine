@@ -46,7 +46,14 @@ export function CreateConceptModal({
   currentActiveId,
   onSuccess,
 }: CreateConceptModalProps) {
+  const defaultNextMonday = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + ((7 - d.getDay() + 1) % 7 || 7));
+    return d.toISOString().slice(0, 10);
+  };
+
   const [name, setName] = useState("");
+  const [startDate, setStartDate] = useState(defaultNextMonday);
   const [weekLabel, setWeekLabel] = useState("Tuần tiếp theo (Dự kiến)");
   const [cloneFromId, setCloneFromId] = useState(currentActiveId || "concept-2");
   const [submitting, setSubmitting] = useState(false);
@@ -66,6 +73,7 @@ export function CreateConceptModal({
         body: JSON.stringify({
           action: "create",
           name: name.trim(),
+          startDate: startDate || undefined,
           weekLabel: weekLabel.trim(),
           cloneFromId: cloneFromId === "blank" ? undefined : cloneFromId,
         }),
@@ -133,15 +141,40 @@ export function CreateConceptModal({
             </div>
           </div>
 
-          {/* Tuần áp dụng */}
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold text-stone-700">Thời gian / Tuần áp dụng</Label>
-            <Input
-              placeholder="Vd: Tuần tiếp theo (10/11 - 16/11)"
-              value={weekLabel}
-              onChange={(e) => setWeekLabel(e.target.value)}
-              className="text-xs"
-            />
+          {/* Ngày bắt đầu áp dụng & Tuần/Mùa */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5 text-[#b45309]" />
+                Ngày bắt đầu áp dụng *
+              </Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setStartDate(val);
+                  if (val) {
+                    const parts = val.split("-");
+                    if (parts.length === 3) {
+                      setWeekLabel(`Áp dụng từ ${parts[2]}/${parts[1]}/${parts[0]}`);
+                    }
+                  }
+                }}
+                className="text-xs font-heading font-medium"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-stone-700">Ghi chú tuần / Mùa</Label>
+              <Input
+                placeholder="Vd: Tuần 46 · Mùa Đông"
+                value={weekLabel}
+                onChange={(e) => setWeekLabel(e.target.value)}
+                className="text-xs"
+              />
+            </div>
           </div>
 
           {/* Phương thức khởi tạo */}
@@ -198,3 +231,4 @@ export function CreateConceptModal({
     </Dialog>
   );
 }
+

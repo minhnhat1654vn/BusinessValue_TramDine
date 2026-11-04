@@ -20,6 +20,8 @@ export interface MenuConcept {
   description: string;
   status: "ACTIVE" | "UPCOMING" | "ARCHIVED";
   weekLabel: string; // "Tuần này", "Tuần tiếp theo (10/11 - 16/11)"
+  startDate?: string; // YYYY-MM-DD
+  endDate?: string;   // YYYY-MM-DD
   sellingPrice: number;
   targetFoodCostPct: number;
   dishes: ResolvedDishRecipe[];
@@ -234,11 +236,15 @@ export async function createConcept({
   name,
   description,
   weekLabel,
+  startDate,
+  endDate,
   cloneFromId,
 }: {
   name: string;
   description?: string;
   weekLabel?: string;
+  startDate?: string;
+  endDate?: string;
   cloneFromId?: string;
 }): Promise<MenuConcept> {
   const store = await ensureConceptsInitialized();
@@ -266,13 +272,19 @@ export async function createConcept({
     }
   }
 
+  const effectiveWeekLabel =
+    weekLabel?.trim() ||
+    (startDate ? `Áp dụng từ ${startDate.split("-").reverse().join("/")}` : "Tuần tiếp theo (Dự kiến)");
+
   const newConcept: MenuConcept = {
     id: newId,
     code,
     name: name.trim() || `Concept ${nextNum}: Thực đơn Tuần ${nextNum}`,
     description: description?.trim() || "Thực đơn Tasting tuần mới của TRẦM",
     status: "UPCOMING",
-    weekLabel: weekLabel?.trim() || "Tuần tiếp theo (Dự kiến)",
+    weekLabel: effectiveWeekLabel,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
     sellingPrice: 1190000,
     targetFoodCostPct: 33.5,
     dishes: dishesToUse,
@@ -470,3 +482,4 @@ export async function saveDishOrLineToConcept({
 
   return concept;
 }
+

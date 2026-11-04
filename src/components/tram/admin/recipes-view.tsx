@@ -856,7 +856,7 @@ export function AdminRecipes({
                 <SelectContent>
                   {concepts.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name} {c.id === activeConceptId ? "⭐ (Tuần này)" : `· ${c.weekLabel || "Tuần sau"}`}
+                      {c.name} {c.id === activeConceptId ? "⭐ (Tuần này)" : `· ${c.startDate ? `Từ ${c.startDate.split("-").reverse().join("/")}` : c.weekLabel || "Tuần sau"}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1062,7 +1062,7 @@ export function AdminRecipes({
                 <strong>
                   {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}
                 </strong>{" "}
-                ({concepts.find((c) => c.id === selectedConceptId)?.weekLabel || "Tuần tiếp theo"})
+                ({concepts.find((c) => c.id === selectedConceptId)?.startDate ? `Áp dụng từ ${concepts.find((c) => c.id === selectedConceptId)?.startDate?.split("-").reverse().join("/")}` : concepts.find((c) => c.id === selectedConceptId)?.weekLabel || "Tuần tiếp theo"})
               </p>
               <p className="text-[11px] text-amber-800">
                 Bạn có thể tự do thêm món, định lượng BOM và tính toán chi phí trước mà chưa ảnh hưởng tới thực đơn đang phục vụ khách hôm nay.

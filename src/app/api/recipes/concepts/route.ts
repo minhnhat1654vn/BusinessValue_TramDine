@@ -25,13 +25,15 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, conceptId, name, description, weekLabel, cloneFromId, payload } = body;
+    const { action, conceptId, name, description, weekLabel, startDate, endDate, cloneFromId, payload } = body;
 
     if (action === "create") {
       const concept = await createConcept({
         name,
         description,
         weekLabel,
+        startDate,
+        endDate,
         cloneFromId,
       });
       return NextResponse.json({
@@ -88,3 +90,4 @@ export async function POST(request: Request) {
     );
   }
 }
+
