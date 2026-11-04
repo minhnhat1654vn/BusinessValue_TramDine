@@ -83,7 +83,7 @@
                 {
                   "id": "cmw2icezx00d4vovg7pfhuj9h",
                   "ingredientId": "kem-chua",
-                  "ingredientName": "Kem chua thảo mộc (Sour cream)",
+                  "ingredientName": "Kem chua thảo mộc",
                   "group": "DAIRY_FAT",
                   "groupLabel": "Sữa & chất béo",
                   "spec": "Đánh mịn, bảo quản lạnh",
@@ -595,7 +595,7 @@
                   "unit": "g",
                   "qtyPerGuest": 20,
                   "qtyTotal": 20,
-                  "prepNote": "Tưới bơ liên tục (basting)",
+                  "prepNote": "Tưới bơ liên tục trên chảo",
                   "defaultImportPrice": 260000
                 },
                 {
@@ -976,7 +976,7 @@
             {
               "id": "cmw2icf4h00gkvovg5x04gnzt",
               "optionId": "low_sweet",
-              "optionName": "Ít ngọt thanh tao (Low sugar)",
+              "optionName": "Ít ngọt thanh tao",
               "isDefault": false,
               "note": "Tôn vị trà Shan tuyết nổi bật",
               "lines": [
@@ -1059,7 +1059,7 @@
         }
       ],
       "createdAt": "2026-11-04T17:28:37.141Z",
-      "updatedAt": "2026-11-04T19:26:44.531Z"
+      "updatedAt": "2026-11-04T20:12:28.886Z"
     },
     {
       "id": "concept-3",

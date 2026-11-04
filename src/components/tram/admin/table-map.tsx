@@ -48,7 +48,7 @@ type AvailResp = AvailabilityResponse & { closed: boolean };
 const ZONES = [
   { name: "Khu cửa sổ", hint: "bàn 2 chỗ" },
   { name: "Khu trung tâm", hint: "bàn 4 chỗ" },
-  { name: "Khu sân sau", hint: "bàn 6 chỗ" },
+  { name: "Phòng riêng Trầm Hương", hint: "bàn 6 chỗ" },
 ];
 
 function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {

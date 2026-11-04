@@ -345,3 +345,4 @@ export function TableCourseTracker({
     </div>
   );
 }
+

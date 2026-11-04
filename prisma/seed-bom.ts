@@ -90,7 +90,7 @@ export const CONCEPT2_INGREDIENTS = [
   // Sữa & chất béo
   {
     id: "kem-chua",
-    name: "Kem chua thảo mộc (Sour cream)",
+    name: "Kem chua thảo mộc",
     unit: "g",
     group: "DAIRY_FAT",
     spec: "Đánh mịn, bảo quản lạnh",
@@ -494,7 +494,7 @@ export const CONCEPT2_DISHES = [
         note: "Thăn cá mọng nước, da giòn rụm",
         lines: [
           { ingredientId: "ca-tam-da-lat", qtyPerGuest: 120, unit: "g", prepNote: "Áp chảo da trước" },
-          { ingredientId: "bo-thao-moc", qtyPerGuest: 20, unit: "g", prepNote: "Tưới bơ liên tục (basting)" },
+          { ingredientId: "bo-thao-moc", qtyPerGuest: 20, unit: "g", prepNote: "Tưới bơ liên tục trên chảo" },
           { ingredientId: "sot-saffron", qtyPerGuest: 25, unit: "ml", prepNote: "Vẽ sốt viền đĩa" },
           { ingredientId: "mang-tay-da-lat", qtyPerGuest: 40, unit: "g", prepNote: "Áp chảo kèm" },
         ],
@@ -569,7 +569,7 @@ export const CONCEPT2_DISHES = [
       },
       {
         optionId: "low_sweet",
-        optionName: "Ít ngọt thanh tao (Low sugar)",
+        optionName: "Ít ngọt thanh tao",
         isDefault: false,
         note: "Tôn vị trà Shan tuyết nổi bật",
         lines: [

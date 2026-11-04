@@ -28,18 +28,18 @@ const randInt = (min: number, max: number) =>
 
 // ---------- Bảng 12 bàn theo spec ----------
 const TABLES = [
-  { code: "A01", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "A02", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "A03", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "A04", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "A05", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "B01", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B02", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B03", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B04", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B05", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B11", seats: 6, zone: "Khu sân sau" },
-  { code: "B12", seats: 6, zone: "Khu sân sau" },
+  { code: "A01", seats: 2, zone: "Khu cửa sổ" },
+  { code: "A02", seats: 2, zone: "Khu cửa sổ" },
+  { code: "A03", seats: 2, zone: "Khu cửa sổ" },
+  { code: "A04", seats: 2, zone: "Khu cửa sổ" },
+  { code: "A05", seats: 2, zone: "Khu cửa sổ" },
+  { code: "B01", seats: 4, zone: "Khu trung tâm" },
+  { code: "B02", seats: 4, zone: "Khu trung tâm" },
+  { code: "B03", seats: 4, zone: "Khu trung tâm" },
+  { code: "B04", seats: 4, zone: "Khu trung tâm" },
+  { code: "B05", seats: 4, zone: "Khu trung tâm" },
+  { code: "B11", seats: 6, zone: "Phòng riêng Trầm Hương" },
+  { code: "B12", seats: 6, zone: "Phòng riêng Trầm Hương" },
 ];
 
 // ---------- Khách hàng giả lập ----------
