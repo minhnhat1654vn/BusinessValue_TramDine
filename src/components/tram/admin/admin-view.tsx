@@ -105,10 +105,10 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: Warehouse,
     children: [
       {
-        key: "recipes",
-        label: "Công thức món (BOM)",
-        description: "Bảng định lượng · 7 món Tasting",
-        icon: ChefHat,
+        key: "inventory",
+        label: "Tồn kho nguyên vật liệu",
+        description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
+        icon: Warehouse,
       },
       {
         key: "concepts",
@@ -117,16 +117,16 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
         icon: Sparkles,
       },
       {
+        key: "recipes",
+        label: "Công thức món (BOM)",
+        description: "Bảng định lượng · 7 món Tasting",
+        icon: ChefHat,
+      },
+      {
         key: "food-cost",
         label: "Phân tích Food Cost",
         description: "Mục tiêu 33,5% · Cơ cấu chi phí",
         icon: Calculator,
-      },
-      {
-        key: "inventory",
-        label: "Tồn kho nguyên vật liệu",
-        description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
-        icon: Warehouse,
       },
     ],
   },
@@ -229,10 +229,10 @@ export function AdminView() {
   const today = useToday();
 
   const isBomActive =
+    activeTab === "inventory" ||
+    activeTab === "concepts" ||
     activeTab === "recipes" ||
-    activeTab === "warehouse-cost" ||
-    activeTab === "food-cost" ||
-    activeTab === "inventory";
+    activeTab === "food-cost";
   const [bomDropdownOpen, setBomDropdownOpen] = useState(true);
 
   // Tự động mở dropdown BOM khi tab tích cực là 1 trong 3 tab con
@@ -301,7 +301,7 @@ export function AdminView() {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           if (!hasActiveChild) {
-                            setActiveTab("recipes");
+                            setActiveTab("inventory");
                             setBomDropdownOpen(true);
                           } else {
                             setBomDropdownOpen((prev) => !prev);
