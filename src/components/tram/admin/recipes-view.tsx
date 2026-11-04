@@ -250,6 +250,18 @@ export function AdminRecipes({
 
   const scaled = guests > 1;
 
+  const formatConceptPeriod = (c: any) => {
+    if (!c) return "";
+    if (c.startDate && c.endDate) {
+      const s = c.startDate.split("-").reverse().join("/");
+      const e = c.endDate.split("-").reverse().join("/");
+      return `${s} - ${e}`;
+    }
+    if (c.startDate) return `Áp dụng từ ${c.startDate.split("-").reverse().join("/")}`;
+    if (c.weekLabel && !c.weekLabel.toLowerCase().includes("tuần tiếp theo")) return c.weekLabel;
+    return "Kế hoạch mới";
+  };
+
   // Tải danh sách các Concept thực đơn
   const loadConcepts = useCallback(async () => {
     try {
@@ -816,11 +828,11 @@ export function AdminRecipes({
             </span>
             {selectedConceptId === activeConceptId ? (
               <Badge className="bg-emerald-600 text-white text-[10px] px-1.5 py-0">
-                Thực đơn tuần này đang phục vụ
+                Thực đơn đang phục vụ
               </Badge>
             ) : (
               <Badge className="bg-amber-600 text-white text-[10px] px-1.5 py-0">
-                Kế hoạch tuần tiếp theo (Bản nháp)
+                Kế hoạch áp dụng mới (Bản nháp)
               </Badge>
             )}
             {isRefreshing && (
@@ -857,7 +869,7 @@ export function AdminRecipes({
                 <SelectContent>
                   {concepts.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
-                      {c.name} {c.id === activeConceptId ? "⭐ (Tuần này)" : `· ${c.startDate ? `Từ ${c.startDate.split("-").reverse().join("/")}` : c.weekLabel || "Tuần sau"}`}
+                      {c.name} {c.id === activeConceptId ? "⭐ (Đang phục vụ)" : `· ${formatConceptPeriod(c)}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1063,7 +1075,7 @@ export function AdminRecipes({
                 <strong>
                   {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}
                 </strong>{" "}
-                ({concepts.find((c) => c.id === selectedConceptId)?.startDate ? `Áp dụng từ ${concepts.find((c) => c.id === selectedConceptId)?.startDate?.split("-").reverse().join("/")}` : concepts.find((c) => c.id === selectedConceptId)?.weekLabel || "Tuần tiếp theo"})
+                ({formatConceptPeriod(concepts.find((c) => c.id === selectedConceptId))})
               </p>
               <p className="text-[11px] text-amber-800">
                 Bạn có thể tự do thêm món, định lượng BOM và tính toán chi phí trước mà chưa ảnh hưởng tới thực đơn đang phục vụ khách hôm nay.

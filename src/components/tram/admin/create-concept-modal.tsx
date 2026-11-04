@@ -52,9 +52,22 @@ export function CreateConceptModal({
     return d.toISOString().slice(0, 10);
   };
 
+  const defaultNextSunday = () => {
+    const d = new Date();
+    d.setDate(d.getDate() + ((7 - d.getDay() + 1) % 7 || 7) + 6);
+    return d.toISOString().slice(0, 10);
+  };
+
+  const toVnDate = (iso: string) => {
+    if (!iso) return "";
+    const p = iso.split("-");
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
+  };
+
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(defaultNextMonday);
-  const [weekLabel, setWeekLabel] = useState("Tuần tiếp theo (Dự kiến)");
+  const [endDate, setEndDate] = useState(defaultNextSunday);
+  const [weekLabel, setWeekLabel] = useState(() => `${toVnDate(defaultNextMonday())} - ${toVnDate(defaultNextSunday())}`);
   const [cloneFromId, setCloneFromId] = useState("blank");
   const [submitting, setSubmitting] = useState(false);
 
@@ -74,6 +87,7 @@ export function CreateConceptModal({
           action: "create",
           name: name.trim(),
           startDate: startDate || undefined,
+          endDate: endDate || undefined,
           weekLabel: weekLabel.trim(),
           cloneFromId: cloneFromId === "blank" ? undefined : cloneFromId,
         }),
@@ -82,7 +96,7 @@ export function CreateConceptModal({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Lỗi khi tạo Concept mới.");
 
-      toast.success(data.message || "Đã tạo Concept tuần mới thành công!");
+      toast.success(data.message || "Đã tạo Concept mới thành công!");
       onOpenChange(false);
       setName("");
       onSuccess(data.concept.id);
@@ -103,10 +117,10 @@ export function CreateConceptModal({
             </div>
             <div>
               <DialogTitle className="font-heading text-lg font-bold text-[#292524]">
-                Tạo Concept Thực đơn Tuần mới
+                Tạo Concept Thực đơn mới
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
-                Chuẩn bị kế hoạch thực đơn, định lượng BOM và tính toán Food Cost trước cho tuần tiếp theo
+                Lên kế hoạch thực đơn, định lượng BOM và tính toán Food Cost theo thời gian áp dụng
               </DialogDescription>
             </div>
           </div>
@@ -141,7 +155,7 @@ export function CreateConceptModal({
             </div>
           </div>
 
-          {/* Ngày bắt đầu áp dụng & Tuần/Mùa */}
+          {/* Ngày bắt đầu & Ngày kết thúc áp dụng */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
@@ -155,10 +169,12 @@ export function CreateConceptModal({
                   const val = e.target.value;
                   setStartDate(val);
                   if (val) {
-                    const parts = val.split("-");
-                    if (parts.length === 3) {
-                      setWeekLabel(`Áp dụng từ ${parts[2]}/${parts[1]}/${parts[0]}`);
-                    }
+                    const startObj = new Date(val);
+                    const endObj = new Date(startObj);
+                    endObj.setDate(startObj.getDate() + 6);
+                    const endIso = endObj.toISOString().slice(0, 10);
+                    setEndDate(endIso);
+                    setWeekLabel(`${toVnDate(val)} - ${toVnDate(endIso)}`);
                   }
                 }}
                 className="text-xs font-heading font-medium"
@@ -167,14 +183,35 @@ export function CreateConceptModal({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-stone-700">Ghi chú tuần / Mùa</Label>
+              <Label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+                <CalendarDays className="h-3.5 w-3.5 text-[#b45309]" />
+                Ngày kết thúc áp dụng *
+              </Label>
               <Input
-                placeholder="Vd: Tuần 46 · Mùa Đông"
-                value={weekLabel}
-                onChange={(e) => setWeekLabel(e.target.value)}
-                className="text-xs"
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setEndDate(val);
+                  if (val && startDate) {
+                    setWeekLabel(`${toVnDate(startDate)} - ${toVnDate(val)}`);
+                  }
+                }}
+                className="text-xs font-heading font-medium"
+                required
               />
             </div>
+          </div>
+
+          {/* Ghi chú thời gian / Mùa */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-stone-700">Tên giai đoạn / Nhãn hiển thị</Label>
+            <Input
+              placeholder="Vd: 09/11/2026 - 15/11/2026 (hoặc Mùa Đông 2026)"
+              value={weekLabel}
+              onChange={(e) => setWeekLabel(e.target.value)}
+              className="text-xs"
+            />
           </div>
 
           {/* Phương thức khởi tạo */}
@@ -221,7 +258,7 @@ export function CreateConceptModal({
                 </>
               ) : (
                 <>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Tạo Concept tuần mới
+                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Tạo Concept mới
                 </>
               )}
             </Button>

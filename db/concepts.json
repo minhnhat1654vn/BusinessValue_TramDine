@@ -1046,20 +1046,37 @@
         }
       ],
       "createdAt": "2026-11-04T17:28:37.141Z",
-      "updatedAt": "2026-11-04T18:05:47.652Z"
+      "updatedAt": "2026-11-04T18:10:56.505Z"
     },
     {
       "id": "concept-3",
       "code": "C3",
       "name": "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
-      "description": "Thực đơn Tasting chuẩn bị cho tuần tiếp theo (Kế hoạch luân chuyển thực đơn)",
+      "description": "Thực đơn Tasting chuẩn bị áp dụng (09/11 - 15/11/2026)",
       "status": "UPCOMING",
-      "weekLabel": "Tuần tiếp theo (Dự kiến)",
+      "weekLabel": "09/11/2026 - 15/11/2026",
       "sellingPrice": 1190000,
       "targetFoodCostPct": 33.5,
       "dishes": [],
       "createdAt": "2026-11-04T17:28:37.142Z",
-      "updatedAt": "2026-11-04T17:28:37.142Z"
+      "updatedAt": "2026-11-04T17:28:37.142Z",
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-15"
+    },
+    {
+      "id": "concept-mw2fo2ns",
+      "code": "C3",
+      "name": "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
+      "description": "Thực đơn Tasting tuần mới của TRẦM",
+      "status": "UPCOMING",
+      "weekLabel": "10/11/2026 - 15/11/2026",
+      "startDate": "2026-11-10",
+      "endDate": "2026-11-15",
+      "sellingPrice": 1190000,
+      "targetFoodCostPct": 33.5,
+      "dishes": [],
+      "createdAt": "2026-11-04T18:11:34.648Z",
+      "updatedAt": "2026-11-04T18:11:34.648Z"
     }
   ]
 }

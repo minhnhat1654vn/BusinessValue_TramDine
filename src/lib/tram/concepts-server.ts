@@ -82,9 +82,11 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       id: "concept-3",
       code: "C3",
       name: "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
-      description: "Thực đơn Tasting chuẩn bị cho tuần tiếp theo (Kế hoạch luân chuyển thực đơn)",
+      description: "Thực đơn Tasting chuẩn bị áp dụng (09/11 - 15/11/2026)",
       status: "UPCOMING",
-      weekLabel: "Tuần tiếp theo (Dự kiến)",
+      weekLabel: "09/11/2026 - 15/11/2026",
+      startDate: "2026-11-09",
+      endDate: "2026-11-15",
       sellingPrice: 1190000,
       targetFoodCostPct: 33.5,
       dishes: [],
@@ -261,9 +263,17 @@ export async function createConcept({
   }
   // Nếu không chỉ định clone hoặc cloneFromId === "blank", dishesToUse = [] để trống hoàn toàn
 
-  const effectiveWeekLabel =
-    weekLabel?.trim() ||
-    (startDate ? `Áp dụng từ ${startDate.split("-").reverse().join("/")}` : "Tuần tiếp theo (Dự kiến)");
+  const formatPeriod = () => {
+    if (startDate && endDate) {
+      const s = startDate.split("-").reverse().join("/");
+      const e = endDate.split("-").reverse().join("/");
+      return `${s} - ${e}`;
+    }
+    if (startDate) return `Áp dụng từ ${startDate.split("-").reverse().join("/")}`;
+    return "Kế hoạch mới";
+  };
+
+  const effectiveWeekLabel = weekLabel?.trim() || formatPeriod();
 
   const newConcept: MenuConcept = {
     id: newId,
