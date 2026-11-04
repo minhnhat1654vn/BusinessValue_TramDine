@@ -115,6 +115,91 @@ const SHORT_GROUP_LABELS: Record<IngredientGroup, string> = {
   AROMATIC: "Hương liệu",
 };
 
+const GROUP_SECTION_STYLES: Record<
+  IngredientGroup,
+  {
+    rowBg: string;
+    border: string;
+    pillBg: string;
+    pillBorder: string;
+    textColor: string;
+    dotColor: string;
+    countBadge: string;
+    valueBadge: string;
+  }
+> = {
+  PROTEIN: {
+    rowBg: "bg-rose-50/80 hover:bg-rose-50",
+    border: "border-rose-200",
+    pillBg: "bg-rose-100",
+    pillBorder: "border-rose-400",
+    textColor: "text-rose-900",
+    dotColor: "bg-rose-600",
+    countBadge: "bg-rose-200 text-rose-950",
+    valueBadge: "text-rose-900",
+  },
+  STARCH: {
+    rowBg: "bg-amber-50/80 hover:bg-amber-50",
+    border: "border-amber-200",
+    pillBg: "bg-amber-100",
+    pillBorder: "border-amber-400",
+    textColor: "text-amber-900",
+    dotColor: "bg-amber-600",
+    countBadge: "bg-amber-200 text-amber-950",
+    valueBadge: "text-amber-900",
+  },
+  DAIRY_FAT: {
+    rowBg: "bg-yellow-50/80 hover:bg-yellow-50",
+    border: "border-yellow-200",
+    pillBg: "bg-yellow-100",
+    pillBorder: "border-yellow-400",
+    textColor: "text-yellow-950",
+    dotColor: "bg-yellow-600",
+    countBadge: "bg-yellow-200 text-yellow-950",
+    valueBadge: "text-yellow-900",
+  },
+  PRODUCE: {
+    rowBg: "bg-emerald-50/80 hover:bg-emerald-50",
+    border: "border-emerald-200",
+    pillBg: "bg-emerald-100",
+    pillBorder: "border-emerald-400",
+    textColor: "text-emerald-950",
+    dotColor: "bg-emerald-600",
+    countBadge: "bg-emerald-200 text-emerald-950",
+    valueBadge: "text-emerald-900",
+  },
+  FRUIT_NUT: {
+    rowBg: "bg-orange-50/80 hover:bg-orange-50",
+    border: "border-orange-200",
+    pillBg: "bg-orange-100",
+    pillBorder: "border-orange-400",
+    textColor: "text-orange-950",
+    dotColor: "bg-orange-600",
+    countBadge: "bg-orange-200 text-orange-950",
+    valueBadge: "text-orange-900",
+  },
+  SEASONING: {
+    rowBg: "bg-stone-100/90 hover:bg-stone-100",
+    border: "border-stone-300",
+    pillBg: "bg-stone-200/90",
+    pillBorder: "border-stone-400",
+    textColor: "text-stone-900",
+    dotColor: "bg-stone-600",
+    countBadge: "bg-stone-300 text-stone-950",
+    valueBadge: "text-stone-900",
+  },
+  AROMATIC: {
+    rowBg: "bg-violet-50/80 hover:bg-violet-50",
+    border: "border-violet-200",
+    pillBg: "bg-violet-100",
+    pillBorder: "border-violet-400",
+    textColor: "text-violet-950",
+    dotColor: "bg-violet-600",
+    countBadge: "bg-violet-200 text-violet-950",
+    valueBadge: "text-violet-900",
+  },
+};
+
 type StockScope = "ALL" | "SAFE" | "NEEDS_REORDER" | "OUT" | "STANDARD";
 
 function areMapsEqual(a: Record<string, number>, b: Record<string, number>): boolean {
@@ -568,18 +653,18 @@ export function AdminInventory({
                       : "border-border/70 bg-muted/15 hover:border-[#b45309]/40 hover:bg-[#fdf0d5]/30",
                   )}
                 >
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="inline-flex min-w-0 items-center gap-1.5 text-[11px] font-semibold text-[#292524]">
-                      <span
-                        className={cn("h-2 w-2 shrink-0 rounded-full", GROUP_STYLES[g.group].dot)}
-                      />
-                      <span className="truncate">{SHORT_GROUP_LABELS[g.group]}</span>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span
+                      className={cn("h-2 w-2 shrink-0 rounded-full", GROUP_STYLES[g.group].dot)}
+                    />
+                    <span className={cn("text-xs font-black uppercase tracking-wide", GROUP_SECTION_STYLES[g.group].textColor)}>
+                      {SHORT_GROUP_LABELS[g.group]}
                     </span>
-                    <span className="text-[10px] font-semibold tabular-nums text-muted-foreground">
-                      {formatPercent(g.shareOfValuePct, 1)}
+                    <span className="text-[10px] font-bold tabular-nums text-muted-foreground">
+                      ({formatPercent(g.shareOfValuePct, 1)})
                     </span>
                   </div>
-                  <div className="mt-1.5 text-xs font-bold tabular-nums text-[#92400e]">
+                  <div className="mt-1 text-center text-xs font-black tabular-nums text-[#92400e]">
                     {formatVND(g.totalValue)}
                   </div>
                 </button>
@@ -897,21 +982,33 @@ function InventoryGroupSection({
   const groupSubtotal = items.reduce((sum, i) => sum + i.stockValue, 0);
   const groupPct =
     totalWarehouseValue > 0 ? Math.round((groupSubtotal / totalWarehouseValue) * 1000) / 10 : 0;
+  const style = GROUP_SECTION_STYLES[group];
 
   return (
     <>
-      <TableRow className="bg-muted/40 hover:bg-muted/40">
-        <TableCell colSpan={8} className="py-1.5 pl-4 sm:pl-5">
-          <div className="flex items-center justify-between pr-3">
-            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-              <span className={cn("h-2 w-2 rounded-full", GROUP_STYLES[group].dot)} />
-              {INGREDIENT_GROUP_LABELS[group]}
-              <span className="font-normal normal-case tracking-normal text-muted-foreground">
-                ({items.length})
+      <TableRow className={cn("border-y-2 transition-colors", style.rowBg, style.border)}>
+        <TableCell colSpan={8} className="py-2.5 px-4 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <span
+              className={cn(
+                "inline-flex items-center gap-2 rounded-full border-2 px-4 py-1 shadow-xs transition-all",
+                style.pillBg,
+                style.pillBorder,
+              )}
+            >
+              <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full shadow-xs ring-2 ring-white", style.dotColor)} />
+              <span className={cn("text-xs sm:text-[13px] font-black uppercase tracking-wider", style.textColor)}>
+                NHÓM: {INGREDIENT_GROUP_LABELS[group]}
+              </span>
+              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-extrabold shadow-2xs", style.countBadge)}>
+                {items.length} mặt hàng
               </span>
             </span>
-            <span className="text-[11px] font-semibold tabular-nums text-stone-600">
-              {formatVND(groupSubtotal)} ({formatPercent(groupPct, 1)})
+
+            <span className={cn("inline-flex items-center gap-1.5 text-xs font-bold tabular-nums", style.valueBadge)}>
+              <span className="font-semibold text-stone-600">Giá trị tồn nhóm:</span>
+              <strong className="font-black text-stone-900">{formatVND(groupSubtotal)}</strong>
+              <span className="text-[11px] font-semibold text-stone-500">({formatPercent(groupPct, 1)} kho)</span>
             </span>
           </div>
         </TableCell>
