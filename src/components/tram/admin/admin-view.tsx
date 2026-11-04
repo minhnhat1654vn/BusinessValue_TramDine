@@ -103,15 +103,15 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: Warehouse,
     children: [
       {
-        key: "warehouse-cost",
+        key: "inventory",
         label: "Tồn kho nguyên vật liệu",
-        description: "Nguyên liệu · Đơn giá nhập · Tồn kho",
+        description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
         icon: Warehouse,
       },
       {
         key: "recipes",
-        label: "Công thức món (BOM)",
-        description: "Tạo món · Định lượng · Giá vốn món",
+        label: "Công thức món & Giá vốn",
+        description: "7 món · Định lượng BOM · Food Cost 33,5%",
         icon: ChefHat,
       },
     ],
@@ -525,17 +525,12 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {activeTab === "recipes" && (
+              {(activeTab === "recipes" || activeTab === "food-cost") && (
                 <AdminRecipes onNavigateTab={handleNavigateTab} />
               )}
 
-              {(activeTab === "warehouse-cost" ||
-                activeTab === "food-cost" ||
-                activeTab === "inventory") && (
-                <AdminWarehouseCost
-                  initialSubTab={activeTab === "inventory" ? "inventory" : "cost"}
-                  onNavigateTab={handleNavigateTab}
-                />
+              {(activeTab === "inventory" || activeTab === "warehouse-cost") && (
+                <AdminInventory onNavigateTab={handleNavigateTab} />
               )}
 
               {activeTab === "settings" && (

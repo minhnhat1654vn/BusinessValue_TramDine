@@ -7,6 +7,10 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
+  TrendingUp,
+  Coins,
+  Calculator,
+  Banknote,
   CalendarDays,
   ArrowDownToLine,
   AlertTriangle,
@@ -80,7 +84,7 @@ import {
 } from "@/lib/tram/recipes";
 import type { BomResponse } from "@/lib/tram/recipes-server";
 import { toast } from "sonner";
-import { formatVND } from "@/lib/tram/format";
+import { formatPercent, formatVND } from "@/lib/tram/format";
 import * as XLSX from "xlsx";
 
 // Màu nhận diện từng nhóm nguyên liệu
@@ -107,7 +111,7 @@ const COMMON_PREP_SUGGESTIONS = [
   "Rót nóng tại bàn",
 ];
 
-type ViewMode = "recipes" | "ingredients";
+type ViewMode = "recipes" | "food-cost" | "ingredients";
 
 interface ExcelPreviewRow {
   rowNum: number;
@@ -325,12 +329,118 @@ export function AdminRecipes({
   }
 
   // Món đang chọn
+  // ---------- TÍNH TOÁN FOOD COST & GIÁ VỐN TRỰC TIẾP TRÊN BOM ----------
+  const MENU_SELLING_PRICE = 1190000;
+  const TARGET_FOOD_COST_PCT = 33.5;
+  const TARGET_FOOD_COST_VND = 398650;
+
+  // 1. Giá vốn từng món theo định lượng BOM
+  const dishCostMap = useMemo(() => {
+    if (!bomData) return new Map<number, number>();
+    const map = new Map<number, number>();
+    for (const d of bomData.dishes) {
+      const defVar = d.variants.find((v) => v.isDefault) ?? d.variants[0];
+      if (!defVar) {
+        map.set(d.index, 0);
+        continue;
+      }
+      const cost = defVar.lines.reduce((sum, l) => {
+        const linePrice = l.defaultImportPrice || 0;
+        return sum + Math.round((l.qtyPerGuest * linePrice) / 1000);
+      }, 0);
+      map.set(d.index, cost);
+    }
+    return map;
+  }, [bomData]);
+
+  // 2. Tổng Food Cost thực đơn (1 suất)
+  const totalFoodCost = useMemo(() => {
+    let total = 0;
+    dishCostMap.forEach((cost) => {
+      total += cost;
+    });
+    return total;
+  }, [dishCostMap]);
+
+  // 3. Tỷ lệ Food Cost % trên giá bán menu 1.190.000 đ
+  const actualFoodCostPct = useMemo(() => {
+    if (MENU_SELLING_PRICE <= 0) return 0;
+    return Math.round((totalFoodCost / MENU_SELLING_PRICE) * 1000) / 10;
+  }, [totalFoodCost]);
+
+  // 4. Lãi gộp lý thuyết / 1 suất
+  const grossProfit = Math.max(0, MENU_SELLING_PRICE - totalFoodCost);
+  const grossProfitPct = Math.round((grossProfit / MENU_SELLING_PRICE) * 1000) / 10;
+
+  // 5. Chi phí ca 42 khách
+  const shift42Cost = totalFoodCost * 42;
+  const shift42Revenue = MENU_SELLING_PRICE * 42;
+
+  // 6. Món có chi phí cao nhất
+  const highestDish = useMemo(() => {
+    if (!bomData || bomData.dishes.length === 0) return null;
+    let maxDish = bomData.dishes[0];
+    let maxCost = dishCostMap.get(maxDish.index) || 0;
+    for (const d of bomData.dishes) {
+      const cost = dishCostMap.get(d.index) || 0;
+      if (cost > maxCost) {
+        maxCost = cost;
+        maxDish = d;
+      }
+    }
+    return { dish: maxDish, cost: maxCost };
+  }, [bomData, dishCostMap]);
+
+  // 7. Phân bổ chi phí theo 7 nhóm nguyên liệu
+  const groupCostSummary = useMemo(() => {
+    if (!bomData) return [];
+    const costByGroup: Record<IngredientGroup, number> = {
+      PROTEIN: 0,
+      STARCH: 0,
+      DAIRY_FAT: 0,
+      PRODUCE: 0,
+      FRUIT_NUT: 0,
+      SEASONING: 0,
+      AROMATIC: 0,
+    };
+    for (const d of bomData.dishes) {
+      const defVar = d.variants.find((v) => v.isDefault) ?? d.variants[0];
+      if (!defVar) continue;
+      for (const l of defVar.lines) {
+        const grp = (l.group || "SEASONING") as IngredientGroup;
+        const lineCost = Math.round((l.qtyPerGuest * (l.defaultImportPrice || 0)) / 1000);
+        if (costByGroup[grp] !== undefined) {
+          costByGroup[grp] += lineCost;
+        }
+      }
+    }
+    return INGREDIENT_GROUP_ORDER.map((grp) => {
+      const cost = costByGroup[grp] || 0;
+      const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
+      return {
+        group: grp,
+        label: INGREDIENT_GROUP_LABELS[grp],
+        cost,
+        share,
+      };
+    });
+  }, [bomData, totalFoodCost]);
+
   const activeDish = useMemo(() => {
     if (!bomData) return null;
     return bomData.dishes.find((d) => d.index === selectedDish) ?? bomData.dishes[0];
   }, [bomData, selectedDish]);
 
   // Biến thể đang chọn của món
+  const activeDishCost = useMemo(() => {
+    if (!activeDish) return 0;
+    const defVar = activeDish.variants.find((v) => v.isDefault) ?? activeDish.variants[0];
+    if (!defVar) return 0;
+    return defVar.lines.reduce((sum, l) => {
+      return sum + Math.round((l.qtyPerGuest * (l.defaultImportPrice || 0)) / 1000);
+    }, 0);
+  }, [activeDish]);
+
   const activeVariant = useMemo(() => {
     if (!activeDish) return null;
     const pickedOptionId = variantByDish[selectedDish];
@@ -769,20 +879,33 @@ export function AdminRecipes({
               type="button"
               onClick={() => setViewMode("recipes")}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
                 viewMode === "recipes"
                   ? "bg-white text-[#92400e] shadow-xs"
                   : "text-stone-600 hover:text-stone-900",
               )}
             >
               <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
-              7 Món Tasting
+              7 Món &amp; Giá vốn BOM
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("food-cost")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
+                viewMode === "food-cost"
+                  ? "bg-white text-[#92400e] shadow-xs"
+                  : "text-stone-600 hover:text-stone-900",
+              )}
+            >
+              <Calculator className="h-3.5 w-3.5 text-[#b45309]" />
+              Phân tích Food Cost ({actualFoodCostPct}%)
             </button>
             <button
               type="button"
               onClick={() => setViewMode("ingredients")}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
                 viewMode === "ingredients"
                   ? "bg-white text-[#92400e] shadow-xs"
                   : "text-stone-600 hover:text-stone-900",
@@ -975,38 +1098,42 @@ export function AdminRecipes({
       ) : viewMode === "recipes" ? (
         /* ==================== VIEW 1: CÔNG THỨC 7 MÓN ==================== */
         <>
-          {/* 4 CHỈ SỐ TỔNG QUAN */}
+          {/* 4 CHỈ SỐ TỔNG QUAN FOOD COST & BOM */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
               {
-                id: "dishes",
-                label: "Món trong menu",
-                value: String(bomData?.dishes.length ?? 7),
-                sub: "Tasting Concept 2",
+                id: "food-cost",
+                label: scaled ? `Food Cost (${guests} khách)` : "Food Cost / 1 suất",
+                value: formatVND(scaled ? totalFoodCost * guests : totalFoodCost),
+                sub: `${actualFoodCostPct}% giá menu 1.190.000 đ · Mục tiêu 33,5%`,
+                tone: actualFoodCostPct <= 34 ? "good" : "warn",
+                icon: Calculator,
+              },
+              {
+                id: "gross-profit",
+                label: scaled ? `Lãi gộp (${guests} khách)` : "Lãi gộp lý thuyết",
+                value: formatVND(scaled ? grossProfit * guests : grossProfit),
+                sub: `${grossProfitPct}% biên lợi nhuận gộp`,
+                tone: "default",
+                icon: Coins,
+              },
+              {
+                id: "shift-capacity",
+                label: "Chi phí ca 42 khách",
+                value: formatVND(shift42Cost),
+                sub: `Doanh thu ca: ${formatVND(shift42Revenue)}`,
+                tone: "default",
+                icon: Users,
+              },
+              {
+                id: "highest-dish",
+                label: "Món chi phí cao nhất",
+                value: highestDish ? `Món 0${highestDish.dish.index}` : "—",
+                sub: highestDish
+                  ? `${highestDish.dish.name} (${formatVND(highestDish.cost)} · ${totalFoodCost > 0 ? Math.round((highestDish.cost / totalFoodCost) * 1000) / 10 : 0}%)`
+                  : "—",
+                tone: "default",
                 icon: UtensilsCrossed,
-              },
-              {
-                id: "ingredients",
-                label: "Nguyên liệu / suất",
-                value: String(menuSummary.length),
-                sub: "Loại nguyên liệu, phương án chuẩn",
-                icon: Layers,
-              },
-              {
-                id: "weight",
-                label: scaled ? `Tổng cho ${guests} khách` : "Định lượng / khách",
-                value: formatTotals(
-                  scaled ? bomData?.summary.totalsForGuests : bomData?.summary.totalsPerGuest,
-                ),
-                sub: scaled ? `Gồm chất rắn (g) + lỏng (ml)` : "Một suất hoàn chỉnh",
-                icon: Scale,
-              },
-              {
-                id: "variants",
-                label: "Tổng nguyên liệu kho",
-                value: String(bomData?.allIngredients.length ?? 0),
-                sub: "Đang lưu trong bảng Ingredient",
-                icon: ArrowRightLeft,
               },
             ].map((stat) => {
               const Icon = stat.icon;
@@ -1086,9 +1213,16 @@ export function AdminRecipes({
                     <span className="line-clamp-1 font-heading text-xs font-semibold text-[#292524] group-hover:text-[#b45309]">
                       {dish.name}
                     </span>
-                    <span className="mt-0.5 text-[10px] text-muted-foreground">
-                      {defaultVar?.lines.length ?? 0} nguyên liệu
-                    </span>
+                    <div className="mt-1 flex items-center justify-between text-[10.5px]">
+                      <span className="font-heading font-bold text-[#b45309]">
+                        {formatVND(dishCostMap.get(dish.index) || 0)}
+                      </span>
+                      <span className="text-[10px] tabular-nums text-muted-foreground">
+                        {totalFoodCost > 0
+                          ? `${Math.round(((dishCostMap.get(dish.index) || 0) / totalFoodCost) * 1000) / 10}%`
+                          : "0%"}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -1110,6 +1244,9 @@ export function AdminRecipes({
                       )}
                       <span className="text-xs text-muted-foreground">·</span>
                       <span className="text-xs text-muted-foreground">{activeDish.portion}</span>
+                      <Badge className="bg-[#b45309]/15 text-[#92400e] border border-[#b45309]/30 font-heading font-semibold text-xs px-2 py-0.5 ml-1">
+                        Giá vốn món: {formatVND(activeDishCost)} / suất ({totalFoodCost > 0 ? Math.round((activeDishCost / totalFoodCost) * 1000) / 10 : 0}% Menu)
+                      </Badge>
                     </div>
                     <CardTitle className="font-heading text-xl font-bold text-[#292524] sm:text-2xl">
                       {activeDish.name}
@@ -1202,14 +1339,20 @@ export function AdminRecipes({
                           Tổng {guests} khách
                         </TableHead>
                       )}
-                      <TableHead className="text-right">Đơn giá ước tính</TableHead>
+                      <TableHead className="text-right">Đơn giá nhập</TableHead>
+                      <TableHead className="text-right text-[#b45309] font-bold">Thành tiền / suất</TableHead>
+                      {scaled && (
+                        <TableHead className="text-right text-[#92400e] font-bold">
+                          Tổng tiền ({guests}k)
+                        </TableHead>
+                      )}
                       <TableHead className="w-20 text-center">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {activeVariant.lines.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={scaled ? 7 : 6} className="py-8 text-center text-sm text-muted-foreground">
+                        <TableCell colSpan={scaled ? 9 : 7} className="py-8 text-center text-sm text-muted-foreground">
                           Chưa có nguyên liệu nào trong công thức này. Hãy bấm &quot;Thêm định lượng vào món&quot;.
                         </TableCell>
                       </TableRow>
@@ -1237,6 +1380,14 @@ export function AdminRecipes({
                           <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
                             {line.defaultImportPrice > 0 ? `${formatVND(line.defaultImportPrice)} / ${line.unit === "ml" ? "L" : "kg"}` : "—"}
                           </TableCell>
+                          <TableCell className="text-right font-heading font-bold text-[#b45309] tabular-nums">
+                            {formatVND(Math.round((line.qtyPerGuest * (line.defaultImportPrice || 0)) / 1000))}
+                          </TableCell>
+                          {scaled && (
+                            <TableCell className="text-right font-heading font-bold text-[#92400e] tabular-nums">
+                              {formatVND(Math.round((line.qtyTotal * (line.defaultImportPrice || 0)) / 1000))}
+                            </TableCell>
+                          )}
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center gap-1">
                               <Button
@@ -1278,7 +1429,7 @@ export function AdminRecipes({
                   <TableFooter className="bg-[#fdf0d5]/40 font-heading">
                     <TableRow>
                       <TableCell colSpan={3} className="font-semibold text-[#92400e]">
-                        Tổng định lượng một suất ({activeVariant.optionName}):
+                        Tổng cộng một suất ({activeVariant.optionName}):
                       </TableCell>
                       <TableCell className="text-right font-bold text-[#92400e]">
                         {formatTotals(activeVariant.totalsPerGuest)}
@@ -1288,7 +1439,18 @@ export function AdminRecipes({
                           {formatTotals(activeVariant.totalsForGuests)}
                         </TableCell>
                       )}
-                      <TableCell colSpan={2} />
+                      <TableCell className="text-right text-xs font-sans text-muted-foreground">
+                        Giá vốn món:
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-[#b45309] tabular-nums">
+                        {formatVND(activeDishCost)}
+                      </TableCell>
+                      {scaled && (
+                        <TableCell className="text-right font-bold text-[#92400e] tabular-nums">
+                          {formatVND(activeDishCost * guests)}
+                        </TableCell>
+                      )}
+                      <TableCell />
                     </TableRow>
                   </TableFooter>
                 </Table>
@@ -1296,6 +1458,158 @@ export function AdminRecipes({
             </Card>
           )}
         </>
+      ) : viewMode === "food-cost" ? (
+        /* ==================== VIEW: PHÂN TÍCH FOOD COST 33,5% ==================== */
+        <div className="space-y-4">
+          {/* Card so sánh đối chiếu mục tiêu 33,5% */}
+          <Card className="border-border/80 bg-card shadow-xs">
+            <CardHeader className="border-b border-border/80 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <CardTitle className="font-heading text-lg font-bold text-[#292524] flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-[#b45309]" />
+                    Đối chiếu Food Cost thực tế vs Mục tiêu 33,5%
+                  </CardTitle>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Giá bán menu Tasting: {formatVND(MENU_SELLING_PRICE)} · Trần chi phí chuẩn: {formatVND(TARGET_FOOD_COST_VND)} / khách
+                  </p>
+                </div>
+                <Badge
+                  className={cn(
+                    "text-xs px-2.5 py-1 font-heading font-semibold self-start sm:self-auto",
+                    actualFoodCostPct <= 33.5
+                      ? "bg-emerald-600 text-white"
+                      : "bg-amber-600 text-white"
+                  )}
+                >
+                  {actualFoodCostPct <= 33.5
+                    ? `Đạt chuẩn tối ưu (${actualFoodCostPct}% ≤ 33,5%)`
+                    : `Vượt ngưỡng mục tiêu (+${(actualFoodCostPct - 33.5).toFixed(1)}%)`}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-5 space-y-4">
+              {/* Thanh tiến trình đo Food Cost */}
+              <div>
+                <div className="flex justify-between text-xs font-semibold mb-1.5 text-stone-700">
+                  <span>Tỷ lệ giá vốn thực tế: <strong className="text-[#b45309]">{actualFoodCostPct}%</strong></span>
+                  <span>Mục tiêu chuẩn: <strong className="text-emerald-700">33,5%</strong></span>
+                </div>
+                <div className="h-3 w-full rounded-full bg-stone-100 overflow-hidden relative border border-border">
+                  <div
+                    style={{ width: `${Math.min(100, (actualFoodCostPct / 50) * 100)}%` }}
+                    className={cn(
+                      "h-full transition-all duration-500",
+                      actualFoodCostPct <= 33.5 ? "bg-emerald-600" : "bg-amber-500"
+                    )}
+                  />
+                  <div
+                    style={{ left: `${(33.5 / 50) * 100}%` }}
+                    className="absolute top-0 bottom-0 w-0.5 bg-rose-600 z-10"
+                    title="Ngưỡng mục tiêu 33,5%"
+                  />
+                </div>
+              </div>
+
+              {/* Bảng phân bổ cơ cấu 7 nhóm nguyên liệu */}
+              <div className="pt-2">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-600 mb-2">
+                  Cơ cấu giá vốn theo 7 nhóm nguyên liệu
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                  {groupCostSummary.map((g) => (
+                    <div key={g.group} className="rounded-xl border border-border/70 bg-stone-50/50 p-2.5">
+                      <div className="text-[10.5px] font-medium text-stone-600 truncate">{g.label}</div>
+                      <div className="mt-1 font-heading text-sm font-bold text-[#92400e]">{formatVND(g.cost)}</div>
+                      <div className="mt-0.5 text-[10px] text-muted-foreground">{g.share}% tổng vốn</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bảng xếp hạng giá vốn 7 món Tasting từ cao đến thấp */}
+          <Card className="border-border/80 bg-card shadow-xs">
+            <CardHeader className="border-b border-border/80 pb-3">
+              <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
+                <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
+                Bảng xếp hạng Giá vốn 7 món Tasting
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/80 bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                    <TableHead className="w-16 text-center">STT</TableHead>
+                    <TableHead>Tên món ăn</TableHead>
+                    <TableHead className="text-right">Giá vốn / suất</TableHead>
+                    <TableHead className="text-right">Tỷ trọng Food Cost</TableHead>
+                    <TableHead className="text-right">Doanh thu / Ca 42k</TableHead>
+                    <TableHead className="text-center w-28">Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {bomData?.dishes.map((dish) => {
+                    const cost = dishCostMap.get(dish.index) || 0;
+                    const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
+                    return (
+                      <TableRow key={dish.index} className="hover:bg-[#fffdf9]">
+                        <TableCell className="text-center font-bold text-[#b45309]">Món 0{dish.index}</TableCell>
+                        <TableCell className="font-medium text-[#292524]">
+                          <div>
+                            <span className="font-bold">{dish.name}</span>
+                            <span className="block text-[10.5px] text-muted-foreground">{dish.region}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-heading font-bold text-[#b45309]">
+                          {formatVND(cost)}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-stone-700">
+                          {share}%
+                        </TableCell>
+                        <TableCell className="text-right font-heading text-xs tabular-nums text-stone-600">
+                          {formatVND(cost * 42)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDish(dish.index);
+                              setViewMode("recipes");
+                            }}
+                            className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
+                          >
+                            Xem BOM
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+                <TableFooter className="bg-[#fdf0d5]/40 font-heading">
+                  <TableRow>
+                    <TableCell colSpan={2} className="font-semibold text-[#92400e]">
+                      Tổng giá vốn 7 món Tasting hoàn chỉnh:
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-[#b45309]">
+                      {formatVND(totalFoodCost)}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-[#92400e]">
+                      {actualFoodCostPct}% menu
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-[#92400e]">
+                      {formatVND(shift42Cost)}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
         /* ==================== VIEW 2: KHO NGUYÊN LIỆU ==================== */
         <Card className="border-border/80 bg-card shadow-xs">
