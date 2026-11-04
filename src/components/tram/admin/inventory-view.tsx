@@ -458,7 +458,7 @@ export function AdminInventory({
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-heading">
       {/* ==================== 1. TIÊU ĐỀ ==================== */}
       {!hideTitleHeader ? (
         <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
