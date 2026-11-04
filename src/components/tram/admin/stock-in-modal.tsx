@@ -1,7 +1,7 @@
 "use client";
 
 // Modal Phiếu Nhập Hàng Vào Kho (Goods Receipt / Stock Inward)
-// Hỗ trợ chọn nguyên liệu, điền số lượng nhập, cập nhật đơn giá đợt này và cộng dồn tồn kho SQLite.
+// Hỗ trợ chọn nguyên liệu, điền số lượng nhập, cập nhật đơn giá đợt này và cộng dồn tồn kho.
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import {
@@ -237,7 +237,7 @@ export function StockInModal({
             </div>
           </div>
           <DialogDescription className="text-xs">
-            Cộng dồn số lượng vào tồn kho thực tế và cập nhật đơn giá nhập trong CSDL SQLite.
+            Cộng dồn số lượng vào tồn kho thực tế và cập nhật đơn giá nhập.
           </DialogDescription>
         </DialogHeader>
 
