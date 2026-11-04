@@ -180,6 +180,13 @@ export function AdminRecipes({
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Modal Tạo món ăn mới
+  const [createDishOpen, setCreateDishOpen] = useState(false);
+  const [newDishName, setNewDishName] = useState("");
+  const [newDishMethod, setNewDishMethod] = useState("");
+  const [newDishNote, setNewDishNote] = useState("");
+  const [submittingDish, setSubmittingDish] = useState(false);
+
   // Modal Thêm / Sửa Dòng định lượng
   const [lineModalOpen, setLineModalOpen] = useState(false);
   const [editingLine, setEditingLine] = useState<{
@@ -419,6 +426,67 @@ export function AdminRecipes({
   }, [bomData]);
 
   // ---------- Thao tác CRUD ----------
+
+  // Submit Tạo món ăn mới
+  const handleCreateDish = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDishName.trim()) {
+      toast.error("Vui lòng nhập tên món ăn.");
+      return;
+    }
+    setSubmittingDish(true);
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create-dish",
+          dishName: newDishName.trim(),
+          method: newDishMethod.trim(),
+          note: newDishNote.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi khi tạo món ăn.");
+
+      toast.success(data.message || "Đã tạo món ăn mới!");
+      setCreateDishOpen(false);
+      setNewDishName("");
+      setNewDishMethod("");
+      setNewDishNote("");
+      if (data.dish) {
+        setSelectedDish(data.dish.dishIndex);
+      }
+      await loadBom(guests, true);
+    } catch (err: any) {
+      toast.error(err.message || "Không thể tạo món ăn.");
+    } finally {
+      setSubmittingDish(false);
+    }
+  };
+
+  // Submit Xóa món ăn
+  const handleDeleteDish = async (dishId: string, dishName: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa món "${dishName}" khỏi thực đơn?`)) return;
+    try {
+      const res = await fetch("/api/recipes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete-dish",
+          dishId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi khi xóa món ăn.");
+
+      toast.success(data.message || "Đã xóa món ăn.");
+      setSelectedDish(1);
+      await loadBom(guests, true);
+    } catch (err: any) {
+      toast.error(err.message || "Không thể xóa món ăn.");
+    }
+  };
 
   // Lưu dòng định lượng
   async function handleSaveLine(e: React.FormEvent) {
@@ -808,11 +876,17 @@ export function AdminRecipes({
           <div>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                Chọn món để xem &amp; chỉnh sửa công thức
+                Chọn món để xem &amp; gán định lượng BOM ({bomData?.dishes.length ?? 7} món)
               </span>
-              <span className="text-[11px] text-muted-foreground">
-                Hiển thị {activeDish?.variants.length ?? 0} phương án chế biến
-              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setCreateDishOpen(true)}
+                className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Tạo món ăn mới
+              </Button>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
               {bomData?.dishes.map((dish) => {
@@ -910,6 +984,19 @@ export function AdminRecipes({
                       <Plus className="mr-1.5 h-3.5 w-3.5" />
                       Thêm định lượng vào món
                     </Button>
+
+                    {activeDish.index > 7 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteDish(activeDish.id, activeDish.name)}
+                        className="h-9 border-rose-200 text-xs text-rose-700 hover:bg-rose-50"
+                        title="Xóa món này khỏi thực đơn"
+                      >
+                        <Trash2 className="mr-1 h-3.5 w-3.5" /> Xóa món
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -1419,6 +1506,80 @@ export function AdminRecipes({
           </div>
         </Card>
       )}
+
+      {/* ==================== DIALOG TẠO MÓN ĂN MỚI ==================== */}
+      <Dialog open={createDishOpen} onOpenChange={setCreateDishOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg text-[#292524]">
+              Tạo món ăn mới vào thực đơn
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Món mới sẽ được cấp số thứ tự tiếp theo. Sau khi tạo, bạn có thể bốc nguyên liệu từ kho vào và gán định lượng BOM.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCreateDish} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-stone-700">Tên món ăn *</Label>
+              <Input
+                placeholder="Ví dụ: Gà Đông Tảo Hầm Trầm Hương..."
+                value={newDishName}
+                onChange={(e) => setNewDishName(e.target.value)}
+                className="h-9 text-xs"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-stone-700">Kỹ thuật chế biến chính</Label>
+              <Input
+                placeholder="Ví dụ: Nấu chậm sous-vide 62°C, áp chảo da giòn..."
+                value={newDishMethod}
+                onChange={(e) => setNewDishMethod(e.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-stone-700">Ghi chú ẩm thực / Triết lý món</Label>
+              <Input
+                placeholder="Ví dụ: Nước dùng hầm xương gà gia truyền, vị thanh ngọt..."
+                value={newDishNote}
+                onChange={(e) => setNewDishNote(e.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setCreateDishOpen(false)}
+                disabled={submittingDish}
+                className="text-xs"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submittingDish}
+                className="bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e]"
+              >
+                {submittingDish ? (
+                  <>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang tạo món...
+                  </>
+                ) : (
+                  "Tạo món & Chuyển sang định lượng"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* ==================== DIALOG 1: THÊM / SỬA DÒNG ĐỊNH LƯỢNG NÂNG CAO ==================== */}
       <Dialog open={lineModalOpen} onOpenChange={setLineModalOpen}>

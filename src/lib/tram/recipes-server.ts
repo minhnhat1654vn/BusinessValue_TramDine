@@ -668,3 +668,56 @@ export async function importBomFromExcelBuffer(buffer: Buffer): Promise<{
   };
 }
 
+/**
+ * Tạo một món ăn mới vào CSDL DishRecipe kèm variant mặc định (std)
+ */
+export async function createDishRecipe(dishName: string, method?: string, note?: string) {
+  const lastDish = await prisma.dishRecipe.findFirst({
+    orderBy: { dishIndex: "desc" },
+  });
+  const nextIndex = (lastDish?.dishIndex ?? 0) + 1;
+
+  const dish = await prisma.dishRecipe.create({
+    data: {
+      dishIndex: nextIndex,
+      dishName: dishName.trim(),
+      portion: "1 khách",
+      method: method?.trim() || null,
+      note: note?.trim() || null,
+      variants: {
+        create: {
+          optionId: "std",
+          optionName: "Tiêu chuẩn",
+          isDefault: true,
+          note: "Công thức chuẩn",
+        },
+      },
+    },
+    include: {
+      variants: true,
+    },
+  });
+
+  return dish;
+}
+
+/**
+ * Xóa một món ăn khỏi CSDL (kèm các dòng định lượng và variant)
+ */
+export async function deleteDishRecipe(dishId: string) {
+  const variants = await prisma.recipeVariant.findMany({
+    where: { recipeId: dishId },
+    select: { id: true },
+  });
+  const variantIds = variants.map((v) => v.id);
+
+  await prisma.recipeLine.deleteMany({
+    where: { variantId: { in: variantIds } },
+  });
+  await prisma.recipeVariant.deleteMany({
+    where: { recipeId: dishId },
+  });
+  return prisma.dishRecipe.delete({
+    where: { id: dishId },
+  });
+}
