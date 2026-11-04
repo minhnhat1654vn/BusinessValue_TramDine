@@ -1159,7 +1159,10 @@ function InventoryStockRow({
         <button
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
-          className="inline-flex h-6 items-center gap-1 rounded-sm border border-stone-400 bg-transparent px-2 text-[10.5px] font-semibold text-stone-700 transition-colors hover:border-[#92400e] hover:bg-[#92400e] hover:text-white"
+          className={cn(
+            "inline-flex h-6 items-center gap-1 rounded-sm px-2 text-[10.5px] font-semibold transition-colors",
+            isWarning ? "border border-rose-700 bg-rose-700 text-white hover:bg-rose-800" : "border border-stone-400 bg-transparent text-stone-700 hover:border-[#92400e] hover:bg-[#92400e] hover:text-white",
+          )}
           title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
@@ -1866,10 +1869,10 @@ function DemandForecastRow({
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
           className={cn(
-            "inline-flex h-7 items-center gap-1 rounded-md px-2.5 text-xs font-bold transition-colors cursor-pointer shadow-xs",
+            "inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-bold transition-colors cursor-pointer",
             isShortage
-              ? "border border-rose-300 bg-rose-600 text-white hover:bg-rose-700"
-              : "border border-[#b45309]/30 bg-[#fdf0d5]/80 text-[#92400e] hover:bg-[#b45309] hover:text-white",
+              ? "border border-rose-700 bg-rose-700 text-white hover:bg-rose-800"
+              : "border border-stone-400 bg-transparent text-stone-700 hover:border-[#92400e] hover:bg-[#92400e] hover:text-white",
           )}
           title={`Nhập hàng thêm cho ${item.name}`}
         >
