@@ -7,6 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
+  ArrowDownToLine,
   AlertTriangle,
   ArrowRightLeft,
   CheckCircle2,
@@ -65,6 +66,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { StockInModal } from "./stock-in-modal";
 import { MENU_ITEMS } from "@/lib/tram/constants";
 import {
   INGREDIENT_GROUP_LABELS,
@@ -198,6 +200,10 @@ export function AdminRecipes({
     prepNote: string;
   } | null>(null);
   const [submittingLine, setSubmittingLine] = useState(false);
+
+  // Modal Nhập hàng vào kho (Goods Receipt)
+  const [stockInOpen, setStockInOpen] = useState(false);
+  const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
 
   // Modal Thêm / Sửa Nguyên liệu
   const [ingModalOpen, setIngModalOpen] = useState(false);
@@ -720,25 +726,40 @@ export function AdminRecipes({
             </Button>
 
             {viewMode === "ingredients" && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  setEditingIng({
-                    name: "",
-                    unit: "g",
-                    group: "PROTEIN",
-                    spec: "",
-                    defaultImportPrice: 100000,
-                    currentStock: 1000,
-                    minStock: 200,
-                  });
-                  setIngModalOpen(true);
-                }}
-                className="h-8 bg-[#b45309] text-xs font-medium text-white hover:bg-[#92400e]"
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" /> Thêm nguyên liệu
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setStockInTargetId(undefined);
+                    setStockInOpen(true);
+                  }}
+                  className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
+                >
+                  <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
+                  Nhập kho
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setEditingIng({
+                      name: "",
+                      unit: "g",
+                      group: "PROTEIN",
+                      spec: "",
+                      defaultImportPrice: 100000,
+                      currentStock: 1000,
+                      minStock: 200,
+                    });
+                    setIngModalOpen(true);
+                  }}
+                  className="h-8 bg-[#b45309] text-xs font-medium text-white hover:bg-[#92400e]"
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" /> Thêm nguyên liệu
+                </Button>
+              </>
             )}
 
             <Button
@@ -1325,6 +1346,19 @@ export function AdminRecipes({
                 <Button
                   type="button"
                   size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setStockInTargetId(undefined);
+                    setStockInOpen(true);
+                  }}
+                  className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
+                >
+                  <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
+                  Nhập kho
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
                   onClick={() => {
                     setEditingIng({
                       name: "",
@@ -1403,6 +1437,19 @@ export function AdminRecipes({
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex items-center justify-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setStockInTargetId(ing.id);
+                                setStockInOpen(true);
+                              }}
+                              className="h-7 w-7 text-[#b45309] hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                              title={`Nhập hàng vào kho cho ${ing.name}`}
+                            >
+                              <ArrowDownToLine className="h-3.5 w-3.5" />
+                            </Button>
                             <Button
                               type="button"
                               variant="ghost"
@@ -2112,6 +2159,14 @@ export function AdminRecipes({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL PHIẾU NHẬP HÀNG VÀO KHO */}
+      <StockInModal
+        open={stockInOpen}
+        onOpenChange={setStockInOpen}
+        initialIngredientId={stockInTargetId}
+        onSuccess={() => loadBom(guests, true)}
+      />
     </div>
   );
 }

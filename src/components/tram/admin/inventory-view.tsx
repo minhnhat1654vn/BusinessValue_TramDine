@@ -2,11 +2,13 @@
 
 // FR-29 — Quản lý tồn kho: theo dõi lượng tồn theo từng nguyên liệu,
 // tổng giá trị kho cập nhật liên tục theo thời gian thực.
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { StockInModal } from "./stock-in-modal";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
   ArrowDownRight,
+  ArrowDownToLine,
   ArrowUpRight,
   ChevronLeft,
   ChevronRight,
@@ -142,6 +144,8 @@ export function AdminInventory({
   const [selectedDishIndex, setSelectedDishIndex] = useState(5);
   const [dishPortions, setDishPortions] = useState(2);
   const [isDispatching, setIsDispatching] = useState(false);
+  const [stockInOpen, setStockInOpen] = useState(false);
+  const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
 
   const pendingSyncRef = useRef(false);
   const isPendingSync = useMemo(
@@ -157,39 +161,37 @@ export function AdminInventory({
   }, [isPendingSync, isSaving]);
 
   // Tải trạng thái tồn kho & đơn giá nhập kho hiệu lực từ server
+  const fetchSnapshot = useCallback((isInitial: boolean) => {
+    fetch(`/api/inventory?_t=${Date.now()}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        if (!isInitial && pendingSyncRef.current) return;
+        const nextStock =
+          data.stockOverrides && typeof data.stockOverrides === "object"
+            ? (data.stockOverrides as Record<string, number>)
+            : {};
+        const nextPrices =
+          data.priceOverrides && typeof data.priceOverrides === "object"
+            ? (data.priceOverrides as Record<string, number>)
+            : {};
+        const nextReorder =
+          data.reorderOverrides && typeof data.reorderOverrides === "object"
+            ? (data.reorderOverrides as Record<string, number>)
+            : {};
+        setSavedStock(nextStock);
+        setDraftStock(nextStock);
+        setSavedReorder(nextReorder);
+        setDraftReorder(nextReorder);
+        setPriceOverrides(nextPrices);
+        setLoaded(true);
+      })
+      .catch(() => {
+        setLoaded(true);
+      });
+  }, []);
+
   useEffect(() => {
-    let cancelled = false;
-
-    function fetchSnapshot(isInitial: boolean) {
-      fetch(`/api/inventory?_t=${Date.now()}`, { cache: "no-store" })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (cancelled || !data) return;
-          if (!isInitial && pendingSyncRef.current) return;
-          const nextStock =
-            data.stockOverrides && typeof data.stockOverrides === "object"
-              ? (data.stockOverrides as Record<string, number>)
-              : {};
-          const nextPrices =
-            data.priceOverrides && typeof data.priceOverrides === "object"
-              ? (data.priceOverrides as Record<string, number>)
-              : {};
-          const nextReorder =
-            data.reorderOverrides && typeof data.reorderOverrides === "object"
-              ? (data.reorderOverrides as Record<string, number>)
-              : {};
-          setSavedStock(nextStock);
-          setDraftStock(nextStock);
-          setSavedReorder(nextReorder);
-          setDraftReorder(nextReorder);
-          setPriceOverrides(nextPrices);
-          setLoaded(true);
-        })
-        .catch(() => {
-          if (!cancelled) setLoaded(true);
-        });
-    }
-
     fetchSnapshot(true);
 
     const onWindowFocus = () => {
@@ -198,10 +200,14 @@ export function AdminInventory({
     window.addEventListener("focus", onWindowFocus);
 
     return () => {
-      cancelled = true;
       window.removeEventListener("focus", onWindowFocus);
     };
-  }, []);
+  }, [fetchSnapshot]);
+
+  const handleStockInSuccess = useCallback(() => {
+    fetchSnapshot(true);
+    toast.success("Đã ghi nhận phiếu nhập kho và cập nhật số lượng tồn");
+  }, [fetchSnapshot]);
 
   // Tự động đồng bộ tồn kho & mức đặt lại lên server mỗi khi chỉnh sửa (liên tục, debounce 380ms)
   useEffect(() => {
@@ -806,18 +812,33 @@ export function AdminInventory({
               Tồn kho từng nguyên liệu
             </CardTitle>
 
-            <div className="relative w-full md:w-64">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tìm nguyên liệu..."
-                aria-label="Tìm nguyên liệu trong kho"
-                className="h-9 rounded-full pl-8 text-sm"
-              />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setStockInTargetId(undefined);
+                  setStockInOpen(true);
+                }}
+                className="h-9 gap-1.5 rounded-full bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
+              >
+                <ArrowDownToLine className="h-3.5 w-3.5" />
+                Nhập hàng vào kho
+              </Button>
+
+              <div className="relative w-full sm:w-60">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden
+                />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Tìm nguyên liệu..."
+                  aria-label="Tìm nguyên liệu trong kho"
+                  className="h-9 rounded-full pl-8 text-sm"
+                />
+              </div>
             </div>
           </div>
 
@@ -946,8 +967,11 @@ export function AdminInventory({
                   <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                     Đơn giá kho
                   </TableHead>
-                  <TableHead className="w-36 whitespace-nowrap pr-4 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                  <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                     Giá trị tồn
+                  </TableHead>
+                  <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                    Thao tác
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -959,6 +983,10 @@ export function AdminInventory({
                     group={group}
                     items={items}
                     totalWarehouseValue={report.totalValue}
+                    onStockIn={(id) => {
+                      setStockInTargetId(id);
+                      setStockInOpen(true);
+                    }}
                   />
                 ))}
               </TableBody>
@@ -973,9 +1001,10 @@ export function AdminInventory({
                       ? `Tổng giá trị kho · ${report.totalIngredients} nguyên liệu`
                       : `Tổng theo bộ lọc · ${filteredItems.length} nguyên liệu (${formatPercent(filteredSharePct, 1)} kho)`}
                   </TableCell>
-                  <TableCell className="pr-4 text-right text-sm font-bold tabular-nums text-[#92400e] sm:pr-5">
+                  <TableCell className="text-right text-sm font-bold tabular-nums text-[#92400e]">
                     {formatVND(filteredValueTotal)}
                   </TableCell>
+                  <TableCell className="pr-4 sm:pr-5" />
                 </TableRow>
               </TableFooter>
             </Table>
@@ -1044,6 +1073,14 @@ export function AdminInventory({
           )}
         </CardContent>
       </Card>
+
+      {/* MODAL PHIẾU NHẬP HÀNG VÀO KHO */}
+      <StockInModal
+        open={stockInOpen}
+        onOpenChange={setStockInOpen}
+        initialIngredientId={stockInTargetId}
+        onSuccess={handleStockInSuccess}
+      />
     </div>
   );
 }
@@ -1054,10 +1091,12 @@ function InventoryGroupSection({
   group,
   items,
   totalWarehouseValue,
+  onStockIn,
 }: {
   group: IngredientGroup;
   items: InventoryItem[];
   totalWarehouseValue: number;
+  onStockIn: (id: string) => void;
 }) {
   const groupSubtotal = items.reduce((sum, i) => sum + i.stockValue, 0);
   const groupPct =
@@ -1066,7 +1105,7 @@ function InventoryGroupSection({
   return (
     <>
       <TableRow className="bg-muted/40 hover:bg-muted/40">
-        <TableCell colSpan={7} className="py-1.5 pl-4 sm:pl-5">
+        <TableCell colSpan={8} className="py-1.5 pl-4 sm:pl-5">
           <div className="flex items-center justify-between pr-3">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
               <span className={cn("h-2 w-2 rounded-full", GROUP_STYLES[group].dot)} />
@@ -1082,13 +1121,19 @@ function InventoryGroupSection({
         </TableCell>
       </TableRow>
       {items.map((item) => (
-        <InventoryStockRow key={item.ingredientId} item={item} />
+        <InventoryStockRow key={item.ingredientId} item={item} onStockIn={onStockIn} />
       ))}
     </>
   );
 }
 
-function InventoryStockRow({ item }: { item: InventoryItem }) {
+function InventoryStockRow({
+  item,
+  onStockIn,
+}: {
+  item: InventoryItem;
+  onStockIn: (id: string) => void;
+}) {
   const isOut = item.stockQty === 0;
   const isWarning = item.isWarning; // stockPercent < 32% or isOut
   const isSafe = item.isSafe; // stockPercent >= 32%
@@ -1239,7 +1284,7 @@ function InventoryStockRow({ item }: { item: InventoryItem }) {
       </TableCell>
 
       {/* 7. Giá trị tồn */}
-      <TableCell className="pr-4 text-right sm:pr-5">
+      <TableCell className="text-right">
         <div
           className={cn(
             "font-semibold tabular-nums",
@@ -1251,6 +1296,19 @@ function InventoryStockRow({ item }: { item: InventoryItem }) {
         <div className="text-[10.5px] tabular-nums text-muted-foreground">
           {formatPercent(item.shareOfValuePct, 1)}
         </div>
+      </TableCell>
+
+      {/* 8. Thao tác nhập hàng nhanh */}
+      <TableCell className="pr-4 text-center sm:pr-5">
+        <button
+          type="button"
+          onClick={() => onStockIn(item.ingredientId)}
+          className="inline-flex h-6 items-center gap-1 rounded-md border border-[#b45309]/30 bg-[#fdf0d5]/80 px-2 text-[10.5px] font-semibold text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white"
+          title={`Nhập hàng thêm cho ${item.name}`}
+        >
+          <ArrowDownToLine className="h-3 w-3" />
+          Nhập
+        </button>
       </TableCell>
     </TableRow>
   );

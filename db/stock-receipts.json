@@ -1,0 +1,28 @@
+[
+  {
+    "id": "REC-604957",
+    "ingredientId": "bo-wagyu-a5",
+    "ingredientName": "bo-wagyu-a5",
+    "unit": "g",
+    "quantity": 500,
+    "pricePerUnit": 2800000,
+    "totalAmount": 1400000,
+    "supplierNote": "Nhập thử nghiệm Wagyu A5 kiểm tra luồng kho",
+    "previousStock": 0,
+    "newStock": 500,
+    "createdAt": "2026-11-04T17:16:44.957Z"
+  },
+  {
+    "id": "REC-592447",
+    "ingredientId": "bo-wagyu-a5",
+    "ingredientName": "bo-wagyu-a5",
+    "unit": "g",
+    "quantity": 500,
+    "pricePerUnit": 2800000,
+    "totalAmount": 1400000,
+    "supplierNote": "Thử nghiệm nhập thêm thịt bò A5",
+    "previousStock": 0,
+    "newStock": 500,
+    "createdAt": "2026-11-04T17:16:32.447Z"
+  }
+]
