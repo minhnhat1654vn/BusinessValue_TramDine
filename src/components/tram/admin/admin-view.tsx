@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Calculator,
   Warehouse,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -103,16 +104,28 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     icon: Warehouse,
     children: [
       {
+        key: "recipes",
+        label: "Công thức món (BOM)",
+        description: "Bảng định lượng · 7 món Tasting",
+        icon: ChefHat,
+      },
+      {
+        key: "concepts",
+        label: "Concept thực đơn",
+        description: "Quản lý Concept · Kế hoạch theo ngày",
+        icon: Sparkles,
+      },
+      {
+        key: "food-cost",
+        label: "Phân tích Food Cost",
+        description: "Mục tiêu 33,5% · Cơ cấu chi phí",
+        icon: Calculator,
+      },
+      {
         key: "inventory",
         label: "Tồn kho nguyên vật liệu",
         description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
         icon: Warehouse,
-      },
-      {
-        key: "recipes",
-        label: "Công thức món & Giá vốn",
-        description: "7 món · Định lượng BOM · Food Cost 33,5%",
-        icon: ChefHat,
       },
     ],
   },
@@ -525,8 +538,12 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {(activeTab === "recipes" || activeTab === "food-cost") && (
-                <AdminRecipes onNavigateTab={handleNavigateTab} />
+              {(activeTab === "recipes" || activeTab === "concepts" || activeTab === "food-cost") && (
+                <AdminRecipes
+                  initialViewMode={activeTab === "food-cost" ? "food-cost" : "recipes"}
+                  initialOpenConceptModal={activeTab === "concepts"}
+                  onNavigateTab={handleNavigateTab}
+                />
               )}
 
               {(activeTab === "inventory" || activeTab === "warehouse-cost") && (

@@ -157,12 +157,16 @@ function GroupBadge({ group }: { group: IngredientGroup }) {
 }
 
 export function AdminRecipes({
+  initialViewMode = "recipes",
+  initialOpenConceptModal = false,
   onNavigateTab,
 }: {
+  initialViewMode?: ViewMode;
+  initialOpenConceptModal?: boolean;
   onNavigateTab?: (tab: string) => void;
 } = {}) {
-  // Chế độ xem: "recipes" (Công thức 7 món) hoặc "ingredients" (Kho nguyên liệu)
-  const [viewMode, setViewMode] = useState<ViewMode>("recipes");
+  // Chế độ xem: "recipes" (Công thức món), "food-cost" (Phân tích Food Cost), "ingredients" (Kho)
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
 
   // Quy đổi số khách
   const [guests, setGuests] = useState(1);
@@ -212,7 +216,19 @@ export function AdminRecipes({
   const [concepts, setConcepts] = useState<any[]>([]);
   const [activeConceptId, setActiveConceptId] = useState<string>("concept-2");
   const [selectedConceptId, setSelectedConceptId] = useState<string>("concept-2");
-  const [createConceptOpen, setCreateConceptOpen] = useState(false);
+  const [createConceptOpen, setCreateConceptOpen] = useState(initialOpenConceptModal);
+
+  useEffect(() => {
+    if (initialViewMode) {
+      setViewMode(initialViewMode);
+    }
+  }, [initialViewMode]);
+
+  useEffect(() => {
+    if (initialOpenConceptModal) {
+      setCreateConceptOpen(true);
+    }
+  }, [initialOpenConceptModal]);
   const [activatingConcept, setActivatingConcept] = useState(false);
 
   const [stockInOpen, setStockInOpen] = useState(false);
