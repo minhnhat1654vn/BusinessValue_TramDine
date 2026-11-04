@@ -6,6 +6,7 @@
 // Mọi lượt đặt đều hợp nghiệp vụ: không có thứ Hai, không trùng bàn cùng khung.
 
 import { PrismaClient } from "@prisma/client";
+import { seedBomDatabase } from "./seed-bom";
 
 const db = new PrismaClient();
 
@@ -615,6 +616,7 @@ async function main() {
   console.log(
     `Nguồn: Web ${sourceCount.WEB} / Điện thoại ${sourceCount.PHONE} / Zalo ${sourceCount.ZALO}`,
   );
+  await seedBomDatabase();
   console.log("Seed hoàn tất ✔");
 }
 
