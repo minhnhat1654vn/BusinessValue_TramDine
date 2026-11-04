@@ -880,20 +880,20 @@ export function AdminRecipes({
 
   return (
     <div className="space-y-6">
-      {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ ==================== */}
-      <div className="flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
+      {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ TINH GỌN ==================== */}
+      <div className="flex flex-col gap-4 border-b border-border/80 pb-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
               Bếp &amp; kho · CSDL SQLite
             </span>
             {selectedConceptId === activeConceptId ? (
-              <Badge className="bg-emerald-600 text-white text-[10px] px-1.5 py-0">
-                Thực đơn đang phục vụ
+              <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+                ⭐ Thực đơn đang phục vụ
               </Badge>
             ) : (
-              <Badge className="bg-amber-600 text-white text-[10px] px-1.5 py-0">
-                Kế hoạch áp dụng mới (Bản nháp)
+              <Badge className="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+                Kế hoạch áp dụng tuần
               </Badge>
             )}
             {isRefreshing && (
@@ -903,230 +903,50 @@ export function AdminRecipes({
             )}
           </div>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-            Định lượng công thức (BOM) &amp; Kho nguyên liệu
+            {viewMode === "food-cost"
+              ? "Phân tích Food Cost & Giá vốn thực đơn"
+              : viewMode === "ingredients"
+                ? "Danh mục nguyên liệu & Đơn giá kho"
+                : "Bảng định lượng công thức (BOM)"}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept 2"} · Nhập/xuất Excel · Đồng bộ CSDL trực tiếp
+            {viewMode === "food-cost"
+              ? "Định mức chi phí thực phẩm mục tiêu 33.5% · Đối soát giá bán 1.190.000 đ/khách"
+              : viewMode === "ingredients"
+                ? "Theo dõi đơn giá nhập và định mức sử dụng theo từng món ăn"
+                : "Định lượng chi tiết 7 món Tasting · Tính toán giá vốn nguyên liệu theo số lượng khách"}
           </p>
         </div>
 
-        {/* THANH ĐIỀU HƯỚNG TỐI GIẢN & TÁC VỤ */}
+        {/* Cụm công cụ tinh gọn trên 1 dòng */}
         <div className="flex flex-wrap items-center gap-2.5">
-          {/* Bộ chọn Concept Thực đơn đa tuần */}
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center rounded-xl border border-stone-200 bg-stone-100/90 px-2 py-0.5 shadow-xs">
-              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
-              <Select
-                value={selectedConceptId}
-                onValueChange={(val) => {
-                  setSelectedConceptId(val);
-                  setSelectedDish(1);
-                  loadBom(guests, false, val);
-                }}
-              >
-                <SelectTrigger className="h-7 border-0 bg-transparent text-xs font-semibold shadow-none focus:ring-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {concepts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name} {c.id === activeConceptId ? "⭐ (Đang phục vụ)" : `· ${formatConceptPeriod(c)}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setCreateConceptOpen(true)}
-              className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
-              title="Tạo Concept thực đơn tuần mới"
-            >
-              <Plus className="mr-1 h-3.5 w-3.5" /> Thêm Concept
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                const cur = concepts.find((c) => c.id === selectedConceptId);
-                if (cur) {
-                  setConceptToEdit(cur);
-                  setEditConceptOpen(true);
-                }
+          {/* Bộ chọn Concept */}
+          <div className="flex items-center rounded-xl border border-stone-200 bg-stone-100/90 px-2.5 py-1 shadow-2xs">
+            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
+            <span className="text-[11px] text-muted-foreground mr-1.5 font-medium">Concept:</span>
+            <Select
+              value={selectedConceptId}
+              onValueChange={(val) => {
+                setSelectedConceptId(val);
+                setSelectedDish(1);
+                loadBom(guests, false, val);
               }}
-              className="h-8 border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-[#fdf0d5]/50 hover:text-[#92400e]"
-              title="Sửa thông tin Concept đang chọn"
             >
-              <Pencil className="mr-1 h-3 w-3" /> Sửa
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={selectedConceptId === activeConceptId}
-              onClick={() => {
-                const cur = concepts.find((c) => c.id === selectedConceptId);
-                if (cur) {
-                  setConceptToDelete(cur);
-                  setDeleteAlertOpen(true);
-                }
-              }}
-              className={cn(
-                "h-8 border-stone-300 bg-white text-xs font-semibold",
-                selectedConceptId === activeConceptId
-                  ? "opacity-50 cursor-not-allowed text-stone-400"
-                  : "text-rose-700 hover:bg-rose-50 hover:border-rose-300",
-              )}
-              title={selectedConceptId === activeConceptId ? "Không thể xóa Concept đang phục vụ" : "Xóa Concept này"}
-            >
-              <Trash2 className="mr-1 h-3 w-3" /> Xóa
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setManageConceptsOpen(true)}
-              className="h-8 border-stone-300 bg-white text-xs font-semibold text-stone-700 hover:bg-stone-50"
-              title="Xem và quản lý toàn bộ danh sách Concept"
-            >
-              <Layers className="mr-1 h-3.5 w-3.5 text-[#b45309]" /> Danh sách ({concepts.length})
-            </Button>
-          </div>
-          {/* View mode switcher */}
-          <div className="flex rounded-xl border border-stone-200 bg-stone-100/80 p-1">
-            <button
-              type="button"
-              onClick={() => setViewMode("recipes")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
-                viewMode === "recipes"
-                  ? "bg-white text-[#92400e] shadow-xs"
-                  : "text-stone-600 hover:text-stone-900",
-              )}
-            >
-              <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
-              {bomData?.dishes && bomData.dishes.length > 0 ? `${bomData.dishes.length} Món & Giá vốn BOM` : "Món & Giá vốn BOM"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("food-cost")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
-                viewMode === "food-cost"
-                  ? "bg-white text-[#92400e] shadow-xs"
-                  : "text-stone-600 hover:text-stone-900",
-              )}
-            >
-              <Calculator className="h-3.5 w-3.5 text-[#b45309]" />
-              Phân tích Food Cost ({actualFoodCostPct}%)
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("ingredients")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all select-none",
-                viewMode === "ingredients"
-                  ? "bg-white text-[#92400e] shadow-xs"
-                  : "text-stone-600 hover:text-stone-900",
-              )}
-            >
-              <Warehouse className="h-3.5 w-3.5 text-[#b45309]" />
-              Kho ({bomData?.allIngredients.length ?? 0})
-            </button>
+              <SelectTrigger className="h-6 border-0 bg-transparent text-xs font-semibold shadow-none focus:ring-0 p-0 pr-1 gap-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {concepts.map((c) => (
+                  <SelectItem key={c.id} value={c.id} className="text-xs">
+                    {c.name} {c.id === activeConceptId ? "⭐ (Đang phục vụ)" : `· ${formatConceptPeriod(c)}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Cụm nút Excel tinh gọn */}
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedFile(null);
-                setPreviewRows([]);
-                setImportModalOpen(true);
-              }}
-              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
-            >
-              <Upload className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
-              Nhập Excel
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
-            >
-              <a href="/api/recipes/export">
-                <Download className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
-                Xuất Excel
-              </a>
-            </Button>
-
-            {viewMode === "ingredients" && (
-              <>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setStockInTargetId(undefined);
-                    setStockInOpen(true);
-                  }}
-                  className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
-                >
-                  <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
-                  Nhập kho
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    setEditingIng({
-                      name: "",
-                      unit: "g",
-                      group: "PROTEIN",
-                      spec: "",
-                      defaultImportPrice: 100000,
-                      currentStock: 1000,
-                      minStock: 200,
-                    });
-                    setIngModalOpen(true);
-                  }}
-                  className="h-8 bg-[#b45309] text-xs font-medium text-white hover:bg-[#92400e]"
-                >
-                  <Plus className="mr-1 h-3.5 w-3.5" /> Thêm nguyên liệu
-                </Button>
-              </>
-            )}
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleResetConcept2}
-              disabled={resetting}
-              title="Khôi phục chuẩn Concept 2"
-              className="h-8 px-2 text-xs text-muted-foreground hover:text-stone-900"
-            >
-              {resetting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RotateCcw className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          </div>
-
-          {/* Quy đổi số khách (chỉ hiện khi xem công thức) */}
-          {viewMode === "recipes" && (
+          {/* Quy đổi số khách */}
+          {viewMode !== "ingredients" && (
             <div className="flex items-center rounded-xl border border-stone-200 bg-white p-1 shadow-2xs">
               <div className="flex items-center rounded-full border border-border bg-stone-50 p-0.5">
                 <Button
@@ -1172,77 +992,88 @@ export function AdminRecipes({
               </div>
             </div>
           )}
+
+          {/* Nhập / Xuất Excel */}
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewRows([]);
+                setImportModalOpen(true);
+              }}
+              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+            >
+              <Upload className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+              Nhập Excel
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+            >
+              <a href="/api/recipes/export">
+                <Download className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+                Xuất Excel
+              </a>
+            </Button>
+          </div>
+
+          {/* Link sang trang Concept */}
+          {onNavigateTab && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onNavigateTab("concepts")}
+              className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
+              title="Đến trang Quản lý Concept để tạo mới, chỉnh sửa, xóa concept hoặc thiết kế món"
+            >
+              <Layers className="mr-1.5 h-3.5 w-3.5" />
+              Quản lý Concept
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Banner thông báo khi đang tinh chỉnh thực đơn tuần tiếp theo */}
+      {/* Banner thông báo nhẹ nhàng khi xem concept dự thảo */}
       {selectedConceptId !== activeConceptId && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50/90 p-3.5 text-xs text-amber-900 shadow-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-200 text-amber-900 font-bold">
-              <CalendarDays className="h-4 w-4" />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-2 text-xs text-amber-900 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-amber-700 shrink-0" />
+            <span>
+              Đang xem BOM kế hoạch: <strong>{concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}</strong> ({formatConceptPeriod(concepts.find((c) => c.id === selectedConceptId))})
             </span>
-            <div>
-              <p className="font-semibold text-amber-950">
-                Đang xem &amp; tinh chỉnh kế hoạch:{" "}
-                <strong>
-                  {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}
-                </strong>{" "}
-                ({formatConceptPeriod(concepts.find((c) => c.id === selectedConceptId))})
-              </p>
-              <p className="text-[11px] text-amber-800">
-                Bạn có thể tự do thêm món, định lượng BOM và tính toán chi phí trước mà chưa ảnh hưởng tới thực đơn đang phục vụ khách hôm nay.
-              </p>
-            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                const cur = concepts.find((c) => c.id === selectedConceptId);
-                if (cur) {
-                  setConceptToEdit(cur);
-                  setEditConceptOpen(true);
-                }
-              }}
-              className="h-8 border-amber-300 bg-white text-xs font-semibold text-amber-900 hover:bg-amber-100"
-            >
-              <Pencil className="mr-1 h-3 w-3" /> Sửa Concept
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                const cur = concepts.find((c) => c.id === selectedConceptId);
-                if (cur) {
-                  setConceptToDelete(cur);
-                  setDeleteAlertOpen(true);
-                }
-              }}
-              className="h-8 border-rose-300 bg-white text-xs font-semibold text-rose-800 hover:bg-rose-100"
-            >
-              <Trash2 className="mr-1 h-3 w-3" /> Xóa
-            </Button>
-
+          <div className="flex items-center gap-2 shrink-0">
+            {onNavigateTab && (
+              <button
+                type="button"
+                onClick={() => onNavigateTab("concepts")}
+                className="text-[11.5px] font-semibold text-[#92400e] hover:underline"
+              >
+                Chỉnh sửa concept &amp; món ăn →
+              </button>
+            )}
             <Button
               type="button"
               size="sm"
               disabled={activatingConcept}
               onClick={() => handleSetActiveConcept(selectedConceptId)}
-              className="h-8 shrink-0 bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
+              className="h-7 bg-[#b45309] px-3 text-xs font-semibold text-white shadow-2xs hover:bg-[#92400e]"
             >
               {activatingConcept ? (
                 <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang áp dụng...
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Đang áp dụng...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Áp dụng thực đơn này (Set Active)
+                  <CheckCircle2 className="mr-1 h-3 w-3" /> Áp dụng thực đơn này
                 </>
               )}
             </Button>

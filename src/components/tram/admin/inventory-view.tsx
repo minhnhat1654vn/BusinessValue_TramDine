@@ -417,8 +417,11 @@ export function AdminInventory({
               </span>
             </div>
             <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-              Quản lý tồn kho
+              Quản lý tồn kho nguyên vật liệu
             </h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Kiểm kê định mức tồn, dự báo hạn sử dụng và tổng giá trị kho vật liệu theo thời gian thực.
+            </p>
           </div>
 
           {(report.customizedStockCount > 0 ||
