@@ -50,10 +50,11 @@ const ZONES = [
   { name: "Khu sân sau", hint: "bàn 6 chỗ" },
 ];
 
-function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "NO_SHOW" {
+function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {
   if (!t.reservation) return "EMPTY";
   const s = t.reservation.status;
   if (s === "SEATED") return "SEATED";
+  if (s === "COMPLETED") return "COMPLETED";
   if (s === "NO_SHOW") return "NO_SHOW";
   return "BOOKED"; // PENDING / CONFIRMED
 }
@@ -69,7 +70,11 @@ const STATE_STYLES: Record<string, { box: string; label: string }> = {
   },
   SEATED: {
     box: "border-emerald-600 bg-emerald-100 text-emerald-800 hover:brightness-[0.98]",
-    label: "Đã đến",
+    label: "Đang phục vụ",
+  },
+  COMPLETED: {
+    box: "border-sky-500 bg-sky-100 text-sky-800 hover:brightness-[0.98]",
+    label: "Đã hoàn tất",
   },
   NO_SHOW: {
     box: "border-rose-500 bg-rose-100 text-rose-700 hover:brightness-[0.98]",

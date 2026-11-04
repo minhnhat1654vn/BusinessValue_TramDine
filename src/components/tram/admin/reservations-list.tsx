@@ -61,6 +61,7 @@ const STATUS_OPTIONS = [
   "CONFIRMED",
   "PENDING",
   "SEATED",
+  "COMPLETED",
   "NO_SHOW",
   "CANCELLED",
 ] as const;

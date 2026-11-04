@@ -276,6 +276,7 @@ export function StatusBadge({ status }: { status: string }) {
     PENDING: "border-[#b45309]/40 bg-[#fdf0d5] text-[#92400e]",
     CONFIRMED: "border-[#b45309]/50 bg-[#fde8c8]/70 text-[#92400e]",
     SEATED: "border-emerald-600/40 bg-emerald-100/70 text-emerald-800",
+    COMPLETED: "border-sky-600/40 bg-sky-100/70 text-sky-800",
     NO_SHOW: "border-rose-600/40 bg-rose-100/70 text-rose-700",
     CANCELLED: "border-stone-400/40 bg-stone-100 text-stone-500",
   };

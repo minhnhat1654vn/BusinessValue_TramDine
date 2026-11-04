@@ -141,8 +141,6 @@ export function AdminInventory({
   const [scope, setScope] = useState<StockScope>("ALL");
   const [selectedGroup, setSelectedGroup] = useState<IngredientGroup | "ALL">("ALL");
   const [search, setSearch] = useState("");
-  const [selectedDishIndex, setSelectedDishIndex] = useState(5);
-  const [dishPortions, setDishPortions] = useState(2);
   const [isDispatching, setIsDispatching] = useState(false);
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
@@ -259,40 +257,7 @@ export function AdminInventory({
     };
   }, [loaded, draftStock, savedStock, draftReorder, savedReorder]);
 
-  // Bếp xuất món ăn chế biến cho khách: nguyên liệu tự động trừ theo thời gian thực theo định lượng BOM
-  async function handleDispatchDish(dishIdx: number, portions: number) {
-    setIsDispatching(true);
-    const movement = applyDishMovement(draftStock, dishIdx, portions);
-    setDraftStock(movement.nextOverrides);
 
-    const dishItem = MENU_ITEMS.find((m) => m.index === dishIdx);
-    const dishTitle = dishItem?.name ?? `Món ${dishIdx}`;
-
-    try {
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "deduct_dish",
-          dishIndex: dishIdx,
-          portions,
-        }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? "Lỗi xuất kho món.");
-      if (body.stockOverrides) {
-        setSavedStock(body.stockOverrides as Record<string, number>);
-        setDraftStock(body.stockOverrides as Record<string, number>);
-      }
-      toast.success(
-        `Đã xuất ${portions} suất ${dishTitle} — Tự động trừ kho theo định lượng chế biến BOM.`,
-      );
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Lỗi khi xuất món bếp.");
-    } finally {
-      setIsDispatching(false);
-    }
-  }
 
   // Xuất bếp / Nhập bổ sung trọn bộ menu tasting (7 món)
   async function handleServingsMovement(guests: number, direction: "OUT" | "IN") {
@@ -650,160 +615,7 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* ==================== 4. BẾP XUẤT MÓN RA CHO KHÁCH (DẠNG CARD) ==================== */}
-      <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
-        <CardHeader className="border-b border-border/60 px-4 py-3 sm:px-5 [.border-b]:pb-3">
-          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#292524]">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
-                <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden />
-              </span>
-              <span>Bếp xuất món ra cho khách</span>
-            </CardTitle>
-
-            {/* Điều khiển số suất & nút Xuất món */}
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium text-stone-500">Số suất:</span>
-              <div className="flex items-center gap-1">
-                {[1, 2, 4, 6].map((p) => (
-                  <button
-                    key={`p-${p}`}
-                    type="button"
-                    onClick={() => setDishPortions(p)}
-                    className={cn(
-                      "flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-bold tabular-nums transition-colors",
-                      dishPortions === p
-                        ? "border-stone-800 bg-stone-800 text-white"
-                        : "border-border bg-background text-stone-600 hover:border-stone-400",
-                    )}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                type="button"
-                disabled={isDispatching}
-                onClick={() => void handleDispatchDish(selectedDishIndex, dishPortions)}
-                className="inline-flex h-7 items-center gap-1.5 rounded-xl bg-[#b45309] px-3 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#92400e] disabled:opacity-50"
-              >
-                <Flame className="h-3.5 w-3.5" aria-hidden />
-                Xuất {dishPortions} suất
-              </button>
-            </div>
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-3.5 p-4 sm:p-5">
-          {/* Grid 7 Dish Cards (dạng card rộng rãi chuẩn layout, không bị dồn hàng ngang) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {MENU_ITEMS.map((dish) => {
-              const active = selectedDishIndex === dish.index;
-              const status = dishStatusMap[dish.index];
-              const hasWarn = status?.hasWarning ?? false;
-
-              return (
-                <button
-                  key={`dish-card-${dish.index}`}
-                  type="button"
-                  onClick={() => setSelectedDishIndex(dish.index)}
-                  aria-pressed={active}
-                  className={cn(
-                    "flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
-                    active
-                      ? "border-[#b45309] bg-[#fdf0d5] ring-2 ring-[#b45309]/30 shadow-xs"
-                      : "border-border/80 bg-background hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/30",
-                  )}
-                >
-                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-muted">
-                    {dish.image && (
-                      <Image
-                        src={dish.image}
-                        alt={dish.name}
-                        fill
-                        sizes="56px"
-                        loading="eager"
-                        className="object-cover"
-                      />
-                    )}
-                    <span className="absolute left-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-md bg-[#292524]/85 px-1 text-[9.5px] font-bold text-white shadow-xs">
-                      {dish.index}
-                    </span>
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-1.5">
-                      <span
-                        className={cn(
-                          "truncate text-[10.5px] font-semibold uppercase tracking-wider",
-                          active ? "text-[#b45309]" : "text-muted-foreground",
-                        )}
-                      >
-                        MÓN {dish.index} · {dish.region}
-                      </span>
-                      <span
-                        className={cn(
-                          "h-2 w-2 rounded-full shrink-0",
-                          hasWarn ? "bg-rose-500 animate-pulse" : "bg-emerald-500",
-                        )}
-                        title={
-                          hasWarn
-                            ? `Cảnh báo: Có nguyên liệu < 32% (${status?.warningIngredients.join(", ")})`
-                            : "Đủ nguyên liệu (≥ 32%)"
-                        }
-                      />
-                    </div>
-
-                    <div
-                      className={cn(
-                        "mt-0.5 line-clamp-2 text-xs sm:text-[13px] font-bold leading-snug",
-                        active ? "text-[#292524]" : "text-stone-800",
-                      )}
-                      title={dish.name}
-                    >
-                      {dish.name}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Dòng xuất nhanh tasting trọn bộ hoặc nhập thêm */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3 text-[11px] text-stone-600">
-            <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
-              <Package className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
-              Xuất nhanh trọn bộ menu tasting (7 món):
-            </span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {[1, 4, 10, 42].map((n) => (
-                <button
-                  key={`std-out-${n}`}
-                  type="button"
-                  disabled={isDispatching}
-                  onClick={() => void handleServingsMovement(n, "OUT")}
-                  className="inline-flex h-6 items-center gap-1 rounded-full border border-border bg-background px-2.5 text-[11px] font-medium tabular-nums text-stone-700 transition-colors hover:border-rose-300 hover:bg-rose-50 hover:text-rose-800"
-                >
-                  <ArrowDownRight className="h-3 w-3 text-rose-600" aria-hidden />
-                  {n === 4 ? "Bàn 4 khách" : n === 42 ? "Toàn ca 42 khách" : `${n} suất`}
-                </button>
-              ))}
-              <button
-                type="button"
-                disabled={isDispatching}
-                onClick={() => void handleServingsMovement(10, "IN")}
-                className="inline-flex h-6 items-center gap-1 rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/60 px-2.5 text-[11px] font-semibold tabular-nums text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white"
-              >
-                <ArrowUpRight className="h-3 w-3" aria-hidden />
-                Nhập 10 suất
-              </button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ==================== 5. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
+      {/* ==================== 4. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
