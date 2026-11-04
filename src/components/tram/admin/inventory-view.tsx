@@ -47,6 +47,7 @@ import {
   INGREDIENT_GROUP_ORDER,
   formatNumberVi,
   formatQty,
+  roundQty,
   type IngredientGroup,
 } from "@/lib/tram/recipes";
 import { formatSignedVND } from "@/lib/tram/food-cost";
@@ -674,8 +675,8 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* ==================== 3B. DỰ BÁO HẠN DÙNG NGUYÊN LIỆU THEO NGÀY ==================== */}
-      <InventoryShelfLifeSection
+      {/* ==================== 3B. DỰ BÁO NHU CẦU & KHO THIẾU HỤT THEO LỊCH ĐẶT BÀN ==================== */}
+      <InventoryDemandForecastSection
         items={report.items}
         totalWarehouseValue={report.totalValue}
         onStockIn={(id) => {
@@ -1210,7 +1211,30 @@ function InventoryStockRow({
 
 // ==================== COMPONENT BẢNG HẠN DÙNG NGUYÊN LIỆU THEO NGÀY ====================
 
-function InventoryShelfLifeSection({
+interface DailyDemandSummary {
+  date: string;
+  dayIndex: number;
+  dayLabel: string;
+  tableCount: number;
+  guestCount: number;
+}
+
+interface ForecastItemAnalysis {
+  item: InventoryItem;
+  stdQtyPerGuest: number;
+  totalRequiredQty: number; // in base unit (g/ml)
+  requiredInImportUnit: number;
+  stockInImportUnit: number;
+  shortageQty: number; // in base unit
+  shortageInImportUnit: number;
+  isShortage: boolean;
+  procurementCost: number; // VND
+  surplusInImportUnit: number;
+  guestsCovered: number;
+  daysCoveredText: string;
+}
+
+function InventoryDemandForecastSection({
   items,
   totalWarehouseValue,
   onStockIn,
@@ -1219,264 +1243,396 @@ function InventoryShelfLifeSection({
   totalWarehouseValue: number;
   onStockIn: (id: string) => void;
 }) {
-  // Chỉ tính những nguyên liệu còn tồn trong kho (stockQty > 0)
-  const inStockItems = useMemo(() => items.filter((i) => i.stockQty > 0), [items]);
+  const [dailyForecasts, setDailyForecasts] = useState<DailyDemandSummary[]>([]);
+  const [loadingForecast, setLoadingForecast] = useState(true);
+  const [selectedDays, setSelectedDays] = useState<number>(1);
+  const [autoSelectedInfo, setAutoSelectedInfo] = useState<string>("");
+  const [forecastSearch, setForecastSearch] = useState("");
+  const [viewFilter, setViewFilter] = useState<"SHORTAGE_ONLY" | "ALL">("SHORTAGE_ONLY");
+  const [forecastPage, setForecastPage] = useState(1);
+  const PAGE_SIZE = 15;
 
-  // Bộ preset ngày: 1, 2, 3, 4, 5, 7, 14
+  // Lấy dữ liệu đặt bàn các ngày tới từ API
+  useEffect(() => {
+    let mounted = true;
+    fetch("/api/inventory/demand-forecast")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!mounted || !data || !Array.isArray(data.days)) return;
+        setDailyForecasts(data.days);
+        setLoadingForecast(false);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch demand forecast:", err);
+        if (mounted) setLoadingForecast(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const PRESET_DAYS = [1, 2, 3, 4, 5, 7, 14];
 
-  // Logic tự động chọn ngày nhỏ nhất khi vào trang:
+  // Helper tính nhu cầu và thiếu hụt cho 1 mốc số ngày
+  const computeShortagesForDays = useCallback(
+    (daysCount: number) => {
+      if (dailyForecasts.length === 0) return [];
+      const activeDays = dailyForecasts.slice(0, daysCount);
+      const totalGuests = activeDays.reduce((sum, d) => sum + d.guestCount, 0);
+
+      const list: ForecastItemAnalysis[] = items
+        .filter((i) => i.qtyPerGuestStandard > 0)
+        .map((item) => {
+          const stdQty = item.qtyPerGuestStandard;
+          const factor = item.factor || 1000;
+          const reqQty = stdQty * totalGuests;
+          const shortage = Math.max(0, reqQty - item.stockQty);
+          const isShort = shortage > 0;
+          const shortageImportUnit = roundQty(shortage / factor);
+          const reqImportUnit = roundQty(reqQty / factor);
+          const stockImportUnit = roundQty(item.stockQty / factor);
+          const surplusImportUnit = roundQty(Math.max(0, item.stockQty - reqQty) / factor);
+          const cost = Math.round(shortageImportUnit * item.importPrice);
+          const guestsCovered = Math.floor(item.stockQty / stdQty);
+
+          // Tính số ngày tồn kho đáp ứng được
+          let daysCountCovered = 0;
+          let remaining = item.stockQty;
+          for (const d of dailyForecasts) {
+            const dayDemand = stdQty * d.guestCount;
+            if (dayDemand <= 0) {
+              daysCountCovered += 1;
+              continue;
+            }
+            if (remaining >= dayDemand) {
+              daysCountCovered += 1;
+              remaining -= dayDemand;
+            } else {
+              daysCountCovered += Math.round((remaining / dayDemand) * 10) / 10;
+              break;
+            }
+          }
+
+          let daysCoveredText = `Đủ ${daysCountCovered.toFixed(1)} ngày`;
+          if (item.stockQty === 0) daysCoveredText = "Hết hàng (0 ngày)";
+          else if (daysCountCovered >= 14) daysCoveredText = "> 14 ngày (an toàn)";
+
+          return {
+            item,
+            stdQtyPerGuest: stdQty,
+            totalRequiredQty: reqQty,
+            requiredInImportUnit: reqImportUnit,
+            stockInImportUnit: stockImportUnit,
+            shortageQty: shortage,
+            shortageInImportUnit: shortageImportUnit,
+            isShortage: isShort,
+            procurementCost: cost,
+            surplusInImportUnit: surplusImportUnit,
+            guestsCovered,
+            daysCoveredText,
+          };
+        });
+
+      return list;
+    },
+    [dailyForecasts, items],
+  );
+
+  // Logic tự động chọn ngày theo yêu cầu nghiệp vụ:
   // "khi click vô page đó thì hiển số nguyên liệu còn dùng dc trong 1 ngày nếu 1 ngày k có thì 2 ngày,..."
-  const initialDay = useMemo(() => {
-    for (const d of [1, 2, 3, 4, 5, 7, 14, 30, 60, 90, 180, 365]) {
-      if (inStockItems.some((i) => i.shelfLifeDays === d)) {
-        return d;
+  useEffect(() => {
+    if (dailyForecasts.length === 0) return;
+
+    for (const d of PRESET_DAYS) {
+      const analyses = computeShortagesForDays(d);
+      const shortageCount = analyses.filter((a) => a.isShortage).length;
+      if (shortageCount > 0) {
+        setSelectedDays(d);
+        if (d === 1) {
+          setAutoSelectedInfo(`Đã tự động chọn mốc 1 ngày: Phát hiện ${shortageCount} nguyên liệu thiếu ngay hôm nay!`);
+        } else {
+          setAutoSelectedInfo(`Đã tự động chuyển sang mốc ${d} ngày (vì mốc trước đó đã đủ hàng, mốc ${d} ngày bắt đầu có ${shortageCount} mặt hàng thiếu hụt).`);
+        }
+        return;
       }
     }
-    return 1;
-  }, [inStockItems]);
+    // Nếu tất cả các mốc đều đủ
+    setSelectedDays(3);
+    setAutoSelectedInfo("Kho hiện tại đáp ứng tốt lịch đặt bàn trong 3 ngày tới.");
+  }, [dailyForecasts, computeShortagesForDays]);
 
-  const [selectedDays, setSelectedDays] = useState<number>(initialDay);
-  const [filterMode, setFilterMode] = useState<"lte" | "exact">("lte");
-  const [shelfSearch, setShelfSearch] = useState("");
-  const [shelfPage, setShelfPage] = useState(1);
-  const SHELF_PAGE_SIZE = 15;
-
-  // Cập nhật selectedDays khi initialDay được tính toán lần đầu
-  useEffect(() => {
-    setSelectedDays(initialDay);
-  }, [initialDay]);
-
-  // Số lượng nguyên liệu theo từng preset ngày (cho cả 2 chế độ lte hoặc exact)
-  const countsByDay = useMemo(() => {
-    const map: Record<number, { exact: number; lte: number }> = {};
+  // Số lượng mặt hàng thiếu theo từng nút preset ngày để hiển thị nhãn
+  const presetShortageCounts = useMemo(() => {
+    const map: Record<number, number> = {};
     for (const d of PRESET_DAYS) {
-      map[d] = {
-        exact: inStockItems.filter((i) => i.shelfLifeDays === d).length,
-        lte: inStockItems.filter((i) => i.shelfLifeDays <= d).length,
-      };
+      const analyses = computeShortagesForDays(d);
+      map[d] = analyses.filter((a) => a.isShortage).length;
     }
     return map;
-  }, [inStockItems]);
+  }, [PRESET_DAYS, computeShortagesForDays]);
 
-  // Danh sách nguyên liệu lọc được theo số ngày
-  const filteredItems = useMemo(() => {
-    let list = inStockItems;
-    if (filterMode === "lte") {
-      list = list.filter((i) => i.shelfLifeDays <= selectedDays);
-    } else {
-      list = list.filter((i) => i.shelfLifeDays === selectedDays);
-    }
+  // Phân tích dữ liệu theo mốc ngày đang chọn
+  const currentAnalyses = useMemo(() => {
+    return computeShortagesForDays(selectedDays);
+  }, [computeShortagesForDays, selectedDays]);
 
-    if (shelfSearch.trim()) {
-      const q = shelfSearch.trim().toLowerCase();
+  // Thống kê tổng hợp cho mốc đang chọn
+  const activeDays = useMemo(() => dailyForecasts.slice(0, selectedDays), [dailyForecasts, selectedDays]);
+  const totalBookedTables = useMemo(() => activeDays.reduce((sum, d) => sum + d.tableCount, 0), [activeDays]);
+  const totalBookedGuests = useMemo(() => activeDays.reduce((sum, d) => sum + d.guestCount, 0), [activeDays]);
+
+  const shortageItems = useMemo(() => currentAnalyses.filter((a) => a.isShortage), [currentAnalyses]);
+  const totalProcurementCost = useMemo(() => shortageItems.reduce((sum, a) => sum + a.procurementCost, 0), [shortageItems]);
+  const zeroStockItems = useMemo(() => currentAnalyses.filter((a) => a.item.stockQty === 0), [currentAnalyses]);
+
+  // Lọc theo chế độ xem (Chỉ thiếu / Tất cả) & từ khóa tìm kiếm
+  const displayedItems = useMemo(() => {
+    let list = viewFilter === "SHORTAGE_ONLY" ? shortageItems : currentAnalyses;
+
+    if (forecastSearch.trim()) {
+      const q = forecastSearch.trim().toLowerCase();
       list = list.filter(
-        (i) =>
-          i.name.toLowerCase().includes(q) ||
-          INGREDIENT_GROUP_LABELS[i.group].toLowerCase().includes(q) ||
-          (i.spec && i.spec.toLowerCase().includes(q)),
+        (a) =>
+          a.item.name.toLowerCase().includes(q) ||
+          INGREDIENT_GROUP_LABELS[a.item.group].toLowerCase().includes(q) ||
+          a.item.storageZone.toLowerCase().includes(q),
       );
     }
 
-    return list.sort((a, b) => a.shelfLifeDays - b.shelfLifeDays || b.stockValue - a.stockValue);
-  }, [inStockItems, selectedDays, filterMode, shelfSearch]);
+    // Sắp xếp: Ưu tiên hết hàng (0%) lên đầu, tiếp theo là số tiền cần nhập giảm dần
+    return list.sort((a, b) => {
+      if (a.item.stockQty === 0 && b.item.stockQty > 0) return -1;
+      if (b.item.stockQty === 0 && a.item.stockQty > 0) return 1;
+      return b.procurementCost - a.procurementCost;
+    });
+  }, [viewFilter, shortageItems, currentAnalyses, forecastSearch]);
 
-  const filteredValueTotal = useMemo(
-    () => filteredItems.reduce((sum, i) => sum + i.stockValue, 0),
-    [filteredItems],
-  );
-
-  const filteredSharePct =
-    totalWarehouseValue > 0
-      ? Math.round((filteredValueTotal / totalWarehouseValue) * 1000) / 10
-      : 0;
-
-  // Phân trang
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / SHELF_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(displayedItems.length / PAGE_SIZE));
   const pagedItems = useMemo(() => {
-    const start = (shelfPage - 1) * SHELF_PAGE_SIZE;
-    return filteredItems.slice(start, start + SHELF_PAGE_SIZE);
-  }, [filteredItems, shelfPage]);
+    const start = (forecastPage - 1) * PAGE_SIZE;
+    return displayedItems.slice(start, start + PAGE_SIZE);
+  }, [displayedItems, forecastPage]);
 
-  // Reset page khi đổi filter
+  // Reset trang khi đổi mốc ngày hoặc tìm kiếm
   useEffect(() => {
-    setShelfPage(1);
-  }, [selectedDays, filterMode, shelfSearch]);
+    setForecastPage(1);
+  }, [selectedDays, viewFilter, forecastSearch]);
 
   return (
-    <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
-      <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <Card className="min-w-0 gap-0 overflow-hidden border-[#b45309]/30 bg-card py-0 shadow-sm ring-1 ring-[#b45309]/10">
+      <CardHeader className="gap-3 border-b border-border/70 bg-gradient-to-r from-[#fdf0d5]/60 via-amber-50/40 to-white px-4 py-4 sm:px-5">
+        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#292524]">
-              <Clock className="h-4 w-4 text-[#b45309]" aria-hidden />
-              Dự báo hạn dùng nguyên liệu (Theo số ngày còn sử dụng được)
-            </CardTitle>
-            <p className="mt-1 text-xs text-stone-500">
-              Kiểm soát hạn sử dụng thực tế của nguyên liệu còn tồn trong kho, ưu tiên xuất chế biến trước khi cận date.
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309] text-white shadow-xs">
+                <CalendarDays className="h-4 w-4" />
+              </span>
+              <h3 className="font-heading text-base font-bold text-stone-900 sm:text-lg">
+                Dự báo nhu cầu & Cảnh báo thiếu hụt theo lịch đặt bàn
+              </h3>
+              <Badge variant="outline" className="border-amber-400 bg-amber-100/90 text-[11px] font-bold text-amber-900">
+                Tính theo định lượng BOM
+              </Badge>
+            </div>
+            <p className="mt-1 text-xs text-stone-600 sm:text-[13px]">
+              Dựa vào số bàn & số khách đã đặt trong các ngày tới, hệ thống tính toán tồn kho còn đủ dùng cho bao nhiêu ngày và số lượng còn thiếu cần nhập về để phục vụ đủ cho khách.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {/* Chế độ lọc: Trong vòng <= X ngày hoặc Đúng X ngày */}
-            <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
+            <div className="flex items-center rounded-lg border border-border/80 bg-white p-0.5 shadow-2xs">
               <button
                 type="button"
-                onClick={() => setFilterMode("lte")}
+                onClick={() => setViewFilter("SHORTAGE_ONLY")}
                 className={cn(
-                  "rounded-md px-2.5 py-1 font-semibold transition-all text-xs cursor-pointer",
-                  filterMode === "lte"
-                    ? "bg-white text-[#92400e] shadow-xs"
+                  "rounded-md px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
+                  viewFilter === "SHORTAGE_ONLY"
+                    ? "bg-rose-600 text-white shadow-2xs"
                     : "text-stone-600 hover:text-stone-900",
                 )}
               >
-                Trong vòng ≤ {selectedDays} ngày
+                Chỉ hàng thiếu ({shortageItems.length})
               </button>
               <button
                 type="button"
-                onClick={() => setFilterMode("exact")}
+                onClick={() => setViewFilter("ALL")}
                 className={cn(
-                  "rounded-md px-2.5 py-1 font-semibold transition-all text-xs cursor-pointer",
-                  filterMode === "exact"
-                    ? "bg-white text-[#92400e] shadow-xs"
+                  "rounded-md px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
+                  viewFilter === "ALL"
+                    ? "bg-[#b45309] text-white shadow-2xs"
                     : "text-stone-600 hover:text-stone-900",
                 )}
               >
-                Đúng {selectedDays} ngày
+                Tất cả ({currentAnalyses.length})
               </button>
             </div>
 
-            {/* Ô tìm kiếm nhanh */}
             <div className="relative w-48 sm:w-56">
-              <Search
-                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
-                aria-hidden
-              />
+              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
+                value={forecastSearch}
+                onChange={(e) => setForecastSearch(e.target.value)}
                 placeholder="Tìm nguyên liệu..."
-                value={shelfSearch}
-                onChange={(e) => setShelfSearch(e.target.value)}
-                className="h-8 pl-8 text-xs"
+                className="h-8 pl-8 text-xs bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* BỘ LỌC CÁC NGÀY (1 ngày, 2 ngày, 3 ngày,...) */}
-        <div className="flex flex-wrap items-center gap-1.5 pt-2">
-          <span className="text-xs font-semibold text-stone-700 mr-1 flex items-center gap-1">
-            <CalendarDays className="h-3.5 w-3.5 text-[#b45309]" />
-            Bộ lọc số ngày:
-          </span>
-          {PRESET_DAYS.map((d) => {
-            const active = selectedDays === d;
-            const count = filterMode === "lte" ? countsByDay[d]?.lte ?? 0 : countsByDay[d]?.exact ?? 0;
-            return (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setSelectedDays(d)}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all cursor-pointer",
-                  active
-                    ? "border-[#b45309] bg-[#b45309] text-white shadow-xs"
-                    : "border-border bg-card text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/30",
-                )}
-              >
-                <span>{d} ngày</span>
-                <span
-                  className={cn(
-                    "rounded-full px-1.5 py-0.2 text-[10.5px] tabular-nums font-bold",
-                    active ? "bg-white/25 text-white" : "bg-muted text-stone-600",
-                  )}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-
-          {/* Nút xem Tất cả nguyên liệu có hạn */}
-          <button
-            type="button"
-            onClick={() => {
-              setFilterMode("lte");
-              setSelectedDays(365);
-            }}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition-all cursor-pointer",
-              selectedDays === 365
-                ? "border-[#b45309] bg-[#b45309] text-white shadow-xs"
-                : "border-border bg-card text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/30",
-            )}
-          >
-            <span>Tất cả kho</span>
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.2 text-[10.5px] tabular-nums font-bold",
-                selectedDays === 365 ? "bg-white/25 text-white" : "bg-muted text-stone-600",
-              )}
-            >
-              {inStockItems.length}
+        {/* Bộ lọc số ngày */}
+        <div className="mt-1 flex flex-col gap-2 pt-2 border-t border-amber-200/50">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-extrabold uppercase tracking-wide text-stone-700 flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-[#b45309]" />
+              Khung thời gian đặt bàn:
             </span>
-          </button>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {PRESET_DAYS.map((days) => {
+                const isSelected = selectedDays === days;
+                const shortageCount = presetShortageCounts[days] ?? 0;
+                let dayLabel = `${days} ngày`;
+                if (days === 1) dayLabel = "1 ngày (Hôm nay)";
+                else if (days === 7) dayLabel = "7 ngày (1 tuần)";
+                else if (days === 14) dayLabel = "14 ngày (2 tuần)";
+
+                return (
+                  <button
+                    key={`demand-days-${days}`}
+                    type="button"
+                    onClick={() => setSelectedDays(days)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer",
+                      isSelected
+                        ? "border-[#b45309] bg-[#b45309] text-white ring-2 ring-[#b45309]/30"
+                        : "border-border/80 bg-white text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/40",
+                    )}
+                  >
+                    <span>{dayLabel}</span>
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.2 text-[10px] font-extrabold tabular-nums",
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : shortageCount > 0
+                            ? "bg-rose-100 text-rose-800"
+                            : "bg-emerald-100 text-emerald-800",
+                      )}
+                    >
+                      {shortageCount > 0 ? `${shortageCount} thiếu` : "Đủ"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {autoSelectedInfo && (
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-900 bg-amber-100/70 border border-amber-300/80 rounded-lg px-3 py-1.5">
+              <span className="text-sm">⚡</span>
+              <span>{autoSelectedInfo}</span>
+            </div>
+          )}
         </div>
 
-        {/* 4 THẺ TỔNG HỢP NHANH CHO BỘ LỌC NGÀY ĐANG CHỌN */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 pt-1">
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
-            <span className="text-[11px] font-medium text-stone-500">Nguyên liệu trong bộ lọc</span>
-            <div className="mt-0.5 text-base font-bold tabular-nums text-stone-900">
-              {filteredItems.length} <span className="text-xs font-normal text-muted-foreground">nguyên liệu</span>
+        {/* 4 Thẻ chỉ số tổng quan cho mốc ngày đang chọn */}
+        <div className="grid grid-cols-2 gap-2.5 pt-1 sm:grid-cols-4">
+          <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Lịch đặt ({selectedDays} ngày tới)
+            </span>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className="font-heading text-lg font-black text-stone-900">
+                {totalBookedTables} bàn
+              </span>
+              <span className="text-xs font-bold text-stone-600">
+                · {totalBookedGuests} khách
+              </span>
+            </div>
+            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+              {totalBookedGuests} suất Tasting 7 món BOM
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
-            <span className="text-[11px] font-medium text-stone-500">Tổng giá trị tồn cần dùng</span>
-            <div className="mt-0.5 text-base font-bold tabular-nums text-[#92400e]">
-              {formatVND(filteredValueTotal)}
+          <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-left shadow-2xs">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-800">
+              Mặt hàng thiếu hụt
+            </span>
+            <div className="mt-1 flex items-baseline gap-1.5">
+              <span className={cn(
+                "font-heading text-lg font-black",
+                shortageItems.length > 0 ? "text-rose-700" : "text-emerald-700",
+              )}>
+                {shortageItems.length} nguyên liệu
+              </span>
+            </div>
+            <div className="mt-0.5 text-[10.5px] font-medium text-rose-700">
+              {zeroStockItems.length > 0
+                ? `${zeroStockItems.length} mặt hàng hết sạch (0%)`
+                : "Không có mặt hàng cạn đáy 0%"}
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
-            <span className="text-[11px] font-medium text-stone-500">Tỷ trọng so với tổng kho</span>
-            <div className="mt-0.5 text-base font-bold tabular-nums text-stone-900">
-              {formatPercent(filteredSharePct, 1)}
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-left shadow-2xs">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-900">
+              Dự toán tiền nhập hàng
+            </span>
+            <div className="mt-1 font-heading text-lg font-black text-[#92400e]">
+              {formatVND(totalProcurementCost)}
+            </div>
+            <div className="mt-0.5 text-[10.5px] text-stone-600">
+              Chi phí nhập đủ số lượng thiếu
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/80 bg-muted/20 p-2.5 text-left">
-            <span className="text-[11px] font-medium text-stone-500">Mức độ ưu tiên</span>
-            <div className="mt-0.5 text-xs font-bold text-stone-900">
-              {selectedDays <= 1 ? (
-                <span className="text-rose-700 flex items-center gap-1 font-bold">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Dùng ngay
+          <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+              Mức độ ưu tiên
+            </span>
+            <div className="mt-1 text-xs font-black">
+              {shortageItems.some((a) => a.item.stockQty === 0) ? (
+                <span className="text-rose-700 flex items-center gap-1 font-extrabold">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Nhập hàng ngay!
                 </span>
-              ) : selectedDays <= 3 ? (
-                <span className="text-amber-800 flex items-center gap-1 font-bold">
-                  <Clock className="h-3.5 w-3.5" /> Lưu ý: Cận date 2-3 ngày
+              ) : shortageItems.length > 0 ? (
+                <span className="text-amber-800 flex items-center gap-1 font-extrabold">
+                  <Clock className="h-3.5 w-3.5" /> Cần đặt hàng NCC trong 24h
                 </span>
               ) : (
-                <span className="text-emerald-700 flex items-center gap-1 font-semibold">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> An toàn bảo quản
+                <span className="text-emerald-700 flex items-center gap-1 font-extrabold">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> An toàn: Đủ phục vụ
                 </span>
               )}
+            </div>
+            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+              {shortageItems.length > 0 ? "Theo tiến độ phục vụ khách" : "Kho đáp ứng 100% lịch đặt"}
             </div>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="p-0">
-        {filteredItems.length === 0 ? (
+        {displayedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
-            <Search className="h-6 w-6 text-muted-foreground/60" aria-hidden />
-            <p className="text-sm text-muted-foreground">
-              Không có nguyên liệu nào còn sử dụng được trong {selectedDays} ngày.
+            <CheckCircle2 className="h-8 w-8 text-emerald-600" aria-hidden />
+            <p className="text-sm font-bold text-stone-800">
+              {viewFilter === "SHORTAGE_ONLY"
+                ? `Tuyệt vời! Không có nguyên liệu nào bị thiếu hụt cho ${totalBookedTables} bàn (${totalBookedGuests} khách) trong ${selectedDays} ngày tới.`
+                : "Không tìm thấy nguyên liệu phù hợp."}
             </p>
+            {viewFilter === "SHORTAGE_ONLY" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewFilter("ALL")}
+                className="mt-1 text-xs font-semibold"
+              >
+                Xem toàn bộ bảng định mức ({currentAnalyses.length} nguyên liệu)
+              </Button>
+            )}
           </div>
         ) : (
-          <Table className="min-w-[960px]">
+          <Table className="min-w-[1000px]">
             <TableHeader>
               <TableRow className="bg-[#fdf0d5]/40 hover:bg-[#fdf0d5]/40">
                 <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
@@ -1485,23 +1641,23 @@ function InventoryShelfLifeSection({
                 <TableHead className="w-24 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Món dùng
                 </TableHead>
-                <TableHead className="w-40 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Hạn sử dụng còn lại
+                <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Tồn hiện tại
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Số lượng tồn
+                  Nhu cầu ({totalBookedGuests} khách)
                 </TableHead>
-                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Mức đặt lại
+                <TableHead className="w-36 whitespace-nowrap text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Khả năng đáp ứng
                 </TableHead>
-                <TableHead className="w-24 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Đủ phục vụ
+                <TableHead className="w-40 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Thiếu hụt cần nhập
                 </TableHead>
-                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                <TableHead className="w-28 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Đơn giá kho
                 </TableHead>
                 <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Giá trị tồn
+                  Dự toán tiền nhập
                 </TableHead>
                 <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
                   Thao tác
@@ -1510,46 +1666,32 @@ function InventoryShelfLifeSection({
             </TableHeader>
 
             <TableBody>
-              {pagedItems.map((item) => (
-                <ShelfLifeRow
-                  key={`shelflife-${item.ingredientId}`}
-                  item={item}
+              {pagedItems.map((analysis) => (
+                <DemandForecastRow
+                  key={`forecast-${analysis.item.ingredientId}`}
+                  analysis={analysis}
+                  totalGuests={totalBookedGuests}
                   onStockIn={onStockIn}
                 />
               ))}
             </TableBody>
-
-            <TableFooter className="bg-muted/60">
-              <TableRow className="hover:bg-transparent">
-                <TableCell
-                  colSpan={7}
-                  className="pl-4 text-xs font-semibold text-stone-700 sm:pl-5"
-                >
-                  Tổng nguyên liệu còn dùng được trong {selectedDays === 365 ? "kho" : `${selectedDays} ngày`} · {filteredItems.length} nguyên liệu ({formatPercent(filteredSharePct, 1)} kho)
-                </TableCell>
-                <TableCell className="text-right text-sm font-bold tabular-nums text-[#92400e]">
-                  {formatVND(filteredValueTotal)}
-                </TableCell>
-                <TableCell className="pr-4 sm:pr-5" />
-              </TableRow>
-            </TableFooter>
           </Table>
         )}
 
         {/* Phân trang */}
-        {filteredItems.length > SHELF_PAGE_SIZE && (
+        {displayedItems.length > PAGE_SIZE && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
             <div>
               Hiển thị{" "}
               <strong className="text-stone-800">
-                {(shelfPage - 1) * SHELF_PAGE_SIZE + 1}
+                {(forecastPage - 1) * PAGE_SIZE + 1}
               </strong>{" "}
               –{" "}
               <strong className="text-stone-800">
-                {Math.min(shelfPage * SHELF_PAGE_SIZE, filteredItems.length)}
+                {Math.min(forecastPage * PAGE_SIZE, displayedItems.length)}
               </strong>{" "}
               trong tổng số{" "}
-              <strong className="text-stone-800">{filteredItems.length}</strong> nguyên liệu (tối đa 15 dòng / trang)
+              <strong className="text-stone-800">{displayedItems.length}</strong> nguyên liệu (tối đa 15 dòng / trang)
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -1557,22 +1699,22 @@ function InventoryShelfLifeSection({
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={shelfPage <= 1}
-                onClick={() => setShelfPage((p) => Math.max(1, p - 1))}
-                className="h-7 px-2.5 text-xs text-stone-700"
+                disabled={forecastPage <= 1}
+                onClick={() => setForecastPage((p) => Math.max(1, p - 1))}
+                className="h-7 px-2.5 text-xs text-stone-700 cursor-pointer"
               >
                 <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
               </Button>
               <span className="px-2 text-xs font-medium">
-                {shelfPage} / {totalPages}
+                {forecastPage} / {totalPages}
               </span>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={shelfPage >= totalPages}
-                onClick={() => setShelfPage((p) => Math.min(totalPages, p + 1))}
-                className="h-7 px-2.5 text-xs text-stone-700"
+                disabled={forecastPage >= totalPages}
+                onClick={() => setForecastPage((p) => Math.min(totalPages, p + 1))}
+                className="h-7 px-2.5 text-xs text-stone-700 cursor-pointer"
               >
                 Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
               </Button>
@@ -1584,75 +1726,50 @@ function InventoryShelfLifeSection({
   );
 }
 
-function ShelfLifeRow({
-  item,
+function DemandForecastRow({
+  analysis,
+  totalGuests,
   onStockIn,
 }: {
-  item: InventoryItem;
+  analysis: ForecastItemAnalysis;
+  totalGuests: number;
   onStockIn: (id: string) => void;
 }) {
+  const { item, isShortage, shortageInImportUnit, procurementCost, surplusInImportUnit, guestsCovered, daysCoveredText } = analysis;
   const isOut = item.stockQty === 0;
-  const isWarning = item.isWarning;
-
-  // Hạn sử dụng:
-  const days = item.shelfLifeDays;
-  const today = new Date();
-  const expiryDate = new Date(today);
-  expiryDate.setDate(today.getDate() + days);
-  const expiryDateStr = `${String(expiryDate.getDate()).padStart(2, "0")}/${String(expiryDate.getMonth() + 1).padStart(2, "0")}/${expiryDate.getFullYear()}`;
-
-  // Tone theo số ngày:
-  // 1 ngày: Đỏ khẩn cấp
-  // 2-3 ngày: Cam cảnh báo
-  // 4-5 ngày: Vàng lưu ý
-  // >= 6 ngày: Xanh an toàn
-  const urgencyStyle =
-    days <= 1
-      ? {
-          badge: "border-rose-400 bg-rose-100/90 text-rose-900 font-bold",
-          text: "Hết hạn trong 1 ngày (Dùng ngay)",
-          rowBg: "bg-rose-50/70 border-l-4 border-l-rose-600 hover:bg-rose-100/60",
-        }
-      : days <= 3
-        ? {
-            badge: "border-amber-400 bg-amber-100 text-amber-950 font-bold",
-            text: `Còn ${days} ngày sử dụng`,
-            rowBg: "bg-amber-50/40 border-l-4 border-l-amber-500 hover:bg-amber-100/40",
-          }
-        : days <= 5
-          ? {
-              badge: "border-yellow-400 bg-yellow-100 text-yellow-950 font-semibold",
-              text: `Còn ${days} ngày sử dụng`,
-              rowBg: "bg-yellow-50/20 border-l-4 border-l-yellow-400 hover:bg-yellow-50/50",
-            }
-          : {
-              badge: "border-emerald-300 bg-emerald-50 text-emerald-800 font-medium",
-              text: `Còn ${days} ngày sử dụng`,
-              rowBg: "border-l-4 border-l-emerald-500 hover:bg-muted/40",
-            };
 
   return (
-    <TableRow className={cn("transition-colors", urgencyStyle.rowBg)}>
+    <TableRow
+      className={cn(
+        "transition-colors",
+        isOut
+          ? "bg-rose-100/70 border-l-4 border-l-rose-700 hover:bg-rose-200/60"
+          : isShortage
+            ? "bg-rose-50/70 border-l-4 border-l-rose-500 hover:bg-rose-100/60"
+            : "border-l-4 border-l-emerald-500 hover:bg-muted/40",
+      )}
+    >
       {/* 1. Nguyên liệu */}
       <TableCell className="whitespace-normal pl-4 sm:pl-5">
         <div className="flex flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-semibold text-[#292524]">{item.name}</span>
-            <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] border shadow-xs", urgencyStyle.badge)}>
-              <Clock className="h-3 w-3" />
-              {urgencyStyle.text}
-            </span>
-            {item.isCustomPrice && (
-              <Badge
-                variant="outline"
-                className="border-amber-300 bg-amber-50 px-1.5 py-0 text-[9.5px] font-medium text-amber-800"
-              >
-                Giá mới
+            {isOut ? (
+              <Badge className="border-0 bg-rose-700 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
+                Hết tồn (0%)
+              </Badge>
+            ) : isShortage ? (
+              <Badge className="border-0 bg-rose-600 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
+                Thiếu {Math.round((analysis.shortageQty / analysis.totalRequiredQty) * 100)}%
+              </Badge>
+            ) : (
+              <Badge className="border border-emerald-300 bg-emerald-100 px-1.5 py-0 text-[10px] font-semibold text-emerald-800">
+                Đủ phục vụ
               </Badge>
             )}
           </div>
           <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground">
-            <span>HSD dự kiến: <strong className="text-stone-700">{expiryDateStr}</strong></span>
+            <span>Nhóm: <strong className="text-stone-700">{SHORT_GROUP_LABELS[item.group]}</strong></span>
             <span>·</span>
             <span>Khu vực: {item.storageZone}</span>
           </div>
@@ -1666,7 +1783,7 @@ function ShelfLifeRow({
             const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
             return (
               <span
-                key={`shelf-std-${idx}`}
+                key={`forecast-std-${idx}`}
                 title={`Món ${idx}: ${dishName}`}
                 className="flex h-6 w-6 items-center justify-center rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/70 text-[10.5px] font-bold tabular-nums text-[#92400e]"
               >
@@ -1674,46 +1791,16 @@ function ShelfLifeRow({
               </span>
             );
           })}
-          {item.altDishIndexes.map((idx) => {
-            const dishName = MENU_ITEMS.find((m) => m.index === idx)?.name ?? `Món ${idx}`;
-            return (
-              <span
-                key={`shelf-alt-${idx}`}
-                title={`Món ${idx} (phương án thay thế): ${dishName}`}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-stone-400 bg-stone-50 text-[10.5px] font-semibold tabular-nums text-stone-600"
-              >
-                {idx}
-              </span>
-            );
-          })}
         </div>
       </TableCell>
 
-      {/* 3. Hạn sử dụng còn lại */}
-      <TableCell className="text-center">
-        <div className="inline-flex flex-col items-center">
-          <span className={cn(
-            "rounded-lg px-2.5 py-1 font-heading text-xs font-bold tabular-nums border shadow-xs",
-            days <= 1 ? "bg-rose-600 text-white border-rose-700" :
-            days <= 3 ? "bg-amber-500 text-white border-amber-600" :
-            days <= 5 ? "bg-yellow-500 text-stone-900 border-yellow-600" :
-            "bg-emerald-600 text-white border-emerald-700"
-          )}>
-            {days} ngày
-          </span>
-          <span className="text-[10px] text-muted-foreground mt-0.5">
-            {expiryDateStr}
-          </span>
-        </div>
-      </TableCell>
-
-      {/* 4. Số lượng tồn kho */}
+      {/* 3. Tồn hiện tại */}
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1.5">
           <span
             className={cn(
               "font-heading text-sm font-bold tabular-nums",
-              isWarning ? "text-rose-700" : "text-emerald-800",
+              isShortage ? "text-rose-700" : "text-emerald-800",
             )}
           >
             {formatNumberVi(item.stockInImportUnit)} {item.importUnitLabel}
@@ -1721,11 +1808,10 @@ function ShelfLifeRow({
           <span
             className={cn(
               "rounded-full px-1.5 py-0.2 text-[10px] font-bold tabular-nums border",
-              isWarning
+              isShortage
                 ? "border-rose-300 bg-rose-100 text-rose-800"
                 : "border-emerald-300 bg-emerald-100 text-emerald-800",
             )}
-            title={`Tỷ lệ tồn: ${item.stockPercent}% so với định mức`}
           >
             {item.stockPercent}%
           </span>
@@ -1737,43 +1823,56 @@ function ShelfLifeRow({
         )}
       </TableCell>
 
-      {/* 5. Mức đặt lại */}
+      {/* 4. Nhu cầu đặt bàn */}
       <TableCell className="text-right">
-        <div
-          className={cn(
-            "text-xs font-semibold tabular-nums",
-            isWarning ? "font-bold text-rose-900" : "text-stone-700",
-          )}
-        >
-          {formatNumberVi(item.reorderPointInImportUnit)} {item.importUnitLabel}
+        <div className="font-heading text-sm font-bold tabular-nums text-stone-900">
+          {formatNumberVi(analysis.requiredInImportUnit)} {item.importUnitLabel}
         </div>
-        <div
-          className={cn(
-            "text-[10px] font-medium",
-            isWarning ? "text-rose-700 font-semibold" : "text-stone-500",
-          )}
-        >
-          Ngưỡng 32%
+        <div className="text-[10px] text-muted-foreground tabular-nums">
+          ({formatQty(analysis.stdQtyPerGuest, item.unit)}/suất × {totalGuests} khách)
         </div>
       </TableCell>
 
-      {/* 6. Đủ phục vụ */}
-      <TableCell className="text-right tabular-nums">
-        {item.estimatedGuests === null ? (
-          <span className="text-muted-foreground/60">—</span>
+      {/* 5. Khả năng đáp ứng */}
+      <TableCell className="text-center">
+        <div className="inline-flex flex-col items-center">
+          <span
+            className={cn(
+              "rounded-lg px-2.5 py-1 font-heading text-xs font-bold tabular-nums border shadow-xs",
+              isOut
+                ? "bg-rose-600 text-white border-rose-700"
+                : isShortage
+                  ? "bg-amber-100 text-amber-950 border-amber-300"
+                  : "bg-emerald-600 text-white border-emerald-700",
+            )}
+          >
+            {guestsCovered} suất
+          </span>
+          <span className="text-[10px] font-medium text-stone-600 mt-0.5">
+            {daysCoveredText}
+          </span>
+        </div>
+      </TableCell>
+
+      {/* 6. Thiếu hụt cần nhập */}
+      <TableCell className="text-right">
+        {isShortage ? (
+          <div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2.5 py-0.5 text-xs font-extrabold text-white shadow-xs">
+              Thiếu {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel}
+            </span>
+            <div className="mt-0.5 text-[10px] font-semibold text-rose-700">
+              Cần nhập trước giờ phục vụ
+            </div>
+          </div>
         ) : (
           <div>
-            <span
-              className={cn(
-                "text-xs font-semibold",
-                isWarning ? "text-rose-700" : "text-emerald-800",
-              )}
-            >
-              {item.estimatedGuests} suất
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+              Đủ dùng (+{formatNumberVi(surplusInImportUnit)} {item.importUnitLabel})
             </span>
-            {!item.isStandardIngredient && (
-              <div className="text-[10px] text-muted-foreground">thay thế</div>
-            )}
+            <div className="mt-0.5 text-[10px] text-emerald-700">
+              Kho đáp ứng đủ 100%
+            </div>
           </div>
         )}
       </TableCell>
@@ -1783,19 +1882,20 @@ function ShelfLifeRow({
         {formatVND(item.importPrice)}/{item.importUnitLabel}
       </TableCell>
 
-      {/* 8. Giá trị tồn */}
+      {/* 8. Dự toán tiền nhập */}
       <TableCell className="text-right">
-        <div
-          className={cn(
-            "font-semibold tabular-nums",
-            isWarning ? "text-rose-700" : "text-emerald-900",
-          )}
-        >
-          {formatVND(item.stockValue)}
-        </div>
-        <div className="text-[10.5px] tabular-nums text-muted-foreground">
-          {formatPercent(item.shareOfValuePct, 1)}
-        </div>
+        {isShortage ? (
+          <div>
+            <div className="font-heading text-sm font-extrabold tabular-nums text-rose-700">
+              {formatVND(procurementCost)}
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel} × {formatVND(item.importPrice)}
+            </div>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground/60">—</span>
+        )}
       </TableCell>
 
       {/* 9. Thao tác nhập hàng nhanh */}
@@ -1803,7 +1903,12 @@ function ShelfLifeRow({
         <button
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
-          className="inline-flex h-6 items-center gap-1 rounded-md border border-[#b45309]/30 bg-[#fdf0d5]/80 px-2 text-[10.5px] font-semibold text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white cursor-pointer"
+          className={cn(
+            "inline-flex h-7 items-center gap-1 rounded-md px-2.5 text-xs font-bold transition-colors cursor-pointer shadow-xs",
+            isShortage
+              ? "border border-rose-300 bg-rose-600 text-white hover:bg-rose-700"
+              : "border border-[#b45309]/30 bg-[#fdf0d5]/80 text-[#92400e] hover:bg-[#b45309] hover:text-white",
+          )}
           title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
