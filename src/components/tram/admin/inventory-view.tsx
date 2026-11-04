@@ -47,6 +47,7 @@ import {
   calculateInventoryReport,
   type InventoryItem,
 } from "@/lib/tram/inventory";
+import { ShiftPurchaseCard } from "./shift-purchase-card";
 
 const GROUP_STYLES: Record<
   IngredientGroup,
@@ -120,8 +121,10 @@ function areMapsEqual(a: Record<string, number>, b: Record<string, number>): boo
 
 export function AdminInventory({
   onNavigateTab,
+  today,
 }: {
   onNavigateTab?: (tab: string) => void;
+  today?: string | null;
 } = {}) {
   const [loaded, setLoaded] = useState(false);
   const [savedStock, setSavedStock] = useState<Record<string, number>>({});
@@ -326,11 +329,10 @@ export function AdminInventory({
       setDraftStock({});
       setSavedReorder({});
       setDraftReorder({});
-      setLastDispatchInfo(null);
       if (body.priceOverrides && typeof body.priceOverrides === "object") {
         setPriceOverrides(body.priceOverrides as Record<string, number>);
       }
-      if (scope === "CUSTOM" || scope === "OUT" || scope === "NEEDS_REORDER") setScope("ALL");
+      if (scope === "OUT" || scope === "NEEDS_REORDER") setScope("ALL");
       toast.success("Đã khôi phục định mức tồn kho & ngưỡng đặt lại chuẩn.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Lỗi khôi phục tồn kho.");
@@ -606,7 +608,14 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* ==================== 4. BẾP XUẤT MÓN RA CHO KHÁCH (DẠNG CARD) ==================== */}
+      {/* ==================== 4. DANH SÁCH MUA TRƯỚC CA (FR-32) ==================== */}
+      <ShiftPurchaseCard
+        stockOverrides={draftStock}
+        priceOverrides={priceOverrides}
+        today={today}
+      />
+
+      {/* ==================== 5. BẾP XUẤT MÓN RA CHO KHÁCH (DẠNG CARD) ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="border-b border-border/60 px-4 py-3 sm:px-5 [.border-b]:pb-3">
           <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
@@ -759,7 +768,7 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
-      {/* ==================== 5. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
+      {/* ==================== 6. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

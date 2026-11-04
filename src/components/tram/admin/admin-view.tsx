@@ -536,7 +536,7 @@ export function AdminView() {
               )}
 
               {activeTab === "inventory" && (
-                <AdminInventory onNavigateTab={handleNavigateTab} />
+                <AdminInventory onNavigateTab={handleNavigateTab} today={today} />
               )}
 
               {activeTab === "settings" && (
