@@ -27,9 +27,17 @@ export const TEA_PAIRING_PRICE = PRICES.teaPairing; // 350.000 đ/khách
 /** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục 5 & FR-33 tài liệu FR) */
 export const TARGET_FOOD_COST_PCT = 33.5;
 
+/** Trần mục tiêu KPI food cost theo FR-33 (ngưỡng an toàn tối đa 50% doanh thu menu) */
+export const TARGET_FOOD_COST_CEILING_PCT = 50;
+
 /** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.190.000 × 33,5% = 398.650 đ */
 export const TARGET_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_PCT) / 100,
+);
+
+/** Trần giá vốn tối đa theo ngưỡng mục tiêu 50%: 1.190.000 × 50% = 595.000 đ */
+export const CEILING_FOOD_COST_PER_GUEST = Math.round(
+  (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_CEILING_PCT) / 100,
 );
 
 /** Giới hạn hợp lệ khi nhập đơn giá kho (VND) */
@@ -580,5 +588,120 @@ export function formatBaseUnitCost(costPerBaseUnit: number, unit: IngredientUnit
 /** Tiện ích kiểm tra xem món có tồn tại không */
 export function isValidDishIndex(index: number): boolean {
   return MENU_ITEMS.some((m) => m.index === index);
+}
+
+// ---------- FR-33: KPI Food Cost đối chiếu doanh thu menu dự thu (Mục tiêu 50%) ----------
+
+export interface FoodCostKpiSummary {
+  /** Giá vốn nguyên liệu 1 khách (Tầng 1): Tổng định lượng × đơn giá trên 7 món */
+  costPerGuest: number;
+  /** Giá bán 1 suất menu (mặc định 1.190.000 đ) */
+  menuPricePerGuest: number;
+  /** Tỷ lệ Food Cost % (Tầng 2): Giá vốn ÷ Giá menu × 100 */
+  foodCostPct: number;
+  /** Trần mục tiêu theo FR-33 (50%) */
+  targetCeilingPct: number;
+  /** Mục tiêu lý tưởng chuẩn (33,5%) */
+  targetStandardPct: number;
+  /** Đạt mục tiêu nếu foodCostPct <= 50% */
+  isWithinTarget: boolean;
+  /** Món có chi phí nguyên liệu cao nhất (Top Cost Driver) */
+  topCostDish: {
+    dishIndex: number;
+    name: string;
+    region?: string;
+    costPerGuest: number;
+    shareOfFoodCostPct: number;
+  };
+  /** Lợi nhuận gộp 1 khách */
+  grossProfitPerGuest: number;
+  grossMarginPct: number;
+  /** Số khách dự kiến phục vụ (từ đặt bàn tương lai) */
+  futureGuests: number;
+  /** Doanh thu phần menu dự thu (chưa gồm pairing) */
+  expectedMenuRevenue: number;
+  /** Chi phí nguyên liệu dự chi */
+  expectedFoodCost: number;
+  /** Lợi nhuận gộp menu dự thu */
+  expectedGrossProfit: number;
+  /** Doanh thu pairing (để riêng đối chiếu, không ăn vào định lượng) */
+  expectedPairingRevenue: number;
+  /** Tổng doanh thu dự thu (Menu + Pairing) */
+  expectedTotalRevenue: number;
+}
+
+export interface FoodCostKpiOptions {
+  futureGuests?: number;
+  expectedPairingRevenue?: number;
+  menuPriceOverride?: number;
+}
+
+/**
+ * Tự động tính chỉ số KPI Food Cost theo phép tính 2 tầng quy định tại FR-33:
+ * Tầng 1: Giá vốn = Σ(định lượng × đơn giá) trên 7 món + tìm món đắt nhất
+ * Tầng 2: Food cost % = Giá vốn ÷ Giá menu × 100 (đối chiếu mục tiêu trần 50%)
+ * Doanh thu tính riêng phần menu (loại trừ pairing).
+ */
+export function getFoodCostKpiSummary(
+  overrides: Record<string, number> = {},
+  options?: FoodCostKpiOptions,
+): FoodCostKpiSummary {
+  const report = calculateMenuFoodCost(1, overrides);
+  const costPerGuest = report.costPerGuest;
+  const menuPrice =
+    options?.menuPriceOverride && options.menuPriceOverride > 0
+      ? Math.round(options.menuPriceOverride)
+      : MENU_PRICE_PER_GUEST;
+
+  const foodCostPct = menuPrice > 0 ? Number(((costPerGuest / menuPrice) * 100).toFixed(2)) : 0;
+  const isWithinTarget = foodCostPct <= TARGET_FOOD_COST_CEILING_PCT;
+
+  const sortedDishes = [...report.dishes].sort((a, b) => b.costPerGuest - a.costPerGuest);
+  const top = sortedDishes[0] ?? {
+    dishIndex: 1,
+    name: "Món 1",
+    region: "",
+    costPerGuest: 0,
+    shareOfFoodCostPct: 0,
+  };
+
+  const futureGuests =
+    typeof options?.futureGuests === "number" && options.futureGuests > 0
+      ? Math.round(options.futureGuests)
+      : 0;
+
+  const expectedMenuRevenue = futureGuests * menuPrice;
+  const expectedFoodCost = futureGuests * costPerGuest;
+  const expectedGrossProfit = expectedMenuRevenue - expectedFoodCost;
+  const expectedPairingRevenue = Math.max(0, options?.expectedPairingRevenue ?? 0);
+  const expectedTotalRevenue = expectedMenuRevenue + expectedPairingRevenue;
+
+  const grossProfitPerGuest = menuPrice - costPerGuest;
+  const grossMarginPct =
+    menuPrice > 0 ? Number(((grossProfitPerGuest / menuPrice) * 100).toFixed(2)) : 0;
+
+  return {
+    costPerGuest,
+    menuPricePerGuest: menuPrice,
+    foodCostPct,
+    targetCeilingPct: TARGET_FOOD_COST_CEILING_PCT,
+    targetStandardPct: TARGET_FOOD_COST_PCT,
+    isWithinTarget,
+    topCostDish: {
+      dishIndex: top.dishIndex,
+      name: top.name,
+      region: top.region,
+      costPerGuest: top.costPerGuest,
+      shareOfFoodCostPct: top.shareOfFoodCostPct,
+    },
+    grossProfitPerGuest,
+    grossMarginPct,
+    futureGuests,
+    expectedMenuRevenue,
+    expectedFoodCost,
+    expectedGrossProfit,
+    expectedPairingRevenue,
+    expectedTotalRevenue,
+  };
 }
 

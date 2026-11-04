@@ -48,6 +48,7 @@ import {
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import type { AdminStats } from "@/lib/tram/types";
 import { cn } from "@/lib/utils";
+import { FoodCostKpiWidget } from "./food-cost-kpi-widget";
 
 interface DashboardProps {
   today: string;
@@ -358,6 +359,16 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           sub="Từ đặt bàn tương lai còn hiệu lực"
         />
       </div>
+
+      {/* ---- FR-33: Widget KPI Food cost / Doanh thu menu · Mục tiêu 50% ---- */}
+      <motion.div variants={fadeUpItem}>
+        <FoodCostKpiWidget
+          kpi={data.foodCostKpi}
+          futureGuests={data.futureGuests}
+          expectedPairingRevenue={data.expectedPairingRevenue}
+          onNavigateTab={onNavigateTab}
+        />
+      </motion.div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* ---- Biểu đồ số lượng khách 4 tuần / 1 tháng (Cuộn ngang, ưu tiên tuần hiện tại) ---- */}
