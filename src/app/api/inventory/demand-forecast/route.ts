@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { toISODate } from "@/lib/tram/format";
+import { getAllConcepts } from "@/lib/tram/concepts-server";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -51,7 +52,28 @@ export async function GET() {
       dateMap.set(iso, curr);
     }
 
-    // Build next 14 consecutive days
+    // Khung thời gian theo Concept đang phục vụ:
+    // từ max(hôm nay, ngày bắt đầu concept) đến min(ngày kết thúc concept, hôm nay + 13)
+    const { activeId, concepts } = await getAllConcepts();
+    const activeConcept = concepts.find((c) => c.id === activeId);
+    const MAX_DAYS = 14;
+    const DAY_MS = 86_400_000;
+    let startTs = todayTs;
+    if (activeConcept?.startDate) {
+      const cs = new Date(`${activeConcept.startDate}T00:00:00.000Z`).getTime();
+      if (Number.isFinite(cs) && cs > startTs) startTs = cs;
+    }
+    let dayCount = MAX_DAYS;
+    if (activeConcept?.endDate) {
+      const ce = new Date(`${activeConcept.endDate}T00:00:00.000Z`).getTime();
+      if (Number.isFinite(ce)) {
+        const span = Math.floor((ce - startTs) / DAY_MS) + 1;
+        dayCount = Math.min(MAX_DAYS, Math.max(0, span));
+      }
+    }
+    const startOffset = Math.round((startTs - todayTs) / DAY_MS);
+
+    // Build các ngày liên tiếp trong khung thời gian của concept
     const days: Array<{
       date: string;
       dayIndex: number;
@@ -62,16 +84,16 @@ export async function GET() {
 
     const DAY_NAMES = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
 
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < dayCount; i++) {
       const targetDate = new Date(today);
-      targetDate.setUTCDate(today.getUTCDate() + i);
+      targetDate.setUTCDate(today.getUTCDate() + startOffset + i);
       const iso = toISODate(targetDate);
       const dayOfWeek = DAY_NAMES[targetDate.getUTCDay()];
       const dayMonth = `${String(targetDate.getUTCDate()).padStart(2, "0")}/${String(targetDate.getUTCMonth() + 1).padStart(2, "0")}`;
 
       let label = `${dayOfWeek} (${dayMonth})`;
-      if (i === 0) label = `Hôm nay (${dayMonth})`;
-      else if (i === 1) label = `Ngày mai (${dayMonth})`;
+      if (startOffset + i === 0) label = `Hôm nay (${dayMonth})`;
+      else if (startOffset + i === 1) label = `Ngày mai (${dayMonth})`;
 
       const entry = dateMap.get(iso) ?? { tableCount: 0, guestCount: 0, reservations: [] };
 
@@ -86,6 +108,14 @@ export async function GET() {
 
     return NextResponse.json({
       todayStr: "2026-11-05",
+      concept: activeConcept
+        ? {
+            id: activeConcept.id,
+            name: activeConcept.name,
+            startDate: activeConcept.startDate ?? null,
+            endDate: activeConcept.endDate ?? null,
+          }
+        : null,
       days,
     });
   } catch (error) {

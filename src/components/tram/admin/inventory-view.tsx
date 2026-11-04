@@ -1209,6 +1209,11 @@ function InventoryDemandForecastSection({
   onStockIn: (id: string) => void;
 }) {
   const [dailyForecasts, setDailyForecasts] = useState<DailyDemandSummary[]>([]);
+  const [forecastConcept, setForecastConcept] = useState<{
+    name: string;
+    startDate: string | null;
+    endDate: string | null;
+  } | null>(null);
   const [loadingForecast, setLoadingForecast] = useState(true);
   const [selectedDays, setSelectedDays] = useState<number>(1);
   const [autoSelectedInfo, setAutoSelectedInfo] = useState<string>("");
@@ -1225,6 +1230,7 @@ function InventoryDemandForecastSection({
       .then((data) => {
         if (!mounted || !data || !Array.isArray(data.days)) return;
         setDailyForecasts(data.days);
+        setForecastConcept(data.concept ?? null);
         setLoadingForecast(false);
       })
       .catch((err) => {
@@ -1236,7 +1242,13 @@ function InventoryDemandForecastSection({
     };
   }, []);
 
-  const PRESET_DAYS = [1, 2, 3, 4, 5, 7, 14];
+  // Các mốc ngày chỉ nằm trong khung thời gian của concept (không vượt ngày kết thúc concept)
+  const PRESET_DAYS = useMemo(() => {
+    const maxDays = dailyForecasts.length;
+    if (maxDays === 0) return [1, 2, 3, 4, 5, 7, 14];
+    const base = [1, 2, 3, 4, 5, 7, 14].filter((d) => d <= maxDays);
+    return base.includes(maxDays) ? base : [...base, maxDays];
+  }, [dailyForecasts.length]);
 
   // Helper tính nhu cầu và thiếu hụt cho 1 mốc số ngày
   const computeShortagesForDays = useCallback(
@@ -1450,16 +1462,25 @@ function InventoryDemandForecastSection({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-extrabold uppercase tracking-wide text-stone-700 flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-[#b45309]" />
-              Khung thời gian đặt bàn:
+              Khung thời gian concept:
             </span>
+            {forecastConcept && (
+              <span className="text-xs font-semibold text-[#7c2d12]">
+                {forecastConcept.name}
+                {dailyForecasts.length > 0 &&
+                  ` · ${dailyForecasts[0].date.split("-").reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").reverse().join("/")} (${dailyForecasts.length} ngày)`}
+              </span>
+            )}
             <div className="flex flex-wrap items-center gap-1.5">
               {PRESET_DAYS.map((days) => {
                 const isSelected = selectedDays === days;
                 const shortageCount = presetShortageCounts[days] ?? 0;
                 let dayLabel = `${days} ngày`;
-                if (days === 1) dayLabel = "1 ngày (Hôm nay)";
+                if (days === 1) dayLabel = dailyForecasts[0]?.dayLabel.startsWith("Hôm nay") === false ? "1 ngày (đầu concept)" : "1 ngày (Hôm nay)";
                 else if (days === 7) dayLabel = "7 ngày (1 tuần)";
                 else if (days === 14) dayLabel = "14 ngày (2 tuần)";
+                if (days === dailyForecasts.length && days !== 1 && days !== 7 && days !== 14)
+                  dayLabel = `${days} ngày (hết concept)`;
 
                 return (
                   <button
