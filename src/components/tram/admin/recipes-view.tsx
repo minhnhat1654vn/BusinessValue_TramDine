@@ -847,6 +847,7 @@ export function AdminRecipes({
                 value={selectedConceptId}
                 onValueChange={(val) => {
                   setSelectedConceptId(val);
+                  setSelectedDish(1);
                   loadBom(guests, false, val);
                 }}
               >
@@ -886,7 +887,7 @@ export function AdminRecipes({
               )}
             >
               <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
-              7 Món &amp; Giá vốn BOM
+              {bomData?.dishes && bomData.dishes.length > 0 ? `${bomData.dishes.length} Món & Giá vốn BOM` : "Món & Giá vốn BOM"}
             </button>
             <button
               type="button"
@@ -1158,24 +1159,59 @@ export function AdminRecipes({
             })}
           </div>
 
-          {/* CHỌN MÓN (7 THẺ TAB) */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                Chọn món để xem &amp; gán định lượng BOM ({bomData?.dishes.length ?? 7} món)
-              </span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setCreateDishOpen(true)}
-                className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
-              >
-                <Plus className="mr-1 h-3.5 w-3.5" /> Tạo món ăn mới
-              </Button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-              {bomData?.dishes.map((dish) => {
+          {/* CHỌN MÓN & ĐỊNH LƯỢNG HOẶC TRẠNG THÁI ĐỂ TRỐNG */}
+          {!bomData?.dishes || bomData.dishes.length === 0 ? (
+            <Card className="border-dashed border-2 border-stone-300 bg-[#fffdfa] p-10 sm:p-14 text-center shadow-xs">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fdf0d5] text-[#b45309] mb-4">
+                <UtensilsCrossed className="h-7 w-7" />
+              </div>
+              <h3 className="font-heading text-lg font-bold text-[#292524]">
+                Concept này chưa có món ăn (Đang để trống)
+              </h3>
+              <p className="mt-1.5 text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                Khi chuyển sang concept mới, toàn bộ các món ăn và định lượng của concept cũ không được hiển thị để bạn chủ động lên thực đơn mới từ đầu.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <Button
+                  type="button"
+                  onClick={() => setCreateDishOpen(true)}
+                  className="bg-[#b45309] hover:bg-[#92400e] text-white text-xs font-semibold shadow-xs"
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Tạo món ăn mới cho Concept này
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedFile(null);
+                    setPreviewRows([]);
+                    setImportModalOpen(true);
+                  }}
+                  className="border-stone-300 text-stone-700 hover:bg-[#fdf0d5]/40 text-xs font-medium"
+                >
+                  <Upload className="mr-1.5 h-3.5 w-3.5" /> Nhập công thức từ Excel
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+                    Chọn món để xem &amp; gán định lượng BOM ({bomData.dishes.length} món)
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setCreateDishOpen(true)}
+                    className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
+                  >
+                    <Plus className="mr-1 h-3.5 w-3.5" /> Tạo món ăn mới
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                  {bomData.dishes.map((dish) => {
                 const menuItem = MENU_ITEMS.find((m) => m.index === dish.index);
                 const isSelected = dish.index === selectedDish;
                 const defaultVar = dish.variants.find((v) => v.isDefault) ?? dish.variants[0];
@@ -1457,6 +1493,8 @@ export function AdminRecipes({
               </CardContent>
             </Card>
           )}
+            </>
+          )}
         </>
       ) : viewMode === "food-cost" ? (
         /* ==================== VIEW: PHÂN TÍCH FOOD COST 33,5% ==================== */
@@ -1550,7 +1588,14 @@ export function AdminRecipes({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {bomData?.dishes.map((dish) => {
+                  {!bomData?.dishes || bomData.dishes.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
+                        Concept này đang để trống thực đơn, chưa có món ăn nào để phân tích food cost. Hãy thêm món ăn trước.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    bomData.dishes.map((dish) => {
                     const cost = dishCostMap.get(dish.index) || 0;
                     const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
                     return (
@@ -1587,7 +1632,7 @@ export function AdminRecipes({
                         </TableCell>
                       </TableRow>
                     );
-                  })}
+                  }))}
                 </TableBody>
                 <TableFooter className="bg-[#fdf0d5]/40 font-heading">
                   <TableRow>

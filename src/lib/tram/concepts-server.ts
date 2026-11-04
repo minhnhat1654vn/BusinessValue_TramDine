@@ -77,8 +77,7 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       updatedAt: new Date().toISOString(),
     };
 
-    // Tạo sẵn 1 Concept 3 mẫu cho tuần tiếp theo (nhân bản từ C2 với ghi chú kế hoạch)
-    const upcomingDishes = JSON.parse(JSON.stringify(liveBom.dishes));
+    // Concept 3 để trống theo yêu cầu: khi chuyển sang concept mới không hiển thị các item/section từ concept cũ
     const upcomingConcept: MenuConcept = {
       id: "concept-3",
       code: "C3",
@@ -88,7 +87,7 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       weekLabel: "Tuần tiếp theo (Dự kiến)",
       sellingPrice: 1190000,
       targetFoodCostPct: 33.5,
-      dishes: upcomingDishes,
+      dishes: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -254,23 +253,13 @@ export async function createConcept({
 
   let dishesToUse: ResolvedDishRecipe[] = [];
 
-  if (cloneFromId) {
+  if (cloneFromId && cloneFromId !== "blank") {
     const source = store.concepts.find((c) => c.id === cloneFromId);
     if (source) {
       dishesToUse = JSON.parse(JSON.stringify(source.dishes));
     }
   }
-
-  // Nếu không clone hoặc nguồn rỗng, lấy từ active concept
-  if (dishesToUse.length === 0) {
-    const active = store.concepts.find((c) => c.id === store.activeId);
-    if (active && active.dishes.length > 0) {
-      dishesToUse = JSON.parse(JSON.stringify(active.dishes));
-    } else {
-      const live = await getBomFromDb(1);
-      dishesToUse = JSON.parse(JSON.stringify(live.dishes));
-    }
-  }
+  // Nếu không chỉ định clone hoặc cloneFromId === "blank", dishesToUse = [] để trống hoàn toàn
 
   const effectiveWeekLabel =
     weekLabel?.trim() ||

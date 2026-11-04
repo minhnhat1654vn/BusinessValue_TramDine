@@ -55,7 +55,7 @@ export function CreateConceptModal({
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState(defaultNextMonday);
   const [weekLabel, setWeekLabel] = useState("Tuần tiếp theo (Dự kiến)");
-  const [cloneFromId, setCloneFromId] = useState(currentActiveId || "concept-2");
+  const [cloneFromId, setCloneFromId] = useState("blank");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -185,18 +185,18 @@ export function CreateConceptModal({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="blank">Bắt đầu thực đơn trống (Nhập lại từ đầu)</SelectItem>
+                <SelectItem value="blank">Bắt đầu thực đơn trống (Để trống, không sao chép món cũ)</SelectItem>
                 {existingConcepts.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    Nhân bản từ: {c.name} {c.id === currentActiveId ? "(Khuyên dùng)" : ""}
+                    Nhân bản từ: {c.name} {c.id === currentActiveId ? "(Sao chép món tuần này)" : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <p className="text-[11px] text-muted-foreground">
               {cloneFromId !== "blank"
-                ? "Sao chép toàn bộ 7 món và bảng định lượng BOM để bạn chỉ việc thay thế 1-2 món mới cho tuần tới."
-                : "Khởi tạo menu trống để bạn tự thêm các món ăn mới."}
+                ? "Sao chép danh sách món và bảng định lượng BOM từ concept được chọn."
+                : "Tạo concept mới để trống hoàn toàn: không hiển thị món hay định lượng của concept cũ để bạn tự lên menu mới."}
             </p>
           </div>
 

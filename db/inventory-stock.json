@@ -7,13 +7,13 @@
     "tram-huong": 23.7,
     "atiso": 1152,
     "than-bo": 0,
-    "la-moc-mat": 164,
-    "mat-ong": 1104,
-    "sa": 640,
-    "toi": 1144,
-    "nuoc-mam": 3462,
-    "tieu-den": 544,
-    "dau-an": 4614,
+    "la-moc-mat": 158,
+    "mat-ong": 1088,
+    "sa": 630,
+    "toi": 1138,
+    "nuoc-mam": 3454,
+    "tieu-den": 543,
+    "dau-an": 4608,
     "ca-bop": 4200,
     "ca-loc": 6500,
     "ca-duoi": 3500,
@@ -48,5 +48,5 @@
     "rom": 5500
   },
   "reorderPoints": {},
-  "updatedAt": "2026-11-03T18:20:35.029Z"
+  "updatedAt": "2026-11-04T18:00:01.266Z"
 }
