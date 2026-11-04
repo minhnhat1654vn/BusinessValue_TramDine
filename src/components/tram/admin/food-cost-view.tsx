@@ -394,7 +394,7 @@ export function AdminFoodCost({
   const barFillPct = Math.min(100, Math.max(0, report.foodCostPct));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-heading">
       {/* ==================== 1. TIÊU ĐỀ & QUY ĐỔI SỐ KHÁCH ==================== */}
       <div className={cn("flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between", hideTitleHeader && "border-b-0 pb-0")}>
         {!hideTitleHeader && (
@@ -683,7 +683,7 @@ export function AdminFoodCost({
                 <div className="mt-2 flex items-baseline justify-between gap-2">
                   <span className="font-heading text-lg font-bold tabular-nums text-[#292524]">
                     {formatVND(pkg.price)}
-                    <span className="font-sans text-[11px] font-normal text-muted-foreground">/khách</span>
+                    <span className="font-heading text-[11px] font-normal text-muted-foreground">/khách</span>
                   </span>
                   <span className="text-xs font-semibold tabular-nums text-[#92400e]">
                     Giá vốn món: {formatPercent(pkg.pct, 1)}

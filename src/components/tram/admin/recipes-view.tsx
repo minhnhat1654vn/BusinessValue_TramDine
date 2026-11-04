@@ -879,7 +879,7 @@ export function AdminRecipes({
   }, [editingLine, selectedLineIng]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-heading">
       {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ TINH GỌN ==================== */}
       <div className="flex flex-col gap-4 border-b border-border/80 pb-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
@@ -1402,7 +1402,7 @@ export function AdminRecipes({
                           {formatTotals(activeVariant.totalsForGuests)}
                         </TableCell>
                       )}
-                      <TableCell className="text-right text-xs font-sans text-muted-foreground">
+                      <TableCell className="text-right text-xs font-heading text-muted-foreground">
                         Giá vốn món:
                       </TableCell>
                       <TableCell className="text-right font-bold text-[#b45309] tabular-nums">
@@ -1586,7 +1586,7 @@ export function AdminRecipes({
 
       {/* ==================== DIALOG TẠO MÓN ĂN MỚI ==================== */}
       <Dialog open={createDishOpen} onOpenChange={setCreateDishOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md font-heading">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg text-[#292524]">
               Tạo món ăn mới vào thực đơn
@@ -1660,7 +1660,7 @@ export function AdminRecipes({
 
       {/* ==================== DIALOG 1: THÊM / SỬA DÒNG ĐỊNH LƯỢNG NÂNG CAO ==================== */}
       <Dialog open={lineModalOpen} onOpenChange={setLineModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg font-heading">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg text-[#292524]">
               {editingLine?.id ? "Chỉnh sửa dòng định lượng" : "Thêm định lượng vào món"}
@@ -1827,7 +1827,7 @@ export function AdminRecipes({
 
       {/* ==================== DIALOG 2: THÊM / SỬA NGUYÊN LIỆU KHO ==================== */}
       <Dialog open={ingModalOpen} onOpenChange={setIngModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md font-heading">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg text-[#292524]">
               {editingIng.id ? "Chỉnh sửa nguyên liệu kho" : "Thêm nguyên liệu mới vào kho"}
@@ -1951,7 +1951,7 @@ export function AdminRecipes({
 
       {/* ==================== DIALOG 3: PREVIEW & NHẬP EXCEL ==================== */}
       <Dialog open={importModalOpen} onOpenChange={setImportModalOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col">
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col font-heading">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg text-[#292524] flex items-center gap-2">
               <FileSpreadsheet className="h-5 w-5 text-emerald-600" />
@@ -2072,7 +2072,7 @@ export function AdminRecipes({
                                 r.status === "ERROR" ? "bg-rose-50/40 hover:bg-rose-50/70" : "hover:bg-[#fffdf9]",
                               )}
                             >
-                              <TableCell className="text-center font-mono text-[11px] text-muted-foreground">
+                              <TableCell className="text-center font-heading text-[11px] text-muted-foreground">
                                 {r.rowNum}
                               </TableCell>
                               <TableCell className="font-medium">
@@ -2090,7 +2090,7 @@ export function AdminRecipes({
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <span className="text-[10px] font-mono text-muted-foreground">{r.group}</span>
+                                <span className="text-[10px] font-heading text-muted-foreground">{r.group}</span>
                               </TableCell>
                               <TableCell className="text-right font-heading font-semibold">
                                 {r.qtyPerGuest} {r.unit}

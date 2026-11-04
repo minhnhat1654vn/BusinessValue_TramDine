@@ -327,7 +327,7 @@ export function StockInModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg font-heading">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

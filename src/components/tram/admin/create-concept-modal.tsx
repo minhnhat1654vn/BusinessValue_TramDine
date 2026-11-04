@@ -109,7 +109,7 @@ export function CreateConceptModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md border-border bg-card">
+      <DialogContent className="max-w-md border-border bg-card font-heading">
         <DialogHeader>
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#fdf0d5] text-[#b45309]">

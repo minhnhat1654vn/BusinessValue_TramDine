@@ -133,7 +133,7 @@ export function EditConceptModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl">
+      <DialogContent className="max-w-lg border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl font-heading">
         <form onSubmit={handleSubmit}>
           {/* Header */}
           <div className="border-b border-amber-900/10 bg-gradient-to-r from-[#fdf0d5] to-[#faf3e0] p-5">

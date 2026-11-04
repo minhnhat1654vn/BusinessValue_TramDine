@@ -435,7 +435,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-heading">
       {/* ==================== 1. HEADER TRANG CONCEPT THỰC ĐƠN ==================== */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -942,7 +942,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
         open={deleteConceptTarget !== null}
         onOpenChange={(open) => !open && setDeleteConceptTarget(null)}
       >
-        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9]">
+        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9] font-heading">
           <AlertDialogHeader>
             <div className="flex items-center gap-2 text-rose-800 font-bold">
               <Trash2 className="h-5 w-5 text-rose-600" />
@@ -981,7 +981,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
 
       {/* Dialog Thêm / Sửa Món ăn */}
       <Dialog open={dishModalOpen} onOpenChange={setDishModalOpen}>
-        <DialogContent className="max-w-md border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl">
+        <DialogContent className="max-w-md border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl font-heading">
           <form onSubmit={handleSaveDish}>
             <div className="border-b border-amber-900/10 bg-gradient-to-r from-[#fdf0d5] to-[#faf3e0] p-5">
               <div className="flex items-center gap-2.5">
@@ -1068,7 +1068,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
 
       {/* Alert Dialog Xác nhận Xóa Món ăn */}
       <AlertDialog open={deleteDishTarget !== null} onOpenChange={(open) => !open && setDeleteDishTarget(null)}>
-        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9]">
+        <AlertDialogContent className="max-w-md border-rose-200 bg-[#fffdf9] font-heading">
           <AlertDialogHeader>
             <div className="flex items-center gap-2 text-rose-800 font-bold">
               <Trash2 className="h-5 w-5 text-rose-600" />
@@ -1095,7 +1095,7 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
 
       {/* Dialog Gán Nguyên liệu từ Kho vào Món ăn */}
       <Dialog open={lineModalOpen} onOpenChange={setLineModalOpen}>
-        <DialogContent className="max-w-lg border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl">
+        <DialogContent className="max-w-lg border-amber-900/20 bg-[#fffdf9] p-0 shadow-2xl font-heading">
           <form onSubmit={handleSaveLine}>
             <div className="border-b border-amber-900/10 bg-gradient-to-r from-[#fdf0d5] to-[#faf3e0] p-5">
               <div className="flex items-center gap-2.5">

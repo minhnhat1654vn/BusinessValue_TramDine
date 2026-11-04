@@ -233,7 +233,7 @@ function SelectTrigger({
           inputRef.current?.focus()
         }}
         className={cn(
-          "border-input focus-within:border-ring focus-within:ring-ring/50 flex w-full items-center justify-between gap-1.5 rounded-md border bg-transparent px-2.5 py-1 text-left text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-[3px] data-[size=default]:h-9 data-[size=sm]:h-8",
+          "font-heading border-input focus-within:border-ring focus-within:ring-ring/50 flex w-full items-center justify-between gap-1.5 rounded-md border bg-transparent px-2.5 py-1 text-left text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-within:ring-[3px] data-[size=default]:h-9 data-[size=sm]:h-8",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
@@ -321,7 +321,7 @@ function SelectContent({
           e.preventDefault()
         }
       }}
-      className="w-[var(--radix-popover-trigger-width)] min-w-[13rem] p-1"
+      className="font-heading w-[var(--radix-popover-trigger-width)] min-w-[13rem] p-1"
     >
       <div className={cn("max-h-64 overflow-y-auto", className)}>
         {matchCount === 0 ? (
