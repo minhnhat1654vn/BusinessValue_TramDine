@@ -14,6 +14,9 @@ import {
   toISODate,
   weekdayOf,
 } from "@/lib/tram/format";
+import { PRICES } from "@/lib/tram/constants";
+import { getFoodCostKpiSummary } from "@/lib/tram/food-cost";
+import { getIngredientPriceOverrides } from "@/lib/tram/food-cost-server";
 import type {
   AdminStats,
   OccupancyPoint,
@@ -114,13 +117,25 @@ export async function GET(request: NextRequest) {
         : 0;
 
     // --- KPI 4: Doanh thu dự thu (đặt bàn tương lai còn hiệu lực) ---
-    const expectedRevenue = windowReservations
-      .filter(
-        (r) =>
-          toISODate(r.date) >= today &&
-          (r.status === "CONFIRMED" || r.status === "PENDING"),
-      )
-      .reduce((sum, r) => sum + reservationTotal(r.partySize, r.pairing), 0);
+    const futureReservations = windowReservations.filter(
+      (r) =>
+        toISODate(r.date) >= today &&
+        (r.status === "CONFIRMED" || r.status === "PENDING"),
+    );
+    const expectedRevenue = futureReservations.reduce(
+      (sum, r) => sum + reservationTotal(r.partySize, r.pairing),
+      0,
+    );
+    const futureGuests = futureReservations.reduce((sum, r) => sum + r.partySize, 0);
+    const expectedMenuRevenue = futureGuests * PRICES.menu;
+    const expectedPairingRevenue = Math.max(0, expectedRevenue - expectedMenuRevenue);
+
+    // FR-33: Tính KPI Food Cost đối chiếu doanh thu menu dự thu
+    const priceStored = getIngredientPriceOverrides();
+    const foodCostKpi = getFoodCostKpiSummary(priceStored.prices, {
+      futureGuests,
+      expectedPairingRevenue,
+    });
 
     // --- Biểu đồ occupancy 14 ngày gần nhất (FR-14: ghép hai khung 17:30 và 19:45) ---
     const byDaySlot = new Map<string, number>();
@@ -239,6 +254,10 @@ export async function GET(request: NextRequest) {
       occupancyRate,
       noShowRate,
       expectedRevenue,
+      expectedMenuRevenue,
+      expectedPairingRevenue,
+      futureGuests,
+      foodCostKpi,
       occupancy,
       sourceShares,
       waitlistToday,

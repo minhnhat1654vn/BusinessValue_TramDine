@@ -1,6 +1,8 @@
 // Kiểu dữ liệu dùng chung cho TRẦM Reserve
 // Các "enum" ứng dụng (SQLite của Prisma không hỗ trợ enum thật)
 
+import type { FoodCostKpiSummary } from "./food-cost";
+
 export type Slot = "SLOT_1730" | "SLOT_1945";
 export type Pairing = "NONE" | "WINE" | "TEA";
 export type ReservationStatus =
@@ -123,6 +125,10 @@ export interface AdminStats {
   occupancyRate: number; // tỷ lệ lấp chỗ trung bình (các khung có khách)
   noShowRate: number; // tỷ lệ không đến
   expectedRevenue: number; // doanh thu dự thu (tương lai)
+  expectedMenuRevenue?: number; // FR-33: doanh thu phần menu dự thu (chưa gồm pairing)
+  expectedPairingRevenue?: number; // FR-33: doanh thu pairing dự thu
+  futureGuests?: number; // FR-33: tổng khách đặt trước tương lai
+  foodCostKpi?: FoodCostKpiSummary; // FR-33: KPI food cost đối chiếu doanh thu menu
   totalRevenue4Weeks?: number; // tổng doanh thu 4 tuần
   occupancy: OccupancyPoint[]; // 14 ngày gần nhất
   sourceShares: SourceShare[];
