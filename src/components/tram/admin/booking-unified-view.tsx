@@ -111,6 +111,7 @@ import {
   type CheckinLoyaltyReward,
 } from "./checkin-reward-dialog";
 import { SurveyDialog } from "../survey/survey-dialog";
+import { TableCourseTracker } from "./table-course-tracker";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -190,272 +191,6 @@ const STATE_STYLES: Record<string, { box: string; label: string; badge: string }
     badge: "border-rose-500/40 bg-rose-100 text-rose-700",
   },
 };
-
-// Component Đối soát & Xuất món Tasting theo bàn
-interface TableCourseTrackerProps {
-  reservation: ReservationDTO;
-  onUpdate: (updated: ReservationDTO) => void;
-  acting: boolean;
-  setActing: (val: boolean) => void;
-  onCheckoutSuccess?: () => void;
-}
-
-function TableCourseTracker({
-  reservation,
-  onUpdate,
-  acting,
-  setActing,
-  onCheckoutSuccess,
-}: TableCourseTrackerProps) {
-  let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
-  try {
-    if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
-      servedData = JSON.parse(reservation.selectedDishes);
-    }
-  } catch {}
-  const servedList = Array.isArray(servedData.served) ? servedData.served : [];
-  const servedCount = servedList.length;
-  const isAllServed = servedCount >= 7;
-  const [confirmCheckoutOpen, setConfirmCheckoutOpen] = useState(false);
-
-  const handleServeDish = async (dishIndex: number) => {
-    setActing(true);
-    try {
-      const res = await fetch(`/api/reservations/${reservation.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "serve_dish", dishIndex }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Lỗi xuất món");
-      toast.success(body.message);
-      onUpdate(body.reservation);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi kết nối");
-    } finally {
-      setActing(false);
-    }
-  };
-
-  const handleUnserveDish = async (dishIndex: number) => {
-    setActing(true);
-    try {
-      const res = await fetch(`/api/reservations/${reservation.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "unserve_dish", dishIndex }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Lỗi hoàn lại món");
-      toast.success(body.message);
-      onUpdate(body.reservation);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi kết nối");
-    } finally {
-      setActing(false);
-    }
-  };
-
-  const handleServeAll = async () => {
-    setActing(true);
-    try {
-      const res = await fetch(`/api/reservations/${reservation.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "serve_all_dishes" }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Lỗi xuất toàn bộ món");
-      toast.success(body.message);
-      onUpdate(body.reservation);
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi kết nối");
-    } finally {
-      setActing(false);
-    }
-  };
-
-  const handleCheckout = async () => {
-    setActing(true);
-    try {
-      const res = await fetch(`/api/reservations/${reservation.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "checkout" }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || "Lỗi check-out");
-      toast.success(body.message);
-      onUpdate(body.reservation);
-      onCheckoutSuccess?.();
-    } catch (err: any) {
-      toast.error(err.message || "Lỗi kết nối");
-    } finally {
-      setActing(false);
-      setConfirmCheckoutOpen(false);
-    }
-  };
-
-  return (
-    <div className="rounded-2xl border border-amber-900/15 bg-[#fffdfa] p-3.5 space-y-3 shadow-xs">
-      <div className="flex items-center justify-between gap-2 border-b border-stone-200/80 pb-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fdf0d5] text-[#b45309]">
-            <UtensilsCrossed className="h-3.5 w-3.5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold text-stone-900">
-              Đối soát xuất món Tasting ({reservation.partySize} khách)
-            </h4>
-            <p className="text-[10px] text-muted-foreground">
-              Mỗi món xuất ra tự động trừ kho nguyên liệu theo định lượng BOM
-            </p>
-          </div>
-        </div>
-
-        <Badge
-          className={cn(
-            "text-[10.5px] font-bold px-2 py-0.5",
-            isAllServed
-              ? "bg-emerald-600 text-white"
-              : "bg-amber-100 text-[#92400e] border-amber-300"
-          )}
-        >
-          {servedCount}/7 món đã ra
-        </Badge>
-      </div>
-
-      <div className="space-y-1">
-        <div className="flex justify-between text-[10.5px] font-semibold text-stone-600">
-          <span>Tiến độ ra món Bàn {reservation.table.code}</span>
-          <span className="text-[#b45309] font-bold">{Math.round((servedCount / 7) * 100)}%</span>
-        </div>
-        <div className="h-2 w-full rounded-full bg-stone-200/80 overflow-hidden">
-          <div
-            style={{ width: `${(servedCount / 7) * 100}%` }}
-            className="h-full bg-gradient-to-r from-amber-500 to-emerald-600 transition-all duration-300"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-1.5 max-h-[280px] overflow-y-auto pr-1">
-        {MENU_ITEMS.map((dish) => {
-          const isServed = servedList.includes(dish.index);
-          const servedTime = servedData.servedAt?.[String(dish.index)];
-
-          return (
-            <div
-              key={dish.index}
-              className={cn(
-                "flex items-center justify-between gap-2 p-2 rounded-xl border text-xs transition-colors",
-                isServed
-                  ? "bg-emerald-50/80 border-emerald-300/80 text-emerald-950"
-                  : "bg-white border-stone-200/80 hover:border-amber-400/60"
-              )}
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={cn(
-                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold",
-                    isServed ? "bg-emerald-700 text-white" : "bg-stone-200 text-stone-700"
-                  )}
-                >
-                  0{dish.index}
-                </span>
-                <div className="min-w-0">
-                  <div className="truncate font-semibold text-stone-900">{dish.name}</div>
-                  <div className="text-[10px] text-muted-foreground">{dish.region} · {reservation.partySize} suất</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0">
-                {isServed ? (
-                  <>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                      Đã ra {servedTime ? `· ${servedTime}` : ""}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={acting}
-                      onClick={() => handleUnserveDish(dish.index)}
-                      title="Hoàn lại món nếu bấm nhầm"
-                      className="text-[10px] text-muted-foreground hover:text-stone-900 hover:underline px-1 py-0.5"
-                    >
-                      Hoàn lại
-                    </button>
-                  </>
-                ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={acting}
-                    onClick={() => handleServeDish(dish.index)}
-                    className="h-7 px-2.5 text-[11px] font-semibold bg-[#b45309] hover:bg-[#92400e] text-white shadow-2xs"
-                  >
-                    <Flame className="mr-1 h-3 w-3" /> Xuất món ({reservation.partySize} suất)
-                  </Button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="pt-2 border-t border-stone-200/80 space-y-2">
-        {!isAllServed && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={acting}
-            onClick={handleServeAll}
-            className="w-full h-8 text-xs font-semibold border-amber-300 bg-amber-50/70 text-amber-900 hover:bg-amber-100"
-          >
-            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" /> Xuất toàn bộ 7 món ({reservation.partySize} khách)
-          </Button>
-        )}
-
-        <Button
-          type="button"
-          disabled={acting}
-          onClick={() => {
-            if (!isAllServed) {
-              setConfirmCheckoutOpen(true);
-            } else {
-              void handleCheckout();
-            }
-          }}
-          className="w-full h-11 rounded-full bg-[#b45309] hover:bg-[#92400e] text-white font-bold text-xs sm:text-sm shadow-md transition-transform active:scale-[0.99]"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Check-out (Hoàn tất bữa ăn &amp; Trả bàn)
-        </Button>
-      </div>
-
-      <AlertDialog open={confirmCheckoutOpen} onOpenChange={setConfirmCheckoutOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-heading">Xác nhận Check-out bàn {reservation.table.code}?</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
-              Hiện tại bàn này mới đối soát xuất <strong>{servedCount}/7 món</strong>. 
-              Bạn có chắc chắn muốn hoàn tất bữa ăn và trả bàn không?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="text-xs">Tiếp tục phục vụ</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => void handleCheckout()}
-              className="bg-[#b45309] hover:bg-[#92400e] text-white text-xs font-semibold"
-            >
-              Vẫn Check-out
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-}
 
 function formatTimeOnly(isoString: string): string {
   try {
@@ -1869,24 +1604,38 @@ export function AdminBookingUnifiedView({
 
                   {(selectedReservation.status === "CONFIRMED" ||
                     selectedReservation.status === "PENDING") && (
-                    <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                      <Button
-                        onClick={() => void handleCheckin(selectedReservation.id)}
-                        disabled={acting}
-                        className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
-                      >
-                        <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
-                        Check-in
-                      </Button>
-                      <Button
-                        onClick={() => setConfirmNoShow(true)}
-                        disabled={acting}
-                        variant="outline"
-                        className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
-                      >
-                        <UserX className="mr-1.5 h-4 w-4" aria-hidden />
-                        Đánh dấu không đến
-                      </Button>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                          onClick={() => void handleCheckin(selectedReservation.id)}
+                          disabled={acting}
+                          className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-bold"
+                        >
+                          <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
+                          Khách đã đến &amp; Check-in
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmNoShow(true)}
+                          disabled={acting}
+                          variant="outline"
+                          className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
+                        >
+                          <UserX className="mr-1.5 h-4 w-4" aria-hidden />
+                          Đánh dấu không đến
+                        </Button>
+                      </div>
+
+                      <TableCourseTracker
+                        reservation={selectedReservation}
+                        acting={acting}
+                        setActing={setActing}
+                        onUpdate={(updated) => {
+                          setSelectedTable((prev) => prev ? { ...prev, reservation: updated } : null);
+                          refreshTables();
+                          refreshList();
+                        }}
+                        onCheckin={() => void handleCheckin(selectedReservation.id)}
+                      />
                     </div>
                   )}
 
@@ -2099,14 +1848,28 @@ export function AdminBookingUnifiedView({
 
                 {(detailReservation.status === "CONFIRMED" ||
                   detailReservation.status === "PENDING") && (
-                  <Button
-                    onClick={() => void handleCheckin(detailReservation.id)}
-                    disabled={acting}
-                    className="w-full mt-3 h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
-                  >
-                    <LogIn className="mr-1.5 h-4 w-4" />
-                    Check-in & Tích Điểm Thưởng (FR-20)
-                  </Button>
+                  <div className="space-y-3 mt-3">
+                    <Button
+                      onClick={() => void handleCheckin(detailReservation.id)}
+                      disabled={acting}
+                      className="w-full h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
+                    >
+                      <LogIn className="mr-1.5 h-4 w-4" />
+                      Khách đã đến &amp; Check-in
+                    </Button>
+
+                    <TableCourseTracker
+                      reservation={detailReservation}
+                      acting={acting}
+                      setActing={setActing}
+                      onUpdate={(updated) => {
+                        setDetailReservation(updated);
+                        refreshTables();
+                        refreshList();
+                      }}
+                      onCheckin={() => void handleCheckin(detailReservation.id)}
+                    />
+                  </div>
                 )}
 
                 {detailReservation.status === "SEATED" && (

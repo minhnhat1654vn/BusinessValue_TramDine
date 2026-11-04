@@ -41,6 +41,7 @@ import {
   type CheckinLoyaltyReward,
 } from "./checkin-reward-dialog";
 import { SurveyDialog } from "../survey/survey-dialog";
+import { TableCourseTracker } from "./table-course-tracker";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -303,41 +304,63 @@ export function AdminTableMap({ today }: TableMapProps) {
 
                   {(selectedReservation.status === "CONFIRMED" ||
                     selectedReservation.status === "PENDING") && (
-                    <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                      <Button
-                        onClick={() => void doAction("checkin")}
-                        disabled={acting}
-                        className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
-                      >
-                        <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
-                        Check-in
-                      </Button>
-                      <Button
-                        onClick={() => setConfirmNoShow(true)}
-                        disabled={acting}
-                        variant="outline"
-                        className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
-                      >
-                        <UserX className="mr-1.5 h-4 w-4" aria-hidden />
-                        Đánh dấu không đến
-                      </Button>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                          onClick={() => void doAction("checkin")}
+                          disabled={acting}
+                          className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-bold"
+                        >
+                          <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
+                          Khách đã đến &amp; Check-in
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmNoShow(true)}
+                          disabled={acting}
+                          variant="outline"
+                          className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
+                        >
+                          <UserX className="mr-1.5 h-4 w-4" aria-hidden />
+                          Đánh dấu không đến
+                        </Button>
+                      </div>
+
+                      <TableCourseTracker
+                        reservation={selectedReservation}
+                        onUpdate={() => void loadData()}
+                        acting={acting}
+                        setActing={setActing}
+                        onCheckin={() => void doAction("checkin")}
+                      />
                     </div>
                   )}
 
                   {selectedReservation.status === "SEATED" && (
-                    <div className="pt-2">
+                    <div className="space-y-3 pt-2">
+                      <TableCourseTracker
+                        reservation={selectedReservation}
+                        onUpdate={() => void loadData()}
+                        acting={acting}
+                        setActing={setActing}
+                        onCheckoutSuccess={() => {
+                          setSelected(null);
+                          void loadData();
+                        }}
+                      />
+
                       <Button
                         onClick={() => {
                           const res = selectedReservation;
                           setSelected(null);
                           setSurveyTarget(res);
                         }}
-                        className="w-full h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
+                        variant="outline"
+                        className="w-full h-9 rounded-full border border-amber-300 text-amber-900 bg-amber-50/50 text-xs font-semibold hover:bg-amber-100/70"
                       >
-                        <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
+                        <Star className="mr-1.5 h-3.5 w-3.5 fill-amber-500 text-amber-500" />
                         {selectedReservation.survey
-                          ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 `
-                          : "Khảo sát sau bữa ăn"}
+                          ? `Đã có đánh giá: ${selectedReservation.survey.rating}/5 sao`
+                          : "Gửi khảo sát đánh giá"}
                       </Button>
                     </div>
                   )}

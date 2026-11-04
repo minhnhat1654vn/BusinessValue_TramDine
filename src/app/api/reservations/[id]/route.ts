@@ -378,6 +378,24 @@ export async function PATCH(
           { status: 400 },
         );
       }
+
+      // RÀNG BUỘC NGHIỆP VỤ: Khi chưa ra hết món không được checkout
+      let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
+      try {
+        if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
+          servedData = JSON.parse(reservation.selectedDishes);
+        }
+      } catch {}
+      const servedList = Array.isArray(servedData.served) ? servedData.served : [];
+      if (servedList.length < 7) {
+        return NextResponse.json(
+          {
+            error: `Không thể Check-out: Bàn ${reservation.table.code} chưa ra hết 7 món Tasting (hiện mới đối soát ra ${servedList.length}/7 món). Vui lòng hoàn tất xuất đủ 7 món trước khi thanh toán & trả bàn!`,
+          },
+          { status: 400 },
+        );
+      }
+
       const updated = await db.reservation.update({
         where: { id },
         data: {
@@ -388,7 +406,7 @@ export async function PATCH(
 
       return NextResponse.json({
         reservation: serializeReservation(updated),
-        message: `Bàn ${reservation.table.code} đã check-out hoàn tất bữa ăn. Bàn đã sẵn sàng đón lượt khách tiếp theo!`,
+        message: `Bàn ${reservation.table.code} đã check-out hoàn tất toàn bộ 7 món. Bàn đã sẵn sàng đón lượt khách tiếp theo!`,
       });
     }
 

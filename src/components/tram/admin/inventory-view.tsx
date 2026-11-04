@@ -263,39 +263,6 @@ export function AdminInventory({
 
 
 
-  // Xuất bếp / Nhập bổ sung trọn bộ menu tasting (7 món)
-  async function handleServingsMovement(guests: number, direction: "OUT" | "IN") {
-    setIsDispatching(true);
-    const next = applyStandardServingsMovement(draftStock, guests, direction);
-    setDraftStock(next);
-
-    try {
-      const res = await fetch("/api/inventory", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: direction === "OUT" ? "deduct_guests" : "restock_guests",
-          guests,
-        }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? "Lỗi cập nhật kho.");
-      if (body.stockOverrides) {
-        setSavedStock(body.stockOverrides as Record<string, number>);
-        setDraftStock(body.stockOverrides as Record<string, number>);
-      }
-      toast.success(
-        direction === "OUT"
-          ? `Đã xuất kho cho ${guests} suất tasting — Tự động trừ cả 7 món.`
-          : `Đã nhập bổ sung ${guests} suất tasting chuẩn.`,
-      );
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Lỗi khi cập nhật kho.");
-    } finally {
-      setIsDispatching(false);
-    }
-  }
-
   async function handleResetAllStock() {
     setIsSaving(true);
     try {
