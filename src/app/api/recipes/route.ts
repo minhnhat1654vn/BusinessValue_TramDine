@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { getBomFromDb, createDishRecipe, deleteDishRecipe } from "@/lib/tram/recipes-server";
+import { getConceptBom, saveDishOrLineToConcept } from "@/lib/tram/concepts-server";
 import { seedBomDatabase } from "../../../../prisma/seed-bom";
 
-// FR-27 — Bảng định lượng công thức (BOM) động từ SQLite Database
+// FR-27 — Bảng định lượng công thức (BOM) động từ SQLite Database / Menu Concept
 // GET /api/recipes                 → 7 món, định lượng cho 1 khách
 // GET /api/recipes?guests=4        → kèm cột tổng quy đổi cho 4 khách
-// GET /api/recipes?dish=5          → chỉ món số 5
+// GET /api/recipes?conceptId=c3    → xem thực đơn Concept 3 tuần mới
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
 
@@ -18,17 +19,10 @@ export async function GET(request: Request) {
     );
   }
 
-  const dishRaw = searchParams.get("dish");
-  const dishFilter = dishRaw === null ? null : Number(dishRaw);
-  if (dishFilter !== null && (dishFilter < 1 || !Number.isInteger(dishFilter))) {
-    return NextResponse.json(
-      { error: "Mã món không hợp lệ." },
-      { status: 400 },
-    );
-  }
+  const conceptId = searchParams.get("conceptId") || undefined;
 
   try {
-    const data = await getBomFromDb(guests, dishFilter);
+    const data = await getConceptBom(conceptId, guests);
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("GET /api/recipes error:", error);
@@ -53,10 +47,12 @@ export async function POST(request: Request) {
     // Không có JSON body (trường hợp query param action=reset)
   }
 
+  const conceptId = searchParams.get("conceptId") || body.conceptId;
+
   if (action === "reset") {
     try {
       await seedBomDatabase();
-      const data = await getBomFromDb(1);
+      const data = await getConceptBom(conceptId, 1);
       return NextResponse.json({
         message: "Đã khôi phục thành công bộ công thức BOM 7 món Concept 2 về mặc định.",
         data,
@@ -76,11 +72,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Tên món ăn không được để trống." }, { status: 400 });
     }
     try {
-      const dish = await createDishRecipe(dishName, body.method, body.note);
-      const data = await getBomFromDb(1);
+      if (conceptId) {
+        await saveDishOrLineToConcept({
+          conceptId,
+          action: "create-dish",
+          payload: {
+            name: dishName,
+            region: body.region,
+            portion: body.portion,
+            method: body.method,
+            note: body.note,
+          },
+        });
+      } else {
+        await createDishRecipe(dishName, body.method, body.note);
+      }
+      const data = await getConceptBom(conceptId, 1);
       return NextResponse.json({
         message: `Đã tạo thành công món ăn mới: "${dishName}".`,
-        dish,
         data,
       });
     } catch (error: any) {
@@ -94,12 +103,18 @@ export async function POST(request: Request) {
 
   if (action === "delete-dish") {
     const dishId = String(body.dishId || "").trim();
-    if (!dishId) {
-      return NextResponse.json({ error: "Mã món ăn không hợp lệ." }, { status: 400 });
-    }
+    const dishIndex = Number(body.dishIndex || 0);
     try {
-      await deleteDishRecipe(dishId);
-      const data = await getBomFromDb(1);
+      if (conceptId) {
+        await saveDishOrLineToConcept({
+          conceptId,
+          action: "delete-dish",
+          payload: { index: dishIndex },
+        });
+      } else {
+        await deleteDishRecipe(dishId);
+      }
+      const data = await getConceptBom(conceptId, 1);
       return NextResponse.json({
         message: "Đã xóa món ăn khỏi thực đơn.",
         data,

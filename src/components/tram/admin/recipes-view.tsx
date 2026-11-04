@@ -7,6 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
+  CalendarDays,
   ArrowDownToLine,
   AlertTriangle,
   ArrowRightLeft,
@@ -67,6 +68,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { StockInModal } from "./stock-in-modal";
+import { CreateConceptModal } from "./create-concept-modal";
 import { MENU_ITEMS } from "@/lib/tram/constants";
 import {
   INGREDIENT_GROUP_LABELS,
@@ -202,6 +204,13 @@ export function AdminRecipes({
   const [submittingLine, setSubmittingLine] = useState(false);
 
   // Modal Nhập hàng vào kho (Goods Receipt)
+  // Quản lý Concept Thực đơn đa tuần / đa mùa (Multi-Concept)
+  const [concepts, setConcepts] = useState<any[]>([]);
+  const [activeConceptId, setActiveConceptId] = useState<string>("concept-2");
+  const [selectedConceptId, setSelectedConceptId] = useState<string>("concept-2");
+  const [createConceptOpen, setCreateConceptOpen] = useState(false);
+  const [activatingConcept, setActivatingConcept] = useState(false);
+
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
 
@@ -237,27 +246,70 @@ export function AdminRecipes({
 
   const scaled = guests > 1;
 
-  // Tải dữ liệu từ API
-  const loadBom = useCallback(async (g: number = guests, silent: boolean = false) => {
+  // Tải danh sách các Concept thực đơn
+  const loadConcepts = useCallback(async () => {
     try {
-      if (!silent) setLoading(true);
-      else setIsRefreshing(true);
-      const res = await fetch(`/api/recipes?guests=${g}`);
-      if (!res.ok) throw new Error("Không thể tải bảng định lượng từ CSDL.");
-      const json: BomResponse = await res.json();
-      setBomData(json);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Lỗi tải dữ liệu định lượng.");
-    } finally {
-      setLoading(false);
-      setIsRefreshing(false);
+      const res = await fetch("/api/recipes/concepts");
+      if (res.ok) {
+        const data = await res.json();
+        setConcepts(data.concepts || []);
+        if (data.activeId) setActiveConceptId(data.activeId);
+      }
+    } catch (err) {
+      console.error("Error loading concepts:", err);
     }
-  }, [guests]);
+  }, []);
 
   useEffect(() => {
-    loadBom(guests);
-  }, [guests, loadBom]);
+    loadConcepts();
+  }, [loadConcepts]);
+
+  // Tải dữ liệu từ API theo Concept được chọn
+  const loadBom = useCallback(
+    async (g: number = guests, silent: boolean = false, cid?: string) => {
+      try {
+        if (!silent) setLoading(true);
+        else setIsRefreshing(true);
+        const targetCid = cid ?? selectedConceptId;
+        const res = await fetch(`/api/recipes?guests=${g}&conceptId=${targetCid}`);
+        if (!res.ok) throw new Error("Không thể tải bảng định lượng từ CSDL.");
+        const json: BomResponse = await res.json();
+        setBomData(json);
+      } catch (err: any) {
+        console.error(err);
+        toast.error(err.message || "Lỗi tải dữ liệu định lượng.");
+      } finally {
+        setLoading(false);
+        setIsRefreshing(false);
+      }
+    },
+    [guests, selectedConceptId],
+  );
+
+  useEffect(() => {
+    loadBom(guests, false, selectedConceptId);
+  }, [guests, selectedConceptId, loadBom]);
+
+  const handleSetActiveConcept = async (conceptId: string) => {
+    try {
+      setActivatingConcept(true);
+      const res = await fetch("/api/recipes/concepts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set-active", conceptId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi khi kích hoạt concept.");
+      toast.success(data.message || "Đã kích hoạt Concept làm thực đơn chính thức!");
+      setActiveConceptId(conceptId);
+      await loadConcepts();
+      await loadBom(guests, true, conceptId);
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setActivatingConcept(false);
+    }
+  };
 
   function applyGuests(next: number) {
     const clamped = Math.min(MAX_SCALE_GUESTS, Math.max(1, Math.round(next)));
@@ -450,6 +502,7 @@ export function AdminRecipes({
           dishName: newDishName.trim(),
           method: newDishMethod.trim(),
           note: newDishNote.trim(),
+          conceptId: selectedConceptId,
         }),
       });
       const data = await res.json();
@@ -481,6 +534,7 @@ export function AdminRecipes({
         body: JSON.stringify({
           action: "delete-dish",
           dishId,
+          conceptId: selectedConceptId,
         }),
       });
       const data = await res.json();
@@ -503,7 +557,7 @@ export function AdminRecipes({
       const res = await fetch("/api/recipes/lines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingLine),
+        body: JSON.stringify({ ...editingLine, conceptId: selectedConceptId }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Lỗi lưu dòng định lượng.");
@@ -521,7 +575,7 @@ export function AdminRecipes({
   async function handleDeleteLine(lineId: string, ingName: string) {
     if (!confirm(`Xác nhận xóa nguyên liệu "${ingName}" khỏi công thức món này?`)) return;
     try {
-      const res = await fetch(`/api/recipes/lines?id=${lineId}`, { method: "DELETE" });
+      const res = await fetch(`/api/recipes/lines?id=${lineId}&conceptId=${selectedConceptId}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Không thể xóa dòng định lượng.");
       toast.success("Đã xóa dòng định lượng.");
@@ -646,10 +700,19 @@ export function AdminRecipes({
       {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ ==================== */}
       <div className="flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
               Bếp &amp; kho · CSDL SQLite
             </span>
+            {selectedConceptId === activeConceptId ? (
+              <Badge className="bg-emerald-600 text-white text-[10px] px-1.5 py-0">
+                Thực đơn tuần này đang phục vụ
+              </Badge>
+            ) : (
+              <Badge className="bg-amber-600 text-white text-[10px] px-1.5 py-0">
+                Kế hoạch tuần tiếp theo (Bản nháp)
+              </Badge>
+            )}
             {isRefreshing && (
               <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground animate-pulse">
                 <Loader2 className="h-3 w-3 animate-spin text-[#b45309]" /> Đang đồng bộ...
@@ -660,12 +723,46 @@ export function AdminRecipes({
             Định lượng công thức (BOM) &amp; Kho nguyên liệu
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Quản trị 7 món Concept 2 · Nhập/xuất Excel có bảng xem trước · Đồng bộ CSDL trực tiếp
+            {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept 2"} · Nhập/xuất Excel · Đồng bộ CSDL trực tiếp
           </p>
         </div>
 
         {/* THANH ĐIỀU HƯỚNG TỐI GIẢN & TÁC VỤ */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {/* Bộ chọn Concept Thực đơn đa tuần */}
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center rounded-xl border border-stone-200 bg-stone-100/90 px-2 py-0.5 shadow-xs">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
+              <Select
+                value={selectedConceptId}
+                onValueChange={(val) => {
+                  setSelectedConceptId(val);
+                  loadBom(guests, false, val);
+                }}
+              >
+                <SelectTrigger className="h-7 border-0 bg-transparent text-xs font-semibold shadow-none focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {concepts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name} {c.id === activeConceptId ? "⭐ (Tuần này)" : `· ${c.weekLabel || "Tuần sau"}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setCreateConceptOpen(true)}
+              className="h-8 border-[#b45309]/30 bg-[#fdf0d5]/40 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white"
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" /> Tạo Concept mới
+            </Button>
+          </div>
           {/* View mode switcher */}
           <div className="flex rounded-xl border border-stone-200 bg-stone-100/80 p-1">
             <button
@@ -828,6 +925,47 @@ export function AdminRecipes({
           )}
         </div>
       </div>
+
+      {/* Banner thông báo khi đang tinh chỉnh thực đơn tuần tiếp theo */}
+      {selectedConceptId !== activeConceptId && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50/90 p-3.5 text-xs text-amber-900 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-200 text-amber-900 font-bold">
+              <CalendarDays className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="font-semibold text-amber-950">
+                Đang xem &amp; tinh chỉnh kế hoạch:{" "}
+                <strong>
+                  {concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}
+                </strong>{" "}
+                ({concepts.find((c) => c.id === selectedConceptId)?.weekLabel || "Tuần tiếp theo"})
+              </p>
+              <p className="text-[11px] text-amber-800">
+                Bạn có thể tự do thêm món, định lượng BOM và tính toán chi phí trước mà chưa ảnh hưởng tới thực đơn đang phục vụ khách hôm nay.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            size="sm"
+            disabled={activatingConcept}
+            onClick={() => handleSetActiveConcept(selectedConceptId)}
+            className="h-8 shrink-0 bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
+          >
+            {activatingConcept ? (
+              <>
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang áp dụng...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Áp dụng thực đơn này (Set Active)
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card">
@@ -1993,7 +2131,20 @@ export function AdminRecipes({
         open={stockInOpen}
         onOpenChange={setStockInOpen}
         initialIngredientId={stockInTargetId}
-        onSuccess={() => loadBom(guests, true)}
+        onSuccess={() => loadBom(guests, true, selectedConceptId)}
+      />
+
+      {/* MODAL TẠO CONCEPT THỰC ĐƠN TUẦN MỚI */}
+      <CreateConceptModal
+        open={createConceptOpen}
+        onOpenChange={setCreateConceptOpen}
+        existingConcepts={concepts}
+        currentActiveId={activeConceptId}
+        onSuccess={async (newId) => {
+          setSelectedConceptId(newId);
+          await loadConcepts();
+          await loadBom(guests, true, newId);
+        }}
       />
     </div>
   );
