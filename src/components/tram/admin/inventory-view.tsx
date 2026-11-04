@@ -689,9 +689,9 @@ export function AdminInventory({
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <CardTitle className="flex items-center gap-2 text-base font-semibold text-[#292524]">
-              <Warehouse className="h-4 w-4 text-[#b45309]" aria-hidden />
-              Tồn kho từng nguyên liệu
+            <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <Warehouse className="h-4 w-4 text-[#7c2d12]" aria-hidden />
+              Sổ tồn kho nguyên liệu
             </CardTitle>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -702,7 +702,7 @@ export function AdminInventory({
                   setStockInTargetId(undefined);
                   setStockInOpen(true);
                 }}
-                className="h-9 gap-1.5 rounded-full bg-[#b45309] px-3.5 text-xs font-semibold text-white shadow-xs hover:bg-[#92400e]"
+                className="h-9 gap-1.5 rounded-sm bg-[#7c2d12] px-3.5 font-heading text-xs font-semibold text-[#fdf0d5] shadow-none hover:bg-[#5f200c]"
               >
                 <ArrowDownToLine className="h-3.5 w-3.5" />
                 Nhập hàng vào kho
@@ -718,7 +718,7 @@ export function AdminInventory({
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Tìm nguyên liệu..."
                   aria-label="Tìm nguyên liệu trong kho"
-                  className="h-9 rounded-full pl-8 text-sm"
+                  className="h-9 rounded-sm pl-8 text-sm"
                 />
               </div>
             </div>
@@ -754,18 +754,12 @@ export function AdminInventory({
                     onClick={() => setScope(tab.key)}
                     aria-pressed={active}
                     className={cn(
-                      "rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                      "rounded-sm border px-3 py-1 font-heading text-xs font-semibold transition-colors",
                       active
-                        ? tab.tone === "safe"
-                          ? "border-emerald-600 bg-emerald-600 text-white shadow-xs"
-                          : tab.tone === "warn" || tab.tone === "out"
-                            ? "border-rose-600 bg-rose-600 text-white shadow-xs"
-                            : "border-stone-800 bg-stone-800 text-white shadow-xs"
-                        : tab.tone === "safe"
-                          ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:border-emerald-500 hover:bg-emerald-100"
-                          : tab.tone === "warn" || tab.tone === "out"
-                            ? "border-rose-300 bg-rose-50 text-rose-800 hover:border-rose-500 hover:bg-rose-100"
-                            : "border-border bg-background text-stone-600 hover:border-stone-400",
+                        ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                        : tab.tone === "warn" || tab.tone === "out"
+                          ? "border-stone-300 bg-transparent text-rose-800 hover:border-[#7c2d12]"
+                          : "border-stone-300 bg-transparent text-stone-700 hover:border-[#7c2d12]",
                     )}
                   >
                     {tab.label}
@@ -789,20 +783,12 @@ export function AdminInventory({
                     onClick={() => setSelectedGroup(g)}
                     aria-pressed={active}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors",
+                      "inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[11px] font-medium transition-colors",
                       active
-                        ? "border-[#b45309] bg-[#b45309] text-[#fffbf2]"
-                        : "border-border bg-card text-stone-600 hover:border-[#b45309]/50 hover:text-[#92400e]",
+                        ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12] hover:text-[#7c2d12]",
                     )}
                   >
-                    {g !== "ALL" && (
-                      <span
-                        className={cn(
-                          "h-1.5 w-1.5 rounded-full",
-                          active ? "bg-white" : GROUP_STYLES[g].dot,
-                        )}
-                      />
-                    )}
                     {g === "ALL" ? "Tất cả nhóm" : SHORT_GROUP_LABELS[g]}
                     <span
                       className={cn(
@@ -830,7 +816,7 @@ export function AdminInventory({
           ) : (
             <Table className="min-w-[960px]">
               <TableHeader>
-                <TableRow className="bg-[#fdf0d5]/40 hover:bg-[#fdf0d5]/40">
+                <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
                   <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
                     Nguyên liệu
                   </TableHead>
@@ -983,33 +969,23 @@ function InventoryGroupSection({
   const groupSubtotal = items.reduce((sum, i) => sum + i.stockValue, 0);
   const groupPct =
     totalWarehouseValue > 0 ? Math.round((groupSubtotal / totalWarehouseValue) * 1000) / 10 : 0;
-  const style = GROUP_SECTION_STYLES[group];
 
   return (
     <>
-      <TableRow className={cn("border-y-2 transition-colors", style.rowBg, style.border)}>
-        <TableCell colSpan={8} className="py-2.5 px-4 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-            <span
-              className={cn(
-                "inline-flex items-center gap-2 rounded-full border-2 px-4 py-1 shadow-xs transition-all",
-                style.pillBg,
-                style.pillBorder,
-              )}
-            >
-              <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full shadow-xs ring-2 ring-white", style.dotColor)} />
-              <span className={cn("text-xs sm:text-[13px] font-black uppercase tracking-wider", style.textColor)}>
-                NHÓM: {INGREDIENT_GROUP_LABELS[group]}
-              </span>
-              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-extrabold shadow-2xs", style.countBadge)}>
-                {items.length} mặt hàng
-              </span>
+      <TableRow className="border-y border-stone-300 bg-[#f6efe0] hover:bg-[#f6efe0]">
+        <TableCell colSpan={8} className="px-4 py-2">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <span className="h-px w-8 bg-[#92400e]/40" aria-hidden />
+            <span className="font-heading text-[13px] font-bold uppercase tracking-[0.18em] text-[#7c2d12]">
+              {INGREDIENT_GROUP_LABELS[group]}
             </span>
-
-            <span className={cn("inline-flex items-center gap-1.5 text-xs font-bold tabular-nums", style.valueBadge)}>
-              <span className="font-semibold text-stone-600">Giá trị tồn nhóm:</span>
-              <strong className="font-black text-stone-900">{formatVND(groupSubtotal)}</strong>
-              <span className="text-[11px] font-semibold text-stone-500">({formatPercent(groupPct, 1)} kho)</span>
+            <span className="text-[11px] italic text-stone-600">
+              {items.length} mặt hàng
+            </span>
+            <span className="h-px w-8 bg-[#92400e]/40" aria-hidden />
+            <span className="text-[11.5px] tabular-nums text-stone-700">
+              Giá trị tồn nhóm: <strong className="font-heading font-bold text-stone-900">{formatVND(groupSubtotal)}</strong>
+              <span className="ml-1 text-stone-500">({formatPercent(groupPct, 1)} kho)</span>
             </span>
           </div>
         </TableCell>
@@ -1036,34 +1012,23 @@ function InventoryStockRow({
     <TableRow
       className={cn(
         "transition-colors",
-        isOut
-          ? "bg-rose-100/70 border-l-4 border-l-rose-700 hover:bg-rose-200/60"
-          : isWarning
-            ? "bg-rose-50/80 border-l-4 border-l-rose-500 hover:bg-rose-100/60"
-            : "bg-emerald-50/25 border-l-4 border-l-emerald-500 hover:bg-emerald-50/45",
+        "border-b border-stone-200/80 bg-[#fffdf8] hover:bg-[#fdf0d5]/30",
+        isOut && "bg-rose-50/40",
       )}
     >
       {/* 1. Nguyên liệu & Nhãn cảnh báo */}
       <TableCell className="whitespace-normal pl-4 sm:pl-5">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="font-semibold text-[#292524]">{item.name}</span>
+          <span className="font-heading font-semibold text-[#292524]">{item.name}</span>
           {isOut ? (
-            <Badge className="border-0 bg-rose-700 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-              Hết tồn (0%)
-            </Badge>
+            <span className="text-[11px] font-semibold italic text-rose-800">— hết tồn</span>
           ) : isWarning ? (
-            <Badge className="border-0 bg-rose-600 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-              Cảnh báo &lt; 32%
-            </Badge>
-          ) : (
-            <Badge className="border border-emerald-300 bg-emerald-100/80 px-1.5 py-0 text-[10px] font-semibold text-emerald-800">
-              Còn hàng ({item.stockPercent}%)
-            </Badge>
-          )}
+            <span className="text-[11px] font-semibold italic text-rose-700">— cần đặt thêm</span>
+          ) : null}
           {item.isCustomPrice && (
             <Badge
               variant="outline"
-              className="border-amber-300 bg-amber-50 px-1.5 py-0 text-[9.5px] font-medium text-amber-800"
+              className="rounded-sm border-stone-300 bg-transparent px-1.5 py-0 text-[9.5px] font-medium italic text-stone-600"
             >
               Giá mới
             </Badge>
@@ -1080,7 +1045,7 @@ function InventoryStockRow({
               <span
                 key={`std-${idx}`}
                 title={`Món ${idx}: ${dishName}`}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/70 text-[10.5px] font-bold tabular-nums text-[#92400e]"
+                className="flex h-6 w-6 items-center justify-center rounded-sm border border-stone-400 bg-transparent font-heading text-[11px] font-bold tabular-nums text-stone-800"
               >
                 {idx}
               </span>
@@ -1092,7 +1057,7 @@ function InventoryStockRow({
               <span
                 key={`alt-${idx}`}
                 title={`Món ${idx} (phương án thay thế): ${dishName}`}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-stone-400 bg-stone-50 text-[10.5px] font-semibold tabular-nums text-stone-600"
+                className="flex h-6 w-6 items-center justify-center rounded-sm border border-dashed border-stone-400 bg-transparent font-heading text-[11px] font-semibold tabular-nums text-stone-500"
               >
                 {idx}
               </span>
@@ -1107,21 +1072,19 @@ function InventoryStockRow({
           <span
             className={cn(
               "font-heading text-sm font-bold tabular-nums",
-              isWarning ? "text-rose-700" : "text-emerald-800",
+              isWarning ? "text-rose-800" : "text-stone-900",
             )}
           >
             {formatNumberVi(item.stockInImportUnit)} {item.importUnitLabel}
           </span>
           <span
             className={cn(
-              "rounded-full px-1.5 py-0.2 text-[10px] font-bold tabular-nums border",
-              isWarning
-                ? "border-rose-300 bg-rose-100 text-rose-800"
-                : "border-emerald-300 bg-emerald-100 text-emerald-800",
+              "text-[10.5px] tabular-nums",
+              isWarning ? "font-semibold text-rose-700" : "text-stone-500",
             )}
             title={`Tỷ lệ tồn: ${item.stockPercent}% so với định mức`}
           >
-            {item.stockPercent}%
+            ({item.stockPercent}%)
           </span>
         </div>
         {item.stockQty > 0 && item.stockQty < 1000 && item.importUnit !== "ml" && (
@@ -1160,7 +1123,7 @@ function InventoryStockRow({
             <span
               className={cn(
                 "text-xs font-semibold",
-                isWarning ? "text-rose-700" : "text-emerald-800",
+                isWarning ? "text-rose-700" : "text-stone-800",
               )}
             >
               {item.estimatedGuests} suất
@@ -1181,8 +1144,8 @@ function InventoryStockRow({
       <TableCell className="text-right">
         <div
           className={cn(
-            "font-semibold tabular-nums",
-            isWarning ? "text-rose-700" : "text-emerald-900",
+            "font-heading font-semibold tabular-nums",
+            isWarning ? "text-rose-800" : "text-stone-900",
           )}
         >
           {formatVND(item.stockValue)}
@@ -1197,7 +1160,7 @@ function InventoryStockRow({
         <button
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
-          className="inline-flex h-6 items-center gap-1 rounded-md border border-[#b45309]/30 bg-[#fdf0d5]/80 px-2 text-[10.5px] font-semibold text-[#92400e] transition-colors hover:bg-[#b45309] hover:text-white"
+          className="inline-flex h-6 items-center gap-1 rounded-sm border border-stone-400 bg-transparent px-2 text-[10.5px] font-semibold text-stone-700 transition-colors hover:border-[#92400e] hover:bg-[#92400e] hover:text-white"
           title={`Nhập hàng thêm cho ${item.name}`}
         >
           <ArrowDownToLine className="h-3 w-3" />
