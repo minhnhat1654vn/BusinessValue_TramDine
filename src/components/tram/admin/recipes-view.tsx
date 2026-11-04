@@ -1058,7 +1058,6 @@ export function AdminRecipes({
                       <TableHead className="w-12 text-center">#</TableHead>
                       <TableHead>Nguyên liệu</TableHead>
                       <TableHead>Nhóm</TableHead>
-                      <TableHead>Quy cách / Sơ chế</TableHead>
                       <TableHead className="text-right">Định lượng / khách</TableHead>
                       {scaled && (
                         <TableHead className="text-right text-[#b45309]">
@@ -1072,7 +1071,7 @@ export function AdminRecipes({
                   <TableBody>
                     {activeVariant.lines.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={scaled ? 8 : 7} className="py-8 text-center text-sm text-muted-foreground">
+                        <TableCell colSpan={scaled ? 7 : 6} className="py-8 text-center text-sm text-muted-foreground">
                           Chưa có nguyên liệu nào trong công thức này. Hãy bấm &quot;Thêm định lượng vào món&quot;.
                         </TableCell>
                       </TableRow>
@@ -1089,7 +1088,6 @@ export function AdminRecipes({
                           <TableCell>
                             <GroupBadge group={line.group} />
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{line.prepNote || line.spec || "—"}</TableCell>
                           <TableCell className="text-right font-heading font-semibold text-[#292524]">
                             {formatQty(line.qtyPerGuest, line.unit)}
                           </TableCell>
@@ -1141,7 +1139,7 @@ export function AdminRecipes({
                   </TableBody>
                   <TableFooter className="bg-[#fdf0d5]/40 font-heading">
                     <TableRow>
-                      <TableCell colSpan={4} className="font-semibold text-[#92400e]">
+                      <TableCell colSpan={3} className="font-semibold text-[#92400e]">
                         Tổng định lượng một suất ({activeVariant.optionName}):
                       </TableCell>
                       <TableCell className="text-right font-bold text-[#92400e]">
@@ -1159,134 +1157,6 @@ export function AdminRecipes({
               </CardContent>
             </Card>
           )}
-
-          {/* BẢNG TỔNG HỢP NGUYÊN LIỆU TOÀN MENU */}
-          <Card className="border-border/80 bg-card shadow-xs">
-            <CardHeader className="border-b border-border/80 pb-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <CardTitle className="font-heading text-lg font-bold text-[#292524]">
-                    Tổng hợp nguyên liệu toàn Menu ({menuSummary.length} loại)
-                  </CardTitle>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Tính theo phương án chuẩn của 7 món · Dùng cho kế hoạch chuẩn bị ca và nhập kho
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative w-48 sm:w-64">
-                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Tìm nguyên liệu..."
-                      value={summarySearch}
-                      onChange={(e) => setSummarySearch(e.target.value)}
-                      className="h-8 pl-8 text-xs"
-                    />
-                  </div>
-                  <Select
-                    value={summaryGroup}
-                    onValueChange={(val) => setSummaryGroup(val as any)}
-                  >
-                    <SelectTrigger className="h-8 w-40 text-xs">
-                      <SelectValue placeholder="Tất cả nhóm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">Tất cả nhóm</SelectItem>
-                      {INGREDIENT_GROUP_ORDER.map((g) => (
-                        <SelectItem key={g} value={g}>
-                          {INGREDIENT_GROUP_LABELS[g]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardHeader>
-
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-border/80 bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    <TableHead className="w-12 text-center">#</TableHead>
-                    <TableHead>Tên nguyên liệu</TableHead>
-                    <TableHead>Nhóm</TableHead>
-                    <TableHead>Các món sử dụng</TableHead>
-                    <TableHead className="text-right">Định lượng / khách</TableHead>
-                    {scaled && (
-                      <TableHead className="text-right text-[#b45309]">
-                        Tổng cho {guests} khách
-                      </TableHead>
-                    )}
-                    <TableHead className="text-right">Đơn giá tham chiếu</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSummary.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={scaled ? 7 : 6} className="py-8 text-center text-sm text-muted-foreground">
-                        Không tìm thấy nguyên liệu phù hợp với bộ lọc.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredSummary.map((item, idx) => (
-                      <TableRow key={item.id} className="hover:bg-[#fffdf9]">
-                        <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
-                        <TableCell className="font-medium text-[#292524]">
-                          <span>{item.name}</span>
-                          <span className="block text-[10px] text-muted-foreground">{item.spec || item.id}</span>
-                        </TableCell>
-                        <TableCell>
-                          <GroupBadge group={item.group} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {item.dishes.map((d) => (
-                              <Badge
-                                key={d.dishIndex}
-                                variant="secondary"
-                                className="text-[10px] font-normal"
-                              >
-                                Món {d.dishIndex}: {formatQty(d.qty, item.unit)}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-heading font-semibold text-[#292524]">
-                          {formatQty(item.qtyPerGuest, item.unit)}
-                        </TableCell>
-                        {scaled && (
-                          <TableCell className="text-right font-heading font-bold text-[#b45309]">
-                            {formatQty(item.qtyTotal, item.unit)}
-                          </TableCell>
-                        )}
-                        <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
-                          {item.defaultImportPrice > 0
-                            ? `${formatVND(item.defaultImportPrice)} / ${item.unit === "ml" ? "L" : "kg"}`
-                            : "—"}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-                <TableFooter className="bg-[#fdf0d5]/40 font-heading">
-                  <TableRow>
-                    <TableCell colSpan={4} className="font-semibold text-[#92400e]">
-                      Tổng cộng {filteredSummary.length} nguyên liệu lọc được:
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-[#92400e]">
-                      {formatTotals(bomData?.summary.totalsPerGuest)}
-                    </TableCell>
-                    {scaled && (
-                      <TableCell className="text-right font-bold text-[#92400e]">
-                        {formatTotals(bomData?.summary.totalsForGuests)}
-                      </TableCell>
-                    )}
-                    <TableCell />
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            </CardContent>
-          </Card>
         </>
       ) : (
         /* ==================== VIEW 2: KHO NGUYÊN LIỆU ==================== */
@@ -1386,7 +1256,6 @@ export function AdminRecipes({
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>Tên nguyên liệu / Mã</TableHead>
                   <TableHead>Nhóm</TableHead>
-                  <TableHead>Quy cách sơ chế</TableHead>
                   <TableHead className="text-right">Tồn kho / Ngưỡng</TableHead>
                   <TableHead className="text-right">Đơn giá nhập (VND)</TableHead>
                   <TableHead className="w-24 text-center">Thao tác</TableHead>
@@ -1395,7 +1264,7 @@ export function AdminRecipes({
               <TableBody>
                 {filteredAllIngredients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
                       Không tìm thấy nguyên liệu nào trong kho.
                     </TableCell>
                   </TableRow>
@@ -1416,7 +1285,6 @@ export function AdminRecipes({
                         <TableCell>
                           <GroupBadge group={ing.group as IngredientGroup} />
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{ing.spec || "—"}</TableCell>
                         <TableCell className="text-right">
                           <div className="font-heading font-semibold text-xs text-[#292524]">
                             {formatQty(ing.currentStock, ing.unit as any)}
@@ -1757,34 +1625,6 @@ export function AdminRecipes({
                   ))}
                 </div>
               </div>
-
-              {/* Ghi chú sơ chế */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-stone-700">Quy cách sơ chế / Kỹ thuật chế biến</Label>
-                <Input
-                  placeholder="Vd: Phi lê bỏ da, nướng than 5 phút..."
-                  value={editingLine.prepNote}
-                  onChange={(e) =>
-                    setEditingLine((prev) => (prev ? { ...prev, prepNote: e.target.value } : null))
-                  }
-                  className="text-xs"
-                />
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {COMMON_PREP_SUGGESTIONS.map((sug) => (
-                    <button
-                      key={sug}
-                      type="button"
-                      onClick={() =>
-                        setEditingLine((prev) => (prev ? { ...prev, prepNote: sug } : null))
-                      }
-                      className="rounded border border-border/60 bg-muted/30 px-1.5 py-0.5 text-[10px] text-muted-foreground hover:bg-[#fdf0d5] hover:text-[#92400e]"
-                    >
-                      + {sug}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Thẻ tính toán tự động: chi phí & quy đổi 42 khách */}
               <div className="rounded-xl border border-[#b45309]/20 bg-[#fdf0d5]/40 p-3 text-xs space-y-1">
                 <div className="flex justify-between font-medium text-[#78350f]">
@@ -1884,15 +1724,7 @@ export function AdminRecipes({
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-xs font-semibold">Quy cách / Đóng gói / Trạng thái</Label>
-              <Input
-                placeholder="Vd: Sấy khô thượng hạng, ướp lạnh 2-4°C..."
-                value={editingIng.spec}
-                onChange={(e) => setEditingIng((prev) => ({ ...prev, spec: e.target.value }))}
-                className="text-xs"
-              />
-            </div>
+
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">Đơn giá nhập ước tính (VND / kg hoặc Lít)</Label>
@@ -2052,21 +1884,20 @@ export function AdminRecipes({
                           <TableHead>Nguyên liệu</TableHead>
                           <TableHead>Nhóm</TableHead>
                           <TableHead className="text-right">Định lượng</TableHead>
-                          <TableHead>Sơ chế / Ghi chú</TableHead>
                           <TableHead className="w-24 text-center">Trạng thái</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {isParsingExcel ? (
                           <TableRow>
-                            <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">
+                            <TableCell colSpan={6} className="py-8 text-center text-xs text-muted-foreground">
                               <Loader2 className="mx-auto h-5 w-5 animate-spin text-[#b45309]" />
                               Đang phân tích file Excel...
                             </TableCell>
                           </TableRow>
                         ) : previewRows.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} className="py-8 text-center text-xs text-muted-foreground">
+                            <TableCell colSpan={6} className="py-8 text-center text-xs text-muted-foreground">
                               Không có dữ liệu trong file.
                             </TableCell>
                           </TableRow>
@@ -2101,9 +1932,6 @@ export function AdminRecipes({
                               </TableCell>
                               <TableCell className="text-right font-heading font-semibold">
                                 {r.qtyPerGuest} {r.unit}
-                              </TableCell>
-                              <TableCell className="text-[11px] text-muted-foreground truncate max-w-[140px]">
-                                {r.prepNote || "—"}
                               </TableCell>
                               <TableCell className="text-center">
                                 {r.status === "VALID" ? (
