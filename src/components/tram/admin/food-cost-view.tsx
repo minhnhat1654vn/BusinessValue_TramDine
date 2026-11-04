@@ -11,6 +11,8 @@ import {
   Banknote,
   Calculator,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   Coins,
   Layers,
   Minus,
@@ -270,13 +272,27 @@ export function AdminFoodCost({
     });
   }, [report.warehouseItems, warehouseScope, warehouseGroup, warehouseSearch]);
 
+  // Phân trang danh mục giá vốn (giới hạn 20 dòng / trang)
+  const [costPage, setCostPage] = useState(1);
+  const COST_PAGE_SIZE = 20;
+
+  useEffect(() => {
+    setCostPage(1);
+  }, [warehouseScope, warehouseGroup, warehouseSearch]);
+
+  const costTotalPages = Math.max(1, Math.ceil(filteredWarehouse.length / COST_PAGE_SIZE));
+  const paginatedWarehouse = useMemo(() => {
+    const start = (costPage - 1) * COST_PAGE_SIZE;
+    return filteredWarehouse.slice(start, start + COST_PAGE_SIZE);
+  }, [filteredWarehouse, costPage]);
+
   const warehouseByGroup = useMemo(
     () =>
       INGREDIENT_GROUP_ORDER.map((group) => ({
         group,
-        items: filteredWarehouse.filter((i) => i.group === group),
+        items: paginatedWarehouse.filter((i) => i.group === group),
       })).filter((g) => g.items.length > 0),
-    [filteredWarehouse],
+    [paginatedWarehouse],
   );
 
   const filteredTotals = useMemo(() => {
@@ -1113,6 +1129,68 @@ export function AdminFoodCost({
                 </TableRow>
               </TableFooter>
             </Table>
+          )}
+
+          {/* Phân trang giới hạn 20 dòng / trang */}
+          {filteredWarehouse.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
+              <div>
+                Hiển thị{" "}
+                <strong className="text-stone-800">
+                  {filteredWarehouse.length === 0 ? 0 : (costPage - 1) * COST_PAGE_SIZE + 1}
+                </strong>{" "}
+                –{" "}
+                <strong className="text-stone-800">
+                  {Math.min(costPage * COST_PAGE_SIZE, filteredWarehouse.length)}
+                </strong>{" "}
+                trong tổng số{" "}
+                <strong className="text-stone-800">{filteredWarehouse.length}</strong> nguyên liệu (tối đa 20 dòng / trang)
+              </div>
+
+              {costTotalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={costPage <= 1}
+                    onClick={() => setCostPage((p) => Math.max(1, p - 1))}
+                    className="h-7 px-2.5 text-xs text-stone-700"
+                  >
+                    <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
+                  </Button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: costTotalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setCostPage(p)}
+                        className={cn(
+                          "h-7 w-7 rounded-md text-xs font-semibold transition-colors",
+                          costPage === p
+                            ? "bg-[#b45309] text-white"
+                            : "text-stone-600 hover:bg-muted"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={costPage >= costTotalPages}
+                    onClick={() => setCostPage((p) => Math.min(costTotalPages, p + 1))}
+                    className="h-7 px-2.5 text-xs text-stone-700"
+                  >
+                    Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

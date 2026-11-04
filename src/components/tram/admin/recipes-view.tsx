@@ -11,6 +11,8 @@ import {
   ArrowRightLeft,
   CheckCircle2,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   ClipboardList,
   CookingPot,
   Download,
@@ -162,10 +164,16 @@ export function AdminRecipes({
   const [summarySearch, setSummarySearch] = useState("");
   const [summaryGroup, setSummaryGroup] = useState<IngredientGroup | "ALL">("ALL");
 
-  // Kho nguyên liệu: tìm kiếm & lọc
+  // Kho nguyên liệu: tìm kiếm, lọc & phân trang (tối đa 20 dòng / trang)
   const [ingSearch, setIngSearch] = useState("");
   const [ingGroupFilter, setIngGroupFilter] = useState<IngredientGroup | "ALL">("ALL");
   const [ingStockFilter, setIngStockFilter] = useState<"ALL" | "LOW_STOCK" | "OUT_OF_STOCK">("ALL");
+  const [ingPage, setIngPage] = useState(1);
+  const ING_PAGE_SIZE = 20;
+
+  useEffect(() => {
+    setIngPage(1);
+  }, [ingSearch, ingGroupFilter, ingStockFilter]);
 
   // Dữ liệu từ API
   const [bomData, setBomData] = useState<BomResponse | null>(null);
@@ -293,6 +301,12 @@ export function AdminRecipes({
       return true;
     });
   }, [bomData, ingSearch, ingGroupFilter, ingStockFilter]);
+
+  const ingTotalPages = Math.max(1, Math.ceil(filteredAllIngredients.length / ING_PAGE_SIZE));
+  const paginatedIngredients = useMemo(() => {
+    const start = (ingPage - 1) * ING_PAGE_SIZE;
+    return filteredAllIngredients.slice(start, start + ING_PAGE_SIZE);
+  }, [filteredAllIngredients, ingPage]);
 
   // Thống kê preview Excel
   const previewStats = useMemo(() => {
@@ -576,22 +590,22 @@ export function AdminRecipes({
           </p>
         </div>
 
-        {/* NÚT CHUYỂN CHẾ ĐỘ XEM + TÁC VỤ EXCEL */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* THANH ĐIỀU HƯỚNG TỐI GIẢN & TÁC VỤ */}
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* View mode switcher */}
-          <div className="flex rounded-xl border border-border bg-muted/40 p-1">
+          <div className="flex rounded-xl border border-stone-200 bg-stone-100/80 p-1">
             <button
               type="button"
               onClick={() => setViewMode("recipes")}
               className={cn(
                 "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                 viewMode === "recipes"
-                  ? "bg-background text-[#b45309] shadow-xs font-bold"
-                  : "text-muted-foreground hover:text-stone-900",
+                  ? "bg-white text-[#92400e] shadow-xs"
+                  : "text-stone-600 hover:text-stone-900",
               )}
             >
-              <UtensilsCrossed className="h-3.5 w-3.5" />
-              Công thức 7 món
+              <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
+              7 Món Tasting
             </button>
             <button
               type="button"
@@ -599,148 +613,125 @@ export function AdminRecipes({
               className={cn(
                 "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
                 viewMode === "ingredients"
-                  ? "bg-background text-[#b45309] shadow-xs font-bold"
-                  : "text-muted-foreground hover:text-stone-900",
+                  ? "bg-white text-[#92400e] shadow-xs"
+                  : "text-stone-600 hover:text-stone-900",
               )}
             >
-              <Warehouse className="h-3.5 w-3.5" />
-              Kho nguyên liệu ({bomData?.allIngredients.length ?? 0})
+              <Warehouse className="h-3.5 w-3.5 text-[#b45309]" />
+              Kho ({bomData?.allIngredients.length ?? 0})
             </button>
           </div>
 
-          {/* Tải mẫu Excel */}
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="h-9 border-[#b45309]/30 bg-background text-[#92400e] hover:bg-[#fdf0d5] hover:text-[#78350f]"
-          >
-            <a href="/api/recipes/export?template=1" download="Mau_Nhap_Cong_Thuc_BOM_TRAM.xlsx">
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              Tải mẫu Excel
-            </a>
-          </Button>
+          {/* Cụm nút Excel tinh gọn */}
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewRows([]);
+                setImportModalOpen(true);
+              }}
+              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+            >
+              <Upload className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+              Nhập Excel
+            </Button>
 
-          {/* Xuất file Excel đầy đủ */}
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="h-9 border-stone-300 bg-background text-stone-700 hover:bg-stone-100"
-          >
-            <a href="/api/recipes/export">
-              <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5 text-emerald-600" />
-              Xuất Excel CSDL
-            </a>
-          </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+            >
+              <a href="/api/recipes/export">
+                <Download className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+                Xuất Excel
+              </a>
+            </Button>
 
-          {/* Nhập Excel (Mở dialog Preview) */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSelectedFile(null);
-              setPreviewRows([]);
-              setImportModalOpen(true);
-            }}
-            className="h-9 border-emerald-600/30 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-          >
-            <Upload className="mr-1.5 h-3.5 w-3.5" />
-            Nhập từ Excel
-          </Button>
-
-          {/* Thêm nguyên liệu mới */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setEditingIng({
-                name: "",
-                unit: "g",
-                group: "PROTEIN",
-                spec: "",
-                defaultImportPrice: 100000,
-                currentStock: 1000,
-                minStock: 200,
-              });
-              setIngModalOpen(true);
-            }}
-            className="h-9 border-amber-600/30 bg-amber-50 text-amber-900 hover:bg-amber-100"
-          >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Thêm nguyên liệu
-          </Button>
-
-          {/* Khôi phục gốc Concept 2 */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleResetConcept2}
-            disabled={resetting}
-            title="Khôi phục lại toàn bộ công thức 7 món về bộ chuẩn Concept 2"
-            className="h-9 text-xs text-muted-foreground hover:bg-stone-200/60 hover:text-stone-900"
-          >
-            {resetting ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+            {viewMode === "ingredients" && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setEditingIng({
+                    name: "",
+                    unit: "g",
+                    group: "PROTEIN",
+                    spec: "",
+                    defaultImportPrice: 100000,
+                    currentStock: 1000,
+                    minStock: 200,
+                  });
+                  setIngModalOpen(true);
+                }}
+                className="h-8 bg-[#b45309] text-xs font-medium text-white hover:bg-[#92400e]"
+              >
+                <Plus className="mr-1 h-3.5 w-3.5" /> Thêm nguyên liệu
+              </Button>
             )}
-            Khôi phục chuẩn
-          </Button>
 
-          {/* Quy đổi số khách */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleResetConcept2}
+              disabled={resetting}
+              title="Khôi phục chuẩn Concept 2"
+              className="h-8 px-2 text-xs text-muted-foreground hover:text-stone-900"
+            >
+              {resetting ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RotateCcw className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          </div>
+
+          {/* Quy đổi số khách (chỉ hiện khi xem công thức) */}
           {viewMode === "recipes" && (
-            <div className="flex items-center rounded-2xl border border-border/80 bg-card p-1.5 shadow-xs">
-              <div className="flex items-center rounded-full border border-border bg-background p-0.5">
+            <div className="flex items-center rounded-xl border border-stone-200 bg-white p-1 shadow-2xs">
+              <div className="flex items-center rounded-full border border-border bg-stone-50 p-0.5">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => applyGuests(guests - 1)}
                   disabled={guests <= 1}
-                  aria-label="Giảm số khách"
-                  className="h-7 w-7 rounded-full text-stone-700 hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                  className="h-6 w-6 rounded-full text-stone-600 hover:bg-[#fdf0d5]"
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <Input
-                  value={guestsInput}
-                  onChange={(e) => handleGuestsInput(e.target.value)}
-                  onBlur={() => applyGuests(Number(guestsInput) || 1)}
-                  inputMode="numeric"
-                  aria-label="Số khách quy đổi"
-                  className="h-7 w-12 border-0 bg-transparent px-1 text-center font-heading text-sm font-bold tabular-nums text-[#92400e] shadow-none focus-visible:ring-0"
-                />
+                <span className="w-10 text-center font-heading text-xs font-bold tabular-nums text-[#92400e]">
+                  {guests}k
+                </span>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   onClick={() => applyGuests(guests + 1)}
                   disabled={guests >= MAX_SCALE_GUESTS}
-                  aria-label="Tăng số khách"
-                  className="h-7 w-7 rounded-full text-stone-700 hover:bg-[#fdf0d5] hover:text-[#92400e]"
+                  className="h-6 w-6 rounded-full text-stone-600 hover:bg-[#fdf0d5]"
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
               </div>
-              <div className="ml-1 flex gap-1" role="group">
-                {QUICK_GUESTS.map((n) => (
+              <div className="ml-1 flex gap-0.5" role="group">
+                {[1, 4, 10, 42].map((n) => (
                   <button
                     key={n}
                     type="button"
                     onClick={() => applyGuests(n)}
-                    aria-pressed={guests === n}
                     className={cn(
-                      "h-7 rounded-full border px-2.5 text-[11px] font-medium tabular-nums transition-colors",
+                      "h-6 rounded px-2 text-[10.5px] font-medium tabular-nums transition-colors",
                       guests === n
-                        ? "border-[#b45309] bg-[#b45309] text-[#fffbf2]"
-                        : "border-border bg-background text-stone-600 hover:border-[#b45309]/50 hover:text-[#92400e]",
+                        ? "bg-[#b45309] text-white font-bold"
+                        : "text-stone-600 hover:bg-stone-100",
                     )}
                   >
-                    {n === 42 ? "42 · đủ ca" : `${n}k`}
+                    {n === 42 ? "42 ca" : `${n}k`}
                   </button>
                 ))}
               </div>
@@ -1288,12 +1279,13 @@ export function AdminRecipes({
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAllIngredients.map((ing, idx) => {
+                  paginatedIngredients.map((ing, idx) => {
                     const isLow = ing.currentStock <= ing.minStock && ing.currentStock > 0;
                     const isOut = ing.currentStock <= 0;
+                    const itemIndex = (ingPage - 1) * ING_PAGE_SIZE + idx + 1;
                     return (
                       <TableRow key={ing.id} className="hover:bg-[#fffdf9]">
-                        <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
+                        <TableCell className="text-center text-xs text-muted-foreground">{itemIndex}</TableCell>
                         <TableCell className="font-medium text-[#292524]">
                           <div>
                             <span className="font-semibold">{ing.name}</span>
@@ -1365,6 +1357,66 @@ export function AdminRecipes({
               </TableBody>
             </Table>
           </CardContent>
+
+          {/* Phân trang giới hạn 20 dòng / trang */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
+            <div>
+              Hiển thị{" "}
+              <strong className="text-stone-800">
+                {filteredAllIngredients.length === 0 ? 0 : (ingPage - 1) * ING_PAGE_SIZE + 1}
+              </strong>{" "}
+              –{" "}
+              <strong className="text-stone-800">
+                {Math.min(ingPage * ING_PAGE_SIZE, filteredAllIngredients.length)}
+              </strong>{" "}
+              trong tổng số{" "}
+              <strong className="text-stone-800">{filteredAllIngredients.length}</strong> nguyên liệu (giới hạn 20 dòng / trang)
+            </div>
+
+            {ingTotalPages > 1 && (
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={ingPage <= 1}
+                  onClick={() => setIngPage((p) => Math.max(1, p - 1))}
+                  className="h-7 px-2.5 text-xs text-stone-700"
+                >
+                  <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
+                </Button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: ingTotalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setIngPage(p)}
+                      className={cn(
+                        "h-7 w-7 rounded-md text-xs font-semibold transition-colors",
+                        ingPage === p
+                          ? "bg-[#b45309] text-white"
+                          : "text-stone-600 hover:bg-muted"
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={ingPage >= ingTotalPages}
+                  onClick={() => setIngPage((p) => Math.min(ingTotalPages, p + 1))}
+                  className="h-7 px-2.5 text-xs text-stone-700"
+                >
+                  Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+          </div>
         </Card>
       )}
 
