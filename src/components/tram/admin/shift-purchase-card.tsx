@@ -4,9 +4,10 @@
 // Đối chiếu nhu cầu thực tế theo ca với tồn kho, tự động tính số lượng thiếu (thiếu = max(0, nhu cầu - tồn kho)),
 // chỉ xuất những dòng thiếu > 0 kèm chi phí mua = số thiếu × đơn giá.
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  ArrowDownToLine,
   Calendar,
   Check,
   Clock,
@@ -38,12 +39,14 @@ import { MAX_SCALE_GUESTS } from "@/lib/tram/recipes";
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import { calculateShiftPurchaseReport } from "@/lib/tram/purchase";
 import type { Slot } from "@/lib/tram/types";
+import { useTramEventListener } from "@/lib/tram/events";
 
 interface ShiftPurchaseCardProps {
   stockOverrides: Record<string, number>;
   priceOverrides: Record<string, number>;
   today?: string | null;
   className?: string;
+  onStockIn?: (ingredientId: string, suggestedQty?: number) => void;
 }
 
 const QUICK_GUESTS_BUTTONS = [4, 10, 20, 42];
@@ -53,6 +56,7 @@ export function ShiftPurchaseCard({
   priceOverrides,
   today,
   className,
+  onStockIn,
 }: ShiftPurchaseCardProps) {
   const effectiveToday = today ?? new Date().toISOString().slice(0, 10);
   const [selectedDate, setSelectedDate] = useState<string>(effectiveToday);
@@ -71,7 +75,7 @@ export function ShiftPurchaseCard({
   }, [today]);
 
   // Tự động tải số khách từ danh sách đặt bàn thực tế của ca được chọn
-  useEffect(() => {
+  const fetchShiftReservations = useCallback(() => {
     let cancelled = false;
     setLoadingReservations(true);
 
@@ -112,6 +116,21 @@ export function ShiftPurchaseCard({
       cancelled = true;
     };
   }, [selectedDate, selectedSlot]);
+
+  useEffect(() => {
+    return fetchShiftReservations();
+  }, [fetchShiftReservations]);
+
+  useTramEventListener(
+    useCallback(
+      (event) => {
+        if (event.type === "RESERVATION_CHANGED") {
+          fetchShiftReservations();
+        }
+      },
+      [fetchShiftReservations],
+    ),
+  );
 
   function applyGuests(value: number) {
     const clamped = Math.min(MAX_SCALE_GUESTS, Math.max(1, Math.round(value)));
@@ -452,9 +471,14 @@ export function ShiftPurchaseCard({
                 <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Đơn giá kho
                 </TableHead>
-                <TableHead className="w-32 pr-4 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Thành tiền
                 </TableHead>
+                {onStockIn && (
+                  <TableHead className="w-24 pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                    Thao tác
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
 
@@ -491,9 +515,23 @@ export function ShiftPurchaseCard({
                     {formatVND(item.importPrice)}/{item.importUnitLabel}
                   </TableCell>
 
-                  <TableCell className="pr-4 text-right font-heading font-semibold tabular-nums text-rose-800 sm:pr-5">
+                  <TableCell className="text-right font-heading font-semibold tabular-nums text-rose-800">
                     {item.formattedCost}
                   </TableCell>
+
+                  {onStockIn && (
+                    <TableCell className="pr-4 text-center sm:pr-5">
+                      <button
+                        type="button"
+                        onClick={() => onStockIn(item.ingredientId, Math.ceil(item.shortageQty))}
+                        className="inline-flex h-6 items-center gap-1 rounded-sm border border-rose-700 bg-rose-700 px-2 text-[10.5px] font-semibold text-white transition-colors hover:bg-rose-800 cursor-pointer"
+                        title={`Nhập ngay ${item.formattedShortage} cho ${item.name}`}
+                      >
+                        <ArrowDownToLine className="h-3 w-3" />
+                        Nhập
+                      </button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

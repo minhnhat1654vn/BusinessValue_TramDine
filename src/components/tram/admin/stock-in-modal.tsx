@@ -52,6 +52,7 @@ export interface StockInModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialIngredientId?: string;
+  initialQuantity?: number;
   onSuccess?: () => void;
 }
 
@@ -74,6 +75,7 @@ export function StockInModal({
   open,
   onOpenChange,
   initialIngredientId,
+  initialQuantity,
   onSuccess,
 }: StockInModalProps) {
   const [ingredients, setIngredients] = useState<any[]>([]);
@@ -167,6 +169,11 @@ export function StockInModal({
           setSelectedId(found.id);
           setIngredientInput(found.name);
           setPricePerUnit(found.defaultImportPrice || 100000);
+          if (initialQuantity && initialQuantity > 0) {
+            setQuantity(Math.ceil(initialQuantity));
+          } else {
+            setQuantity(1000);
+          }
         } else {
           setSelectedId("");
           setIngredientInput("");
@@ -174,7 +181,7 @@ export function StockInModal({
       })
       .catch((err) => console.error("Lỗi tải nguyên liệu:", err))
       .finally(() => setLoadingIngredients(false));
-  }, [open, initialIngredientId]);
+  }, [open, initialIngredientId, initialQuantity]);
 
   // Kiểm tra xem người dùng đang chọn nguyên liệu có sẵn hay đang nhập tên mặt hàng mới
   const currentIng = useMemo(() => {

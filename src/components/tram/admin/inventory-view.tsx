@@ -261,6 +261,7 @@ export function AdminInventory({
   const [isDispatching, setIsDispatching] = useState(false);
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
+  const [stockInTargetQty, setStockInTargetQty] = useState<number | undefined>(undefined);
   const [workspaceSection, setWorkspaceSection] = useState<"ALL" | "LEDGER" | "FORECAST" | "SHIFT">("ALL");
 
   const handleStockInSuccess = useCallback(() => {
@@ -635,8 +636,9 @@ export function AdminInventory({
         <InventoryDemandForecastSection
           items={report.items}
           totalWarehouseValue={report.totalValue}
-          onStockIn={(id) => {
+          onStockIn={(id, qty) => {
             setStockInTargetId(id);
+            setStockInTargetQty(qty);
             setStockInOpen(true);
           }}
         />
@@ -648,6 +650,11 @@ export function AdminInventory({
           stockOverrides={draftStock}
           priceOverrides={priceOverrides}
           today={today}
+          onStockIn={(id, qty) => {
+            setStockInTargetId(id);
+            setStockInTargetQty(qty);
+            setStockInOpen(true);
+          }}
         />
       )}
 
@@ -916,6 +923,7 @@ export function AdminInventory({
         open={stockInOpen}
         onOpenChange={setStockInOpen}
         initialIngredientId={stockInTargetId}
+        initialQuantity={stockInTargetQty}
         onSuccess={handleStockInSuccess}
       />
     </div>
@@ -1227,7 +1235,7 @@ function InventoryDemandForecastSection({
 }: {
   items: InventoryItem[];
   totalWarehouseValue: number;
-  onStockIn: (id: string) => void;
+  onStockIn: (id: string, suggestedQty?: number) => void;
 }) {
   // Custom Hook: Tính toán dự báo nhu cầu & thiếu hụt theo lịch đặt bàn trong khung Concept
   const {
@@ -1619,7 +1627,7 @@ function DemandForecastRow({
 }: {
   analysis: ForecastItemAnalysis;
   totalGuests: number;
-  onStockIn: (id: string) => void;
+  onStockIn: (id: string, suggestedQty?: number) => void;
 }) {
   const { item, isShortage, shortageInImportUnit, procurementCost, surplusInImportUnit, guestsCovered, daysCoveredText } = analysis;
   const isOut = item.stockQty === 0;
@@ -1771,7 +1779,12 @@ function DemandForecastRow({
       <TableCell className="pr-4 text-center sm:pr-5">
         <button
           type="button"
-          onClick={() => onStockIn(item.ingredientId)}
+          onClick={() =>
+            onStockIn(
+              item.ingredientId,
+              isShortage ? Math.ceil(analysis.shortageQty) : undefined,
+            )
+          }
           className={cn(
             "inline-flex h-6 items-center gap-1 rounded-sm px-2 text-[10.5px] font-semibold transition-colors cursor-pointer",
             isShortage
