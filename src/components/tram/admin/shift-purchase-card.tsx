@@ -3,26 +3,20 @@
 // FR-32 — Card "Danh sách mua trước ca" cho bếp trưởng:
 // Đối chiếu nhu cầu thực tế theo ca với tồn kho, tự động tính số lượng thiếu (thiếu = max(0, nhu cầu - tồn kho)),
 // chỉ xuất những dòng thiếu > 0 kèm chi phí mua = số thiếu × đơn giá.
-// Bản xem trước tin nhắn gửi nhà cung cấp (Zalo/Email) chuyên nghiệp, chuẩn mực nghiệp vụ nhà hàng Fine Dining.
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Calendar,
   Check,
-  ChevronDown,
-  ChevronUp,
   Clock,
   Coins,
-  Copy,
-  ExternalLink,
   Mail,
   MessageSquare,
   Minus,
   PackageCheck,
   Plus,
   RefreshCw,
-  Send,
   ShoppingCart,
   Users,
 } from "lucide-react";
@@ -41,7 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatVND } from "@/lib/tram/format";
 import { MAX_SCALE_GUESTS } from "@/lib/tram/recipes";
-import { RESTAURANT, SLOT_LABELS } from "@/lib/tram/constants";
+import { SLOT_LABELS } from "@/lib/tram/constants";
 import { calculateShiftPurchaseReport } from "@/lib/tram/purchase";
 import type { Slot } from "@/lib/tram/types";
 
@@ -68,8 +62,6 @@ export function ShiftPurchaseCard({
   const [actualBookedGuests, setActualBookedGuests] = useState<number | null>(null);
   const [loadingReservations, setLoadingReservations] = useState<boolean>(false);
   const [copiedChannel, setCopiedChannel] = useState<"zalo" | "email" | null>(null);
-  const [showPreview, setShowPreview] = useState<boolean>(true);
-  const [activeChannel, setActiveChannel] = useState<"zalo" | "email">("zalo");
 
   // Đồng bộ ngày nếu prop today thay đổi
   useEffect(() => {
@@ -175,20 +167,10 @@ export function ShiftPurchaseCard({
     }
   }
 
-  function handleOpenEmailClient() {
-    const subject = encodeURIComponent(report.emailSubject);
-    const body = encodeURIComponent(report.emailBody);
-    window.open(`mailto:?subject=${subject}&body=${body}`, "_blank");
-  }
-
-  function handleOpenZaloWeb() {
-    window.open("https://chat.zalo.me", "_blank");
-  }
-
   return (
     <Card
       className={cn(
-        "min-w-0 gap-0 overflow-hidden border-2 border-[#b45309]/30 bg-card py-0 shadow-sm transition-all",
+        "min-w-0 gap-0 overflow-hidden border-2 border-[#b45309]/30 bg-card py-0 font-heading shadow-sm transition-all",
         className,
       )}
     >
@@ -215,7 +197,7 @@ export function ShiftPurchaseCard({
                 )}
               </div>
               <p className="text-[11.5px] text-muted-foreground">
-                Đối chiếu nhu cầu thực tế theo ca với tồn kho · Xuất chi phí &amp; bản tin nhắn gửi nhà cung cấp
+                Đối chiếu nhu cầu thực tế theo ca với tồn kho · Dự toán chi phí nhập hàng đầu ca
               </p>
             </div>
           </div>
@@ -460,11 +442,11 @@ export function ShiftPurchaseCard({
           </div>
         ) : (
           <div className="overflow-hidden rounded-xl border border-border/80">
-            <Table>
+            <Table className="font-heading">
               <TableHeader>
                 <TableRow className="bg-[#fdf0d5]/50 hover:bg-[#fdf0d5]/50">
                   <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-700">
-                    Nguyên liệu (Mã)
+                    Nguyên liệu
                   </TableHead>
                   <TableHead className="w-28 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-700">
                     Nhu cầu ca
@@ -490,12 +472,11 @@ export function ShiftPurchaseCard({
                     <TableCell className="pl-4">
                       <div className="flex flex-col">
                         <span className="font-semibold text-[#292524]">{item.name}</span>
-                        <div className="flex items-center gap-1.5 text-[10.5px] text-muted-foreground">
-                          <code className="rounded bg-muted px-1 py-0.2 font-mono text-[10px] text-stone-600">
-                            {item.ingredientId}
-                          </code>
-                          {item.origin && <span className="truncate">· {item.origin}</span>}
-                        </div>
+                        {item.origin && (
+                          <span className="truncate text-[10.5px] text-muted-foreground">
+                            {item.origin}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
 
@@ -526,398 +507,6 @@ export function ShiftPurchaseCard({
             </Table>
           </div>
         )}
-
-        {/* ==================== 5. BẢN XEM TRƯỚC TIN NHẮN GỬI NHÀ CUNG CẤP (ZALO / EMAIL) ==================== */}
-        <div className="overflow-hidden rounded-2xl border border-stone-300/80 bg-white shadow-xs">
-          {/* Header khu vực xem trước kèm Tab chuyển đổi kênh Zalo / Email */}
-          <div className="flex flex-col gap-2.5 border-b border-border/80 bg-[#fbf9f5] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309]/15 text-[#b45309]">
-                <Send className="h-3.5 w-3.5" aria-hidden />
-              </span>
-              <div>
-                <h4 className="text-xs sm:text-sm font-bold text-[#292524]">
-                  Bản xem trước tin nhắn gửi Nhà Cung Cấp
-                </h4>
-                <p className="text-[11px] text-muted-foreground">
-                  Định dạng bài bản, chuyên nghiệp — sẵn sàng gửi qua Zalo hoặc thư Email
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* 2 Tabs chuyển kênh Zalo / Email */}
-              <div className="flex rounded-xl border border-border/80 bg-background p-0.5 shadow-2xs">
-                <button
-                  type="button"
-                  onClick={() => setActiveChannel("zalo")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
-                    activeChannel === "zalo"
-                      ? "bg-[#0068ff] text-white shadow-xs"
-                      : "text-stone-600 hover:text-stone-900",
-                  )}
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  Zalo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveChannel("email")}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
-                    activeChannel === "email"
-                      ? "bg-[#b45309] text-white shadow-xs"
-                      : "text-stone-600 hover:text-stone-900",
-                  )}
-                >
-                  <Mail className="h-3.5 w-3.5" />
-                  Email
-                </button>
-              </div>
-
-              {/* Nút thu gọn / mở rộng */}
-              <button
-                type="button"
-                onClick={() => setShowPreview((p) => !p)}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-stone-500 hover:bg-muted"
-                aria-label={showPreview ? "Thu gọn bản xem trước" : "Mở rộng bản xem trước"}
-              >
-                {showPreview ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
-            </div>
-          </div>
-
-          {showPreview && (
-            <div className="p-4 sm:p-5 space-y-4">
-              {activeChannel === "zalo" ? (
-                /* ==================== GIAO DIỆN XEM TRƯỚC ZALO ==================== */
-                <div className="space-y-3">
-                  {/* Bong bóng chat Zalo sang trọng */}
-                  <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-b from-[#f4f8ff] to-[#edf4ff] p-4 sm:p-5 shadow-inner space-y-3">
-                    <div className="flex items-center gap-2 border-b border-blue-200/60 pb-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0068ff] text-white font-heading font-bold text-xs shadow-xs">
-                        TRẦM
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-                          <span>Bếp trưởng TRẦM Reserve</span>
-                          <span className="text-[10px] font-normal text-blue-700 bg-blue-100/80 px-1.5 py-0.2 rounded-full">
-                            Đã xác minh
-                          </span>
-                        </div>
-                        <div className="text-[10.5px] text-muted-foreground">
-                          Gửi đến: Nhà cung cấp nguyên liệu · {report.formattedDate}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Nội dung tin nhắn Zalo có format đẹp */}
-                    <div className="rounded-xl border border-white/80 bg-white/90 p-4 shadow-2xs space-y-3 font-sans text-xs leading-relaxed text-stone-800">
-                      <div className="font-bold text-sm text-[#1e3a8a] border-b border-blue-100 pb-2">
-                        🌿 NHÀ HÀNG TRẦM RESERVE — ĐƠN ĐẶT NGUYÊN LIỆU ĐẦU CA
-                      </div>
-
-                      <p className="text-stone-700">
-                        Kính gửi Quý Nhà cung cấp / Anh/Chị phụ trách điều phối,
-                      </p>
-                      <p className="text-stone-700">
-                        Bếp TRẦM Reserve ({RESTAURANT.address}) xin gửi đơn đặt nguyên liệu cần giao trước ca phục vụ:
-                      </p>
-
-                      <div className="rounded-lg bg-blue-50/70 p-3 space-y-1 text-[11.5px] text-blue-950 border border-blue-100/70">
-                        <div className="font-semibold text-blue-900">📍 THÔNG TIN GIAO HÀNG:</div>
-                        <div>• <strong>Ca phục vụ:</strong> {report.shiftLabel}</div>
-                        <div>• <strong>Ngày giao:</strong> {report.formattedDate} (Quy mô: {report.guests} khách)</div>
-                        <div>• <strong>Thời gian nhận yêu cầu:</strong> {report.deliveryDeadline}</div>
-                        <div>• <strong>Địa điểm nhận hàng:</strong> Cửa nhập nguyên liệu Bếp TRẦM — {RESTAURANT.address}</div>
-                      </div>
-
-                      {report.items.length === 0 ? (
-                        <div className="rounded-lg bg-emerald-50 p-3 text-emerald-800 border border-emerald-200">
-                          ✅ Tồn kho hiện tại đã ĐỦ cho ca phục vụ ({report.sufficientCount}/{report.totalCheckedIngredients} nguyên liệu đạt định mức). Không cần đặt mua bổ sung.
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <div className="font-semibold text-stone-900">
-                            📦 DANH SÁCH NGUYÊN LIỆU CẦN GIAO ({report.items.length} mặt hàng):
-                          </div>
-                          <div className="space-y-2">
-                            {report.items.map((item, idx) => (
-                              <div
-                                key={`zalo-item-${item.ingredientId}`}
-                                className="rounded-lg border border-border/80 bg-muted/20 p-2.5 space-y-1"
-                              >
-                                <div className="font-bold text-stone-900">
-                                  {idx + 1}. {item.name}{" "}
-                                  <span className="font-mono text-[10px] text-stone-500 font-normal">
-                                    (Mã: {item.ingredientId})
-                                  </span>
-                                </div>
-                                {(item.spec || item.origin) && (
-                                  <div className="text-[11px] text-stone-600">
-                                    • Quy cách: {[item.spec, item.origin].filter(Boolean).join(" · ")}
-                                  </div>
-                                )}
-                                <div className="flex flex-wrap items-center justify-between gap-1 text-[11.5px]">
-                                  <span>
-                                    • Số lượng đặt: <strong className="text-rose-700">{item.formattedShortage}</strong>
-                                  </span>
-                                  <span>
-                                    Đơn giá: {formatVND(item.importPrice)}/{item.importUnitLabel}
-                                  </span>
-                                  <span className="font-bold text-[#b45309]">
-                                    Thành tiền: {item.formattedCost}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="rounded-lg bg-amber-50 p-2.5 border border-amber-200 text-right">
-                            <span className="text-stone-700 mr-2 text-xs">TỔNG CỘNG ĐƠN HÀNG DỰ KIẾN:</span>
-                            <span className="font-heading text-base font-bold text-[#92400e]">
-                              {report.formattedTotalCost}
-                            </span>
-                          </div>
-
-                          <div className="rounded-lg bg-rose-50/70 p-2.5 text-[11px] text-rose-950 border border-rose-100">
-                            <div className="font-semibold text-rose-900 mb-0.5">⚠️ LƯU Ý GIAO HÀNG &amp; BẢO QUẢN:</div>
-                            <div>- Nguyên liệu tươi sống bảo quản nhiệt độ chuẩn (thùng lạnh 0–2°C).</div>
-                            <div>- Kèm phiếu giao hàng và hóa đơn để Bếp trưởng kiểm định chất lượng khi nhận.</div>
-                            <div>- Vui lòng phản hồi tin nhắn này để xác nhận đơn hàng và thời gian giao dự kiến.</div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="pt-2 border-t border-border/60 text-stone-600 space-y-0.5">
-                        <p>Trân trọng cảm ơn Quý đối tác!</p>
-                        <p className="font-semibold text-stone-900">
-                          Bếp trưởng TRẦM Reserve · Hotline Bếp: {RESTAURANT.hotline}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Thanh nút hành động Zalo */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    <span className="text-[11px] text-muted-foreground">
-                      Bấm sao chép để dán trực tiếp vào nhóm Zalo NCC hoặc chat riêng
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={handleOpenZaloWeb}
-                        className="h-8 text-xs font-semibold text-[#0068ff] border-[#0068ff]/40 hover:bg-blue-50"
-                      >
-                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                        Mở Zalo Web
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => copyTextToClipboard(report.zaloMessage, "zalo")}
-                        className="h-8 rounded-lg bg-[#0068ff] text-xs font-semibold text-white hover:bg-[#0052cc] shadow-2xs"
-                      >
-                        {copiedChannel === "zalo" ? (
-                          <>
-                            <Check className="mr-1.5 h-3.5 w-3.5" />
-                            Đã sao chép tin Zalo!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="mr-1.5 h-3.5 w-3.5" />
-                            Sao chép tin nhắn Zalo
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* ==================== GIAO DIỆN XEM TRƯỚC EMAIL ==================== */
-                <div className="space-y-3">
-                  {/* Cửa sổ Email composer chuyên nghiệp */}
-                  <div className="rounded-2xl border border-stone-300 bg-white shadow-sm overflow-hidden text-xs">
-                    {/* Header thông tin thư */}
-                    <div className="border-b border-border bg-stone-50/80 p-3 space-y-1.5 text-stone-700">
-                      <div className="flex items-center gap-2">
-                        <span className="w-16 font-semibold text-muted-foreground text-[11px]">Từ:</span>
-                        <span className="font-medium text-stone-900">
-                          {RESTAURANT.email}{" "}
-                          <span className="text-muted-foreground font-normal">(Bếp TRẦM Reserve)</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-16 font-semibold text-muted-foreground text-[11px]">Đến:</span>
-                        <span className="text-stone-800">Quý Nhà cung cấp nguyên liệu ẩm thực</span>
-                      </div>
-                      <div className="flex items-center gap-2 pt-1 border-t border-border/50">
-                        <span className="w-16 font-semibold text-muted-foreground text-[11px]">Tiêu đề:</span>
-                        <span className="font-bold text-[#b45309]">{report.emailSubject}</span>
-                      </div>
-                    </div>
-
-                    {/* Thân thư Email */}
-                    <div className="p-4 sm:p-5 space-y-4 text-stone-800 leading-relaxed font-sans">
-                      <p>Kính gửi: Ban Giám đốc / Bộ phận Điều phối Giao nhận Quý Nhà cung cấp,</p>
-                      <p>
-                        Bộ phận Bếp Nhà hàng TRẦM Reserve trân trọng gửi đơn đặt mua nguyên liệu chuẩn bị cho ca phục vụ ẩm thực tại nhà hàng:
-                      </p>
-
-                      {/* Phần I: Thông tin giao nhận */}
-                      <div className="space-y-1 rounded-lg border border-border/80 bg-stone-50/60 p-3">
-                        <div className="font-bold text-stone-900 uppercase tracking-wide text-[11px]">
-                          I. THÔNG TIN ĐƠN ĐẶT HÀNG &amp; ĐỊA ĐIỂM GIAO NHẬN
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11.5px] pt-1">
-                          <div>• <strong>Đơn vị đặt hàng:</strong> Nhà hàng TRẦM Reserve (Bếp)</div>
-                          <div>• <strong>Ca phục vụ:</strong> {report.shiftLabel}</div>
-                          <div>• <strong>Ngày giao hàng:</strong> {report.formattedDate}</div>
-                          <div>• <strong>Quy mô ca:</strong> {report.guests} khách tasting</div>
-                          <div>• <strong>Giờ giao yêu cầu:</strong> <span className="text-rose-700 font-semibold">{report.deliveryDeadline}</span></div>
-                          <div>• <strong>Hotline tiếp nhận:</strong> {RESTAURANT.hotline}</div>
-                        </div>
-                        <div className="text-[11.5px] pt-1 border-t border-border/60">
-                          • <strong>Địa điểm giao hàng:</strong> Cửa nhập hàng Bếp TRẦM — {RESTAURANT.address}
-                        </div>
-                      </div>
-
-                      {/* Phần II: Bảng chi tiết nguyên liệu */}
-                      <div className="space-y-2">
-                        <div className="font-bold text-stone-900 uppercase tracking-wide text-[11px]">
-                          II. BẢNG CHI TIẾT NGUYÊN LIỆU CẦN CUNG CẤP
-                        </div>
-
-                        {report.items.length === 0 ? (
-                          <div className="rounded-lg border border-emerald-300 bg-emerald-50/80 p-3 text-emerald-800">
-                            Tồn kho hiện hữu tại nhà hàng đã đảm bảo đủ 100% định mức phục vụ cho ca này. Chưa phát sinh mặt hàng cần mua bổ sung.
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto rounded-lg border border-border/80">
-                            <table className="w-full text-left text-[11.5px]">
-                              <thead className="bg-[#fdf0d5]/60 text-stone-800 font-semibold border-b border-border">
-                                <tr>
-                                  <th className="py-2 pl-3 w-10">STT</th>
-                                  <th className="py-2 px-2">Mã NL</th>
-                                  <th className="py-2 px-2">Tên nguyên liệu</th>
-                                  <th className="py-2 px-2">Quy cách / Nguồn gốc</th>
-                                  <th className="py-2 px-2 text-right">Số lượng đặt</th>
-                                  <th className="py-2 px-2 text-right">Đơn giá kho</th>
-                                  <th className="py-2 pr-3 text-right">Thành tiền</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-border/60">
-                                {report.items.map((item, idx) => (
-                                  <tr key={`email-table-${item.ingredientId}`} className="hover:bg-stone-50">
-                                    <td className="py-2 pl-3 tabular-nums text-stone-500 font-medium">
-                                      {String(idx + 1).padStart(2, "0")}
-                                    </td>
-                                    <td className="py-2 px-2 font-mono text-[10.5px] text-stone-600">
-                                      {item.ingredientId}
-                                    </td>
-                                    <td className="py-2 px-2 font-bold text-stone-900">
-                                      {item.name}
-                                    </td>
-                                    <td className="py-2 px-2 text-stone-600">
-                                      {[item.spec, item.origin].filter(Boolean).join(" · ") || "Theo quy chuẩn Bếp"}
-                                    </td>
-                                    <td className="py-2 px-2 text-right font-bold text-rose-700 tabular-nums">
-                                      {item.formattedShortage}
-                                    </td>
-                                    <td className="py-2 px-2 text-right tabular-nums text-stone-600">
-                                      {formatVND(item.importPrice)}/{item.importUnitLabel}
-                                    </td>
-                                    <td className="py-2 pr-3 text-right font-bold tabular-nums text-[#92400e]">
-                                      {item.formattedCost}
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                              <tfoot className="bg-[#fdf0d5]/40 border-t border-border font-semibold">
-                                <tr>
-                                  <td colSpan={6} className="py-2 pl-3 text-stone-700">
-                                    Tổng cộng ({report.items.length} mặt hàng cần cung cấp · {report.sufficientCount} món đủ tồn):
-                                  </td>
-                                  <td className="py-2 pr-3 text-right text-sm font-bold tabular-nums text-[#92400e]">
-                                    {report.formattedTotalCost}
-                                  </td>
-                                </tr>
-                              </tfoot>
-                            </table>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Phần III: Quy chuẩn kiểm soát */}
-                      <div className="space-y-1 text-[11px] text-stone-600 rounded-lg bg-stone-50 p-3 border border-border/70">
-                        <div className="font-bold text-stone-900 uppercase tracking-wide">
-                          III. QUY CHUẨN KIỂM SOÁT CHẤT LƯỢNG FINE DINING
-                        </div>
-                        <div>1. Đạm tươi sống bảo quản chuỗi lạnh 0–2°C, rau thơm &amp; nấm bảo quản 8–12°C.</div>
-                        <div>2. Kèm Biên bản giao nhận hàng hóa ghi rõ ngày sản xuất, hạn sử dụng và chữ ký giao hàng.</div>
-                        <div>3. Bếp trưởng TRẦM Reserve trực tiếp kiểm tra cảm quan và cân lại khối lượng thực tế khi ký nhận.</div>
-                      </div>
-
-                      {/* Chữ ký email chuyên nghiệp */}
-                      <div className="pt-3 border-t border-border/80 flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#b45309] text-white font-heading font-bold text-sm">
-                          TRẦM
-                        </div>
-                        <div className="text-[11px] space-y-0.5 text-stone-600">
-                          <div className="font-bold text-stone-900 text-xs uppercase">
-                            BỘ PHẬN BẾP &amp; QUẢN TRỊ TỒN KHO — NHÀ HÀNG TRẦM RESERVE
-                          </div>
-                          <div>Địa chỉ: {RESTAURANT.address}</div>
-                          <div>Hotline Bếp: {RESTAURANT.hotline} · Email: {RESTAURANT.email} · Website: tramreserve.vn</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Thanh nút hành động Email */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    <span className="text-[11px] text-muted-foreground">
-                      Bấm sao chép để dán vào Gmail / Outlook hoặc mở trực tiếp ứng dụng Email
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={handleOpenEmailClient}
-                        className="h-8 text-xs font-semibold text-[#b45309] border-[#b45309]/40 hover:bg-[#fdf0d5]"
-                      >
-                        <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                        Mở ứng dụng Email
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => copyTextToClipboard(report.emailBody, "email")}
-                        className="h-8 rounded-lg bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e] shadow-2xs"
-                      >
-                        {copiedChannel === "email" ? (
-                          <>
-                            <Check className="mr-1.5 h-3.5 w-3.5" />
-                            Đã sao chép Email!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="mr-1.5 h-3.5 w-3.5" />
-                            Sao chép toàn bộ Email
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </CardContent>
     </Card>
   );
