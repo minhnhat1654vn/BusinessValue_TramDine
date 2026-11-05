@@ -880,7 +880,7 @@ export function AdminRecipes({
 
   return (
     <div className="space-y-6 font-heading">
-      {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ TINH GỌN ==================== */}
+      {/* ==================== 1. TIÊU ĐỀ & THANH CÔNG CỤ ==================== */}
       <div className="flex flex-col gap-4 border-b border-border/80 pb-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -888,58 +888,71 @@ export function AdminRecipes({
               Bếp &amp; kho
             </span>
             {selectedConceptId === activeConceptId ? (
-              <Badge className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
-                ⭐ Thực đơn đang phục vụ
-              </Badge>
+              <span className="rounded-sm border border-emerald-700/30 bg-emerald-50 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-800">
+                Đang phục vụ
+              </span>
             ) : (
-              <Badge className="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
-                Kế hoạch áp dụng tuần
-              </Badge>
+              <span className="rounded-sm border border-amber-700/30 bg-amber-50 px-2 py-0.5 text-[10.5px] font-semibold text-[#92400e]">
+                Bản thảo kế hoạch
+              </span>
             )}
             {isRefreshing && (
               <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground animate-pulse">
-                <Loader2 className="h-3 w-3 animate-spin text-[#b45309]" /> Đang đồng bộ...
+                <Loader2 className="h-3 w-3 animate-spin text-[#7c2d12]" /> Đang đồng bộ...
               </span>
             )}
           </div>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
             {viewMode === "food-cost"
               ? "Phân tích Food Cost & Giá vốn thực đơn"
-              : "Bảng định lượng công thức (BOM)"}
+              : "Concept Thực đơn & Công thức định lượng (BOM)"}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {viewMode === "food-cost"
               ? "Định mức chi phí thực phẩm mục tiêu 33,5% · Đối soát giá bán 1.190.000 đ/khách"
-              : `Định lượng chi tiết ${bomData?.dishes?.length ? `${bomData.dishes.length} món` : "thực đơn"} · Tính toán giá vốn nguyên liệu theo suất`}
+              : `Quản lý Concept thực đơn theo mùa · Thiết kế món ăn & định lượng nguyên liệu (${bomData?.dishes?.length ?? 0} món)`}
           </p>
         </div>
 
-        {/* Cụm công cụ tinh gọn trên 1 dòng */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Bộ chọn Concept */}
-          <div className="flex items-center rounded-xl border border-stone-200 bg-stone-100/90 px-2.5 py-1 shadow-2xs">
-            <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
-            <span className="text-[11px] text-muted-foreground mr-1.5 font-medium">Concept:</span>
-            <Select
-              value={selectedConceptId}
-              onValueChange={(val) => {
-                setSelectedConceptId(val);
-                setSelectedDish(1);
-                loadBom(guests, false, val);
-              }}
+        {/* Cụm công cụ trên 1 dòng */}
+        <div className="flex flex-wrap items-center gap-2">
+          {viewMode === "food-cost" && (
+            <div className="flex items-center rounded-sm border border-stone-300 bg-[#fffdf8] px-2.5 py-1">
+              <Sparkles className="mr-1.5 h-3.5 w-3.5 text-[#7c2d12]" />
+              <span className="mr-1.5 text-xs font-medium text-stone-600">Concept:</span>
+              <Select
+                value={selectedConceptId}
+                onValueChange={(val) => {
+                  setSelectedConceptId(val);
+                  setSelectedDish(1);
+                  loadBom(guests, false, val);
+                }}
+              >
+                <SelectTrigger className="h-6 gap-1 border-0 bg-transparent p-0 pr-1 text-xs font-semibold shadow-none focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {concepts.map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="text-xs">
+                      {c.name} {c.id === activeConceptId ? "(Đang phục vụ)" : `· ${formatConceptPeriod(c)}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {viewMode === "recipes" && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => setCreateConceptOpen(true)}
+              className="h-8 gap-1.5 rounded-sm bg-[#7c2d12] px-3.5 font-heading text-xs font-semibold text-[#fdf0d5] shadow-none hover:bg-[#5f200c] cursor-pointer"
             >
-              <SelectTrigger className="h-6 border-0 bg-transparent text-xs font-semibold shadow-none focus:ring-0 p-0 pr-1 gap-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {concepts.map((c) => (
-                  <SelectItem key={c.id} value={c.id} className="text-xs">
-                    {c.name} {c.id === activeConceptId ? "⭐ (Đang phục vụ)" : `· ${formatConceptPeriod(c)}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <Plus className="h-3.5 w-3.5" />
+              Tạo Concept mới
+            </Button>
+          )}
 
           {/* Nhập / Xuất Excel */}
           <div className="flex items-center gap-1.5">
@@ -952,9 +965,9 @@ export function AdminRecipes({
                 setPreviewRows([]);
                 setImportModalOpen(true);
               }}
-              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+              className="h-8 rounded-sm border-stone-300 bg-[#fffdf8] text-xs font-semibold text-stone-700 hover:border-[#7c2d12] hover:text-[#7c2d12] cursor-pointer"
             >
-              <Upload className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+              <Upload className="mr-1.5 h-3.5 w-3.5 text-[#7c2d12]" />
               Nhập Excel
             </Button>
 
@@ -962,76 +975,174 @@ export function AdminRecipes({
               asChild
               variant="outline"
               size="sm"
-              className="h-8 border-stone-200 bg-white text-xs text-stone-700 hover:bg-stone-50"
+              className="h-8 rounded-sm border-stone-300 bg-[#fffdf8] text-xs font-semibold text-stone-700 hover:border-[#7c2d12] hover:text-[#7c2d12]"
             >
               <a href="/api/recipes/export">
-                <Download className="mr-1.5 h-3.5 w-3.5 text-stone-500" />
+                <Download className="mr-1.5 h-3.5 w-3.5 text-[#7c2d12]" />
                 Xuất Excel
               </a>
             </Button>
           </div>
-
-
         </div>
       </div>
 
-      {/* Banner thông báo nhẹ nhàng khi xem concept dự thảo */}
-      {selectedConceptId !== activeConceptId && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-2 text-xs text-amber-900 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <CalendarDays className="h-4 w-4 text-amber-700 shrink-0" />
-            <span>
-              Đang xem BOM kế hoạch: <strong>{concepts.find((c) => c.id === selectedConceptId)?.name || "Concept mới"}</strong> ({formatConceptPeriod(concepts.find((c) => c.id === selectedConceptId))})
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {onNavigateTab && (
-              <button
-                type="button"
-                onClick={() => onNavigateTab("concepts")}
-                className="text-[11.5px] font-semibold text-[#92400e] hover:underline"
-              >
-                Chỉnh sửa concept &amp; món ăn →
-              </button>
-            )}
-            <Button
-              type="button"
-              size="sm"
-              disabled={activatingConcept}
-              onClick={() => handleSetActiveConcept(selectedConceptId)}
-              className="h-7 bg-[#b45309] px-3 text-xs font-semibold text-white shadow-2xs hover:bg-[#92400e]"
-            >
-              {activatingConcept ? (
-                <>
-                  <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Đang áp dụng...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="mr-1 h-3 w-3" /> Áp dụng thực đơn này
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
-
       {loading ? (
-        <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card">
-          <Loader2 className="h-8 w-8 animate-spin text-[#b45309]" />
-          <p className="text-sm text-muted-foreground font-heading">Đang tải công thức định lượng...</p>
+        <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-sm border border-dashed border-stone-300 bg-[#fffdf8]">
+          <Loader2 className="h-7 w-7 animate-spin text-[#7c2d12]" />
+          <p className="font-heading text-sm text-muted-foreground">Đang tải dữ liệu Concept &amp; định lượng...</p>
         </div>
       ) : viewMode === "recipes" ? (
-        /* ==================== VIEW 1: CÔNG THỨC 7 MÓN ==================== */
+        /* ==================== VIEW HỢP NHẤT: CONCEPT THỰC ĐƠN & CÔNG THỨC BOM ==================== */
         <>
-          {/* 4 CHỈ SỐ TỔNG QUAN FOOD COST & BOM */}
+          {/* ==================== 2. DANH SÁCH THẺ CONCEPT THEO MÙA ==================== */}
+          <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+            <CardHeader className="gap-2 border-b border-border/60 bg-[#f6efe0]/60 px-4 py-3 sm:px-5 [.border-b]:pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="flex items-center gap-2 font-heading text-base font-bold tracking-wide text-[#292524]">
+                  <Layers className="h-4 w-4 text-[#7c2d12]" aria-hidden />
+                  Danh sách Concept thực đơn ({concepts.length})
+                </CardTitle>
+                <span className="text-xs text-muted-foreground">
+                  Chọn Concept để thiết kế món ăn và chỉnh sửa bảng định lượng bên dưới
+                </span>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-4 sm:p-5">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {concepts.map((c) => {
+                  const isActive = c.id === activeConceptId;
+                  const isSelected = c.id === selectedConceptId;
+                  const dishCount = isSelected && bomData?.dishes ? bomData.dishes.length : (c.dishes?.length || 0);
+
+                  return (
+                    <div
+                      key={c.id}
+                      onClick={() => {
+                        if (selectedConceptId !== c.id) {
+                          setSelectedConceptId(c.id);
+                          setSelectedDish(1);
+                          loadBom(guests, false, c.id);
+                        }
+                      }}
+                      className={cn(
+                        "relative flex cursor-pointer flex-col justify-between space-y-3 rounded-sm border p-3.5 transition-colors",
+                        isSelected
+                          ? "border-[#7c2d12] bg-[#fffdf8] ring-1 ring-[#7c2d12]"
+                          : "border-stone-200/90 bg-[#fffdf8]/60 hover:border-[#7c2d12]/50 hover:bg-[#fdf0d5]/20",
+                      )}
+                    >
+                      <div>
+                        <div className="mb-1.5 flex items-center justify-between gap-2">
+                          <span className="font-heading text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                            {c.code || "Thực đơn mùa"}
+                          </span>
+                          {isActive ? (
+                            <span className="rounded-sm border border-emerald-700/30 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                              Đang phục vụ
+                            </span>
+                          ) : (
+                            <span className="rounded-sm border border-stone-300 bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
+                              Bản thảo kế hoạch
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="font-heading text-base font-bold leading-snug text-[#292524]">
+                          {c.name}
+                        </h4>
+
+                        <div className="mt-2 space-y-1 text-xs text-stone-600">
+                          <div className="flex items-center gap-1.5">
+                            <CalendarDays className="h-3.5 w-3.5 text-[#7c2d12]" />
+                            <span>{formatConceptPeriod(c)}</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 text-[11.5px]">
+                            <span>
+                              Thực đơn:{" "}
+                              <strong className="text-[#292524]">
+                                {dishCount > 0 ? `${dishCount} món` : "Đang trống"}
+                              </strong>
+                            </span>
+                            <span>
+                              Giá bán:{" "}
+                              <strong className="text-[#92400e]">
+                                {formatVND(c.sellingPrice || MENU_SELLING_PRICE)}
+                              </strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        {c.description && (
+                          <p className="mt-2 line-clamp-1 text-[11px] italic text-muted-foreground">
+                            &ldquo;{c.description}&rdquo;
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Thao tác Sửa / Xóa / Áp dụng */}
+                      <div
+                        className="flex items-center justify-between gap-1.5 border-t border-stone-200/80 pt-2.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setConceptToEdit(c);
+                              setEditConceptOpen(true);
+                            }}
+                            className="inline-flex h-6 items-center gap-1 rounded-sm border border-stone-300 bg-transparent px-2 text-[11px] font-semibold text-stone-700 transition-colors hover:border-[#7c2d12] hover:text-[#7c2d12] cursor-pointer"
+                            title="Sửa thông tin Concept"
+                          >
+                            <Pencil className="h-3 w-3" /> Sửa
+                          </button>
+
+                          {!isActive && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setConceptToDelete(c);
+                                setDeleteAlertOpen(true);
+                              }}
+                              className="inline-flex h-6 items-center gap-1 rounded-sm border border-stone-300 bg-transparent px-2 text-[11px] font-semibold text-rose-800 transition-colors hover:border-rose-700 hover:bg-rose-50 cursor-pointer"
+                              title="Xóa Concept này"
+                            >
+                              <Trash2 className="h-3 w-3" /> Xóa
+                            </button>
+                          )}
+                        </div>
+
+                        {!isActive ? (
+                          <button
+                            type="button"
+                            disabled={activatingConcept}
+                            onClick={() => handleSetActiveConcept(c.id)}
+                            className="inline-flex h-6 items-center gap-1 rounded-sm bg-[#7c2d12] px-2.5 text-[11px] font-semibold text-[#fdf0d5] transition-colors hover:bg-[#5f200c] cursor-pointer"
+                          >
+                            <CheckCircle2 className="h-3 w-3" /> Áp dụng
+                          </button>
+                        ) : (
+                          <span className="text-[11px] font-semibold italic text-emerald-800">
+                            Thực đơn chính thức
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ==================== 3. 4 CHỈ SỐ TỔNG QUAN FOOD COST & BOM CỦA CONCEPT ĐANG CHỌN ==================== */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
               {
                 id: "food-cost",
                 label: scaled ? `Giá vốn (${guests} khách)` : "Giá vốn / 1 suất",
                 value: formatVND(scaled ? totalFoodCost * guests : totalFoodCost),
-                sub: `${actualFoodCostPct}% giá thực đơn 1.190.000 đ · Mục tiêu 33,5%`,
+                sub: `${actualFoodCostPct}% giá bán 1.190.000 đ · Mục tiêu 33,5%`,
                 tone: actualFoodCostPct <= 34 ? "good" : "warn",
                 icon: Calculator,
               },
@@ -1039,7 +1150,7 @@ export function AdminRecipes({
                 id: "gross-profit",
                 label: scaled ? `Lãi gộp (${guests} khách)` : "Lãi gộp / 1 suất",
                 value: formatVND(scaled ? grossProfit * guests : grossProfit),
-                sub: `${grossProfitPct}% biên lãi gộp`,
+                sub: `${grossProfitPct}% biên lợi nhuận gộp`,
                 tone: "default",
                 icon: Coins,
               },
@@ -1064,43 +1175,50 @@ export function AdminRecipes({
             ].map((stat) => {
               const Icon = stat.icon;
               return (
-                <Card key={stat.id} className="border-border/80 bg-card p-4 shadow-xs">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                <Card key={stat.id} className="min-w-0 gap-0 border-border/80 bg-[#fffdf8] py-0 shadow-xs">
+                  <CardContent className="p-3.5 sm:p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600 sm:text-[11px]">
                         {stat.label}
-                      </p>
-                      <p className="mt-1 font-heading text-xl font-bold tabular-nums text-[#292524] sm:text-2xl">
-                        {stat.value}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">{stat.sub}</p>
+                      </span>
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border border-stone-200 bg-[#f6efe0] text-[#7c2d12]">
+                        <Icon className="h-3.5 w-3.5" aria-hidden />
+                      </span>
                     </div>
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#fdf0d5] text-[#b45309]">
-                      <Icon className="h-4 w-4" aria-hidden />
+                    <div
+                      className={cn(
+                        "mt-2 font-heading text-lg font-bold tabular-nums sm:text-xl",
+                        stat.tone === "warn" ? "text-rose-800" : "text-[#292524]",
+                      )}
+                    >
+                      {stat.value}
                     </div>
-                  </div>
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground" title={stat.sub}>
+                      {stat.sub}
+                    </p>
+                  </CardContent>
                 </Card>
               );
             })}
           </div>
 
-          {/* CHỌN MÓN & ĐỊNH LƯỢNG HOẶC TRẠNG THÁI ĐỂ TRỐNG */}
+          {/* ==================== 4. DANH SÁCH MÓN ĂN TRONG CONCEPT & BẢNG ĐỊNH LƯỢNG BOM ==================== */}
           {!bomData?.dishes || bomData.dishes.length === 0 ? (
-            <Card className="border-dashed border-2 border-stone-300 bg-[#fffdfa] p-10 sm:p-14 text-center shadow-xs">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#fdf0d5] text-[#b45309] mb-4">
-                <UtensilsCrossed className="h-7 w-7" />
+            <Card className="border-2 border-dashed border-stone-300 bg-[#fffdf8] p-10 text-center shadow-xs sm:p-14">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-sm border border-stone-300 bg-[#f6efe0] text-[#7c2d12]">
+                <UtensilsCrossed className="h-6 w-6" />
               </div>
               <h3 className="font-heading text-lg font-bold text-[#292524]">
                 Concept này chưa có món ăn (Đang để trống)
               </h3>
-              <p className="mt-1.5 text-xs text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Hãy tạo món ăn mới hoặc nhập công thức từ file Excel để bắt đầu xây dựng định lượng.
+              <p className="mx-auto mt-1 max-w-lg text-xs leading-relaxed text-muted-foreground">
+                Hãy tạo món ăn mới hoặc nhập công thức từ file Excel để bắt đầu xây dựng định lượng nguyên liệu cho Concept này.
               </p>
-              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
                 <Button
                   type="button"
                   onClick={() => setCreateDishOpen(true)}
-                  className="bg-[#b45309] hover:bg-[#92400e] text-white text-xs font-semibold shadow-xs"
+                  className="h-8 rounded-sm bg-[#7c2d12] px-3.5 text-xs font-semibold text-[#fdf0d5] hover:bg-[#5f200c] cursor-pointer"
                 >
                   <Plus className="mr-1.5 h-3.5 w-3.5" /> Tạo món ăn mới cho Concept này
                 </Button>
@@ -1112,7 +1230,7 @@ export function AdminRecipes({
                     setPreviewRows([]);
                     setImportModalOpen(true);
                   }}
-                  className="border-stone-300 text-stone-700 hover:bg-[#fdf0d5]/40 text-xs font-medium"
+                  className="h-8 rounded-sm border-stone-300 bg-transparent text-xs font-semibold text-stone-700 hover:border-[#7c2d12] cursor-pointer"
                 >
                   <Upload className="mr-1.5 h-3.5 w-3.5" /> Nhập công thức từ Excel
                 </Button>
@@ -1120,373 +1238,435 @@ export function AdminRecipes({
             </Card>
           ) : (
             <>
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
-                    Chọn món để xem &amp; gán định lượng BOM ({bomData.dishes.length} món)
+              {/* Lưới thẻ chọn món */}
+              <div className="space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                    Thực đơn của Concept ({bomData.dishes.length} món) — Bấm chọn món để chỉnh định lượng
                   </span>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setCreateDishOpen(true)}
-                    className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
-                  >
-                    <Plus className="mr-1 h-3.5 w-3.5" /> Tạo món ăn mới
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                  {bomData.dishes.map((dish) => {
-                const menuItem = MENU_ITEMS.find((m) => m.index === dish.index);
-                const isSelected = dish.index === selectedDish;
-                const defaultVar = dish.variants.find((v) => v.isDefault) ?? dish.variants[0];
-                return (
                   <button
-                    key={dish.index}
                     type="button"
-                    onClick={() => setSelectedDish(dish.index)}
-                    aria-selected={isSelected}
-                    className={cn(
-                      "group relative flex flex-col overflow-hidden rounded-2xl border p-2.5 text-left transition-all",
-                      isSelected
-                        ? "border-[#b45309] bg-[#fffdf9] shadow-md ring-2 ring-[#b45309]/20"
-                        : "border-border/80 bg-card hover:border-[#b45309]/40 hover:bg-[#fffdf9]/60",
-                    )}
+                    onClick={() => setCreateDishOpen(true)}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-sm bg-[#7c2d12] px-3 font-heading text-xs font-semibold text-[#fdf0d5] transition-colors hover:bg-[#5f200c] cursor-pointer"
                   >
-                    <div className="relative mb-2 aspect-[4/3] w-full overflow-hidden rounded-xl bg-stone-900/10">
-                      {menuItem?.image ? (
-                        <Image
-                          src={menuItem.image}
-                          alt={dish.name}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-                          Món {dish.index}
-                        </div>
-                      )}
-                      <span className="absolute left-1.5 top-1.5 rounded-full bg-black/65 px-2 py-0.5 text-[10px] font-bold text-[#fdf0d5] backdrop-blur-xs">
-                        0{dish.index}
-                      </span>
-                    </div>
-                    <span className="line-clamp-1 font-heading text-xs font-semibold text-[#292524] group-hover:text-[#b45309]">
-                      {dish.name}
-                    </span>
-                    <div className="mt-1 flex items-center justify-between text-[10.5px]">
-                      <span className="font-heading font-bold text-[#b45309]">
-                        {formatVND(dishCostMap.get(dish.index) || 0)}
-                      </span>
-                      <span className="text-[10px] tabular-nums text-muted-foreground">
-                        {totalFoodCost > 0
-                          ? `${Math.round(((dishCostMap.get(dish.index) || 0) / totalFoodCost) * 1000) / 10}%`
-                          : "0%"}
-                      </span>
-                    </div>
+                    <Plus className="h-3.5 w-3.5" /> Thêm món ăn mới
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* CHI TIẾT CÔNG THỨC MÓN ĐANG CHỌN */}
-          {activeDish && activeVariant && (
-            <Card className="border-border/80 bg-card shadow-xs">
-              <CardHeader className="border-b border-border/80 pb-4">
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-[#b45309] px-2.5 py-0.5 text-[11px] font-bold text-[#fffbf2]">
-                        Món 0{activeDish.index}
-                      </span>
-                      {activeDish.region && (
-                        <span className="text-xs font-medium text-[#b45309]">{activeDish.region}</span>
-                      )}
-                      <span className="text-xs text-muted-foreground">·</span>
-                      <span className="text-xs text-muted-foreground">{activeDish.portion}</span>
-                      <Badge className="bg-[#b45309]/15 text-[#92400e] border border-[#b45309]/30 font-heading font-semibold text-xs px-2 py-0.5 ml-1">
-                        Giá vốn món: {formatVND(activeDishCost)} / suất ({totalFoodCost > 0 ? Math.round((activeDishCost / totalFoodCost) * 1000) / 10 : 0}% Menu)
-                      </Badge>
-                    </div>
-                    <CardTitle className="font-heading text-xl font-bold text-[#292524] sm:text-2xl">
-                      {activeDish.name}
-                    </CardTitle>
-                    {activeDish.method && (
-                      <p className="flex items-center gap-1.5 text-xs text-stone-600">
-                        <CookingPot className="h-3.5 w-3.5 text-[#b45309]" />
-                        <span>Kỹ thuật: {activeDish.method}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* NÚT THÊM NGUYÊN LIỆU VÀO MÓN NÀY */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => {
-                        const defaultIng = bomData?.allIngredients[0];
-                        setEditingLine({
-                          variantId: activeVariant.id,
-                          ingredientId: defaultIng?.id ?? "",
-                          qtyPerGuest: 10,
-                          unit: defaultIng?.unit || "g",
-                          prepNote: "",
-                        });
-                        setLineModalOpen(true);
-                      }}
-                      className="bg-[#b45309] text-white hover:bg-[#92400e]"
-                    >
-                      <Plus className="mr-1.5 h-3.5 w-3.5" />
-                      Thêm định lượng vào món
-                    </Button>
-
-                    {activeDish.index > 7 && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteDish(activeDish.id, activeDish.name)}
-                        className="h-9 border-rose-200 text-xs text-rose-700 hover:bg-rose-50"
-                        title="Xóa món này khỏi thực đơn"
-                      >
-                        <Trash2 className="mr-1 h-3.5 w-3.5" /> Xóa món
-                      </Button>
-                    )}
-                  </div>
                 </div>
 
-                {/* Tùy chọn biến thể (Variant tabs) */}
-                {activeDish.variants.length > 1 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5 pt-2">
-                    {activeDish.variants.map((v) => {
-                      const isVarSelected = v.optionId === activeVariant.optionId;
-                      return (
-                        <button
-                          key={v.optionId}
-                          type="button"
-                          onClick={() =>
-                            setVariantByDish((prev) => ({
-                              ...prev,
-                              [activeDish.index]: v.optionId,
-                            }))
-                          }
-                          className={cn(
-                            "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                            isVarSelected
-                              ? "border-[#b45309] bg-[#fdf0d5] text-[#92400e]"
-                              : "border-border bg-background text-stone-600 hover:border-border/80",
+                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-7">
+                  {bomData.dishes.map((dish) => {
+                    const menuItem = MENU_ITEMS.find((m) => m.index === dish.index);
+                    const isSelected = dish.index === selectedDish;
+                    return (
+                      <button
+                        key={dish.index}
+                        type="button"
+                        onClick={() => setSelectedDish(dish.index)}
+                        aria-selected={isSelected}
+                        className={cn(
+                          "group relative flex cursor-pointer flex-col overflow-hidden rounded-sm border p-2 text-left transition-colors",
+                          isSelected
+                            ? "border-[#7c2d12] bg-[#fffdf8] ring-1 ring-[#7c2d12]"
+                            : "border-stone-200/90 bg-[#fffdf8]/70 hover:border-[#7c2d12]/50 hover:bg-[#fdf0d5]/20",
+                        )}
+                      >
+                        <div className="relative mb-2 aspect-[4/3] w-full overflow-hidden rounded-sm bg-stone-900/10">
+                          {menuItem?.image ? (
+                            <Image
+                              src={menuItem.image}
+                              alt={dish.name}
+                              fill
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center font-heading text-xs text-muted-foreground">
+                              Món {dish.index}
+                            </div>
                           )}
-                        >
-                          {v.optionName} {v.isDefault && "(Mặc định)"}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardHeader>
+                          <span className="absolute left-1.5 top-1.5 rounded-sm bg-[#292524]/85 px-1.5 py-0.5 font-heading text-[10px] font-bold text-[#fdf0d5]">
+                            0{dish.index}
+                          </span>
+                        </div>
+                        <span className="line-clamp-1 font-heading text-xs font-bold text-[#292524] group-hover:text-[#7c2d12]">
+                          {dish.name}
+                        </span>
+                        <div className="mt-1 flex items-center justify-between text-[10.5px]">
+                          <span className="font-heading font-bold text-[#92400e]">
+                            {formatVND(dishCostMap.get(dish.index) || 0)}
+                          </span>
+                          <span className="text-[10px] tabular-nums text-muted-foreground">
+                            {totalFoodCost > 0
+                              ? `${Math.round(((dishCostMap.get(dish.index) || 0) / totalFoodCost) * 1000) / 10}%`
+                              : "0%"}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border/80 bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                      <TableHead className="w-12 text-center">#</TableHead>
-                      <TableHead>Nguyên liệu</TableHead>
-                      <TableHead>Nhóm</TableHead>
-                      <TableHead className="text-right">Định lượng / khách</TableHead>
-                      {scaled && (
-                        <TableHead className="text-right text-[#b45309]">
-                          Tổng {guests} khách
-                        </TableHead>
-                      )}
-                      <TableHead className="text-right">Đơn giá nhập</TableHead>
-                      <TableHead className="text-right text-[#b45309] font-bold">Thành tiền / suất</TableHead>
-                      {scaled && (
-                        <TableHead className="text-right text-[#92400e] font-bold">
-                          Tổng tiền ({guests}k)
-                        </TableHead>
-                      )}
-                      <TableHead className="w-20 text-center">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeVariant.lines.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={scaled ? 9 : 7} className="py-8 text-center text-sm text-muted-foreground">
-                          Chưa có nguyên liệu nào trong công thức này. Hãy bấm &quot;Thêm định lượng vào món&quot;.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeVariant.lines.map((line, idx) => (
-                        <TableRow key={line.id} className="hover:bg-[#fffdf9]">
-                          <TableCell className="text-center text-xs text-muted-foreground">{idx + 1}</TableCell>
-                          <TableCell className="font-medium text-[#292524]">
-                            <div>
-                              <span>{line.ingredientName}</span>
-                              {line.prepNote && (
-                                <span className="block text-[10.5px] text-muted-foreground">{line.prepNote}</span>
+              {/* Bảng sổ định lượng chi tiết món đang chọn */}
+              {activeDish && activeVariant && (
+                <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+                  <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+                    <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-sm bg-[#7c2d12] px-2 py-0.5 font-heading text-[11px] font-bold text-[#fdf0d5]">
+                            Món 0{activeDish.index}
+                          </span>
+                          <CardTitle className="font-heading text-lg font-bold tracking-wide text-[#292524] sm:text-xl">
+                            {activeDish.name}
+                          </CardTitle>
+                          {activeDish.region && (
+                            <span className="text-xs font-semibold italic text-[#7c2d12]">
+                              — {activeDish.region}
+                            </span>
+                          )}
+                          <span className="rounded-sm border border-stone-300 bg-[#f6efe0] px-2 py-0.5 font-heading text-xs font-semibold text-[#92400e]">
+                            Giá vốn: {formatVND(activeDishCost)} / suất (
+                            {totalFoodCost > 0
+                              ? Math.round((activeDishCost / totalFoodCost) * 1000) / 10
+                              : 0}
+                            % Menu)
+                          </span>
+                        </div>
+                        {activeDish.method && (
+                          <p className="flex items-center gap-1.5 text-xs text-stone-600">
+                            <CookingPot className="h-3.5 w-3.5 text-[#7c2d12]" />
+                            <span>Kỹ thuật chế biến: {activeDish.method}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Cụm nút Thêm định lượng / Xóa món */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            const defaultIng = bomData?.allIngredients[0];
+                            setEditingLine({
+                              variantId: activeVariant.id,
+                              ingredientId: defaultIng?.id ?? "",
+                              qtyPerGuest: 10,
+                              unit: defaultIng?.unit || "g",
+                              prepNote: "",
+                            });
+                            setLineModalOpen(true);
+                          }}
+                          className="h-8 gap-1.5 rounded-sm bg-[#7c2d12] px-3 font-heading text-xs font-semibold text-[#fdf0d5] shadow-none hover:bg-[#5f200c] cursor-pointer"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Thêm nguyên liệu vào món
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteDish(activeDish.id, activeDish.name)}
+                          className="h-8 rounded-sm border-stone-300 bg-transparent px-2.5 text-xs font-semibold text-rose-800 hover:border-rose-700 hover:bg-rose-50 cursor-pointer"
+                          title="Xóa món này khỏi thực đơn"
+                        >
+                          <Trash2 className="mr-1 h-3.5 w-3.5" /> Xóa món
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Thanh chọn Biến thể món & Bộ nhân quy mô khách */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-stone-600">
+                          Phiên bản món:
+                        </span>
+                        {activeDish.variants.map((v) => {
+                          const isVarSelected = v.optionId === activeVariant.optionId;
+                          return (
+                            <button
+                              key={v.optionId}
+                              type="button"
+                              onClick={() =>
+                                setVariantByDish((prev) => ({
+                                  ...prev,
+                                  [activeDish.index]: v.optionId,
+                                }))
+                              }
+                              className={cn(
+                                "rounded-sm border px-2.5 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
+                                isVarSelected
+                                  ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                                  : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12]",
                               )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <GroupBadge group={line.group} />
-                          </TableCell>
-                          <TableCell className="text-right font-heading font-semibold text-[#292524]">
-                            {formatQty(line.qtyPerGuest, line.unit)}
-                          </TableCell>
+                            >
+                              {v.optionName} {v.isDefault && "(Chuẩn)"}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bộ nhân quy mô số khách */}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+                          Quy đổi số khách:
+                        </span>
+                        {QUICK_GUESTS.map((n) => (
+                          <button
+                            key={`scale-${n}`}
+                            type="button"
+                            onClick={() => applyGuests(n)}
+                            className={cn(
+                              "rounded-sm border px-2.5 py-1 font-heading text-xs font-semibold tabular-nums transition-colors cursor-pointer",
+                              guests === n
+                                ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                                : "border-stone-300 bg-transparent text-stone-700 hover:border-[#7c2d12]",
+                            )}
+                          >
+                            {n === 1 ? "1 suất" : n === 42 ? "42 (Đầy ca)" : `${n} khách`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="p-0">
+                    <Table className="min-w-[860px] font-heading">
+                      <TableHeader>
+                        <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
+                          <TableHead className="w-12 pl-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            #
+                          </TableHead>
+                          <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Nguyên liệu &amp; Sơ chế
+                          </TableHead>
+                          <TableHead className="w-40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Nhóm
+                          </TableHead>
+                          <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Định lượng / suất
+                          </TableHead>
                           {scaled && (
-                            <TableCell className="text-right font-heading font-bold text-[#b45309]">
-                              {formatQty(line.qtyTotal, line.unit)}
-                            </TableCell>
+                            <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-[#7c2d12]">
+                              Tổng ({guests} khách)
+                            </TableHead>
                           )}
-                          <TableCell className="text-right text-xs tabular-nums text-muted-foreground">
-                            {line.defaultImportPrice > 0 ? `${formatVND(line.defaultImportPrice)} / ${line.unit === "ml" ? "L" : "kg"}` : "—"}
-                          </TableCell>
-                          <TableCell className="text-right font-heading font-bold text-[#b45309] tabular-nums">
-                            {formatVND(Math.round((line.qtyPerGuest * (line.defaultImportPrice || 0)) / 1000))}
-                          </TableCell>
+                          <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Đơn giá kho
+                          </TableHead>
+                          <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Giá vốn / suất
+                          </TableHead>
                           {scaled && (
-                            <TableCell className="text-right font-heading font-bold text-[#92400e] tabular-nums">
-                              {formatVND(Math.round((line.qtyTotal * (line.defaultImportPrice || 0)) / 1000))}
-                            </TableCell>
+                            <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-[#7c2d12]">
+                              Tổng vốn ({guests}k)
+                            </TableHead>
                           )}
-                          <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setEditingLine({
-                                    id: line.id,
-                                    variantId: activeVariant.id,
-                                    ingredientId: line.ingredientId,
-                                    qtyPerGuest: line.qtyPerGuest,
-                                    unit: line.unit,
-                                    prepNote: line.prepNote || "",
-                                  });
-                                  setLineModalOpen(true);
-                                }}
-                                className="h-7 w-7 text-stone-600 hover:text-[#b45309]"
-                                title="Chỉnh sửa định lượng"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDeleteLine(line.id, line.ingredientName)}
-                                className="h-7 w-7 text-stone-400 hover:text-rose-600"
-                                title="Xóa khỏi công thức"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                          <TableHead className="w-24 pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                            Thao tác
+                          </TableHead>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                  <TableFooter className="bg-[#fdf0d5]/40 font-heading">
-                    <TableRow>
-                      <TableCell colSpan={3} className="font-semibold text-[#92400e]">
-                        Tổng cộng một suất ({activeVariant.optionName}):
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-[#92400e]">
-                        {formatTotals(activeVariant.totalsPerGuest)}
-                      </TableCell>
-                      {scaled && (
-                        <TableCell className="text-right font-bold text-[#92400e]">
-                          {formatTotals(activeVariant.totalsForGuests)}
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right text-xs font-heading text-muted-foreground">
-                        Giá vốn món:
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-[#b45309] tabular-nums">
-                        {formatVND(activeDishCost)}
-                      </TableCell>
-                      {scaled && (
-                        <TableCell className="text-right font-bold text-[#92400e] tabular-nums">
-                          {formatVND(activeDishCost * guests)}
-                        </TableCell>
-                      )}
-                      <TableCell />
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
+                      </TableHeader>
+
+                      <TableBody>
+                        {activeVariant.lines.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={scaled ? 9 : 7}
+                              className="py-10 text-center text-sm text-muted-foreground"
+                            >
+                              Chưa có nguyên liệu nào trong công thức món này. Bấm &ldquo;Thêm nguyên liệu vào món&rdquo; để bắt đầu.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          activeVariant.lines.map((line, idx) => (
+                            <TableRow
+                              key={line.id}
+                              className="border-b border-stone-200/80 bg-[#fffdf8] transition-colors hover:bg-[#fdf0d5]/30"
+                            >
+                              <TableCell className="pl-4 text-center text-xs tabular-nums text-stone-500">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="font-heading font-semibold text-[#292524]">
+                                <div>
+                                  <span>{line.ingredientName}</span>
+                                  {line.prepNote && (
+                                    <span className="block text-[10.5px] font-normal italic text-muted-foreground">
+                                      {line.prepNote}
+                                    </span>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-xs text-stone-600">
+                                {INGREDIENT_GROUP_LABELS[line.group] ?? line.group}
+                              </TableCell>
+                              <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-[#292524]">
+                                {formatQty(line.qtyPerGuest, line.unit)}
+                              </TableCell>
+                              {scaled && (
+                                <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-[#7c2d12]">
+                                  {formatQty(line.qtyTotal, line.unit)}
+                                </TableCell>
+                              )}
+                              <TableCell className="text-right text-xs tabular-nums text-stone-600">
+                                {line.defaultImportPrice > 0
+                                  ? `${formatVND(line.defaultImportPrice)}/${line.unit === "ml" ? "L" : "kg"}`
+                                  : "—"}
+                              </TableCell>
+                              <TableCell className="text-right font-heading font-semibold tabular-nums text-[#92400e]">
+                                {formatVND(Math.round((line.qtyPerGuest * (line.defaultImportPrice || 0)) / 1000))}
+                              </TableCell>
+                              {scaled && (
+                                <TableCell className="text-right font-heading font-bold tabular-nums text-[#7c2d12]">
+                                  {formatVND(Math.round((line.qtyTotal * (line.defaultImportPrice || 0)) / 1000))}
+                                </TableCell>
+                              )}
+                              <TableCell className="pr-4 text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setEditingLine({
+                                        id: line.id,
+                                        variantId: activeVariant.id,
+                                        ingredientId: line.ingredientId,
+                                        qtyPerGuest: line.qtyPerGuest,
+                                        unit: line.unit,
+                                        prepNote: line.prepNote || "",
+                                      });
+                                      setLineModalOpen(true);
+                                    }}
+                                    className="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-stone-300 text-stone-600 transition-colors hover:border-[#7c2d12] hover:text-[#7c2d12] cursor-pointer"
+                                    title="Chỉnh sửa định lượng"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteLine(line.id, line.ingredientName)}
+                                    className="inline-flex h-6 w-6 items-center justify-center rounded-sm border border-stone-300 text-stone-500 transition-colors hover:border-rose-700 hover:bg-rose-50 hover:text-rose-700 cursor-pointer"
+                                    title="Xóa khỏi công thức"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+
+                      <TableFooter className="border-t-2 border-[#7c2d12]/30 bg-[#f6efe0] font-heading">
+                        <TableRow>
+                          <TableCell colSpan={3} className="pl-4 font-bold text-[#292524]">
+                            Tổng cộng định lượng món ({activeVariant.optionName}):
+                          </TableCell>
+                          <TableCell className="text-right font-bold tabular-nums text-[#292524]">
+                            {formatTotals(activeVariant.totalsPerGuest)}
+                          </TableCell>
+                          {scaled && (
+                            <TableCell className="text-right font-bold tabular-nums text-[#7c2d12]">
+                              {formatTotals(activeVariant.totalsForGuests)}
+                            </TableCell>
+                          )}
+                          <TableCell className="text-right text-xs text-stone-600">
+                            Tổng giá vốn:
+                          </TableCell>
+                          <TableCell className="text-right font-bold tabular-nums text-[#92400e]">
+                            {formatVND(activeDishCost)}
+                          </TableCell>
+                          {scaled && (
+                            <TableCell className="text-right font-bold tabular-nums text-[#7c2d12]">
+                              {formatVND(activeDishCost * guests)}
+                            </TableCell>
+                          )}
+                          <TableCell />
+                        </TableRow>
+                      </TableFooter>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
         </>
       ) : viewMode === "food-cost" ? (
         /* ==================== VIEW: PHÂN TÍCH FOOD COST 33,5% ==================== */
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Card so sánh đối chiếu mục tiêu 33,5% */}
-          <Card className="border-border/80 bg-card shadow-xs">
-            <CardHeader className="border-b border-border/80 pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+            <CardHeader className="gap-2 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <CardTitle className="font-heading text-lg font-bold text-[#292524] flex items-center gap-2">
-                    <Calculator className="h-5 w-5 text-[#b45309]" />
-                    Đối chiếu Food Cost thực tế vs Mục tiêu 33,5%
+                  <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+                    <Calculator className="h-4 w-4 text-[#7c2d12]" />
+                    Đối chiếu Food Cost thực tế &amp; Mục tiêu 33,5%
                   </CardTitle>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Giá bán menu Tasting: {formatVND(MENU_SELLING_PRICE)} · Trần chi phí chuẩn: {formatVND(TARGET_FOOD_COST_VND)} / khách
+                    Giá bán menu Tasting: {formatVND(MENU_SELLING_PRICE)} · Trần chi phí chuẩn:{" "}
+                    {formatVND(TARGET_FOOD_COST_VND)} / khách
                   </p>
                 </div>
-                <Badge
+                <span
                   className={cn(
-                    "text-xs px-2.5 py-1 font-heading font-semibold self-start sm:self-auto",
+                    "self-start rounded-sm border px-2.5 py-1 font-heading text-xs font-semibold sm:self-auto",
                     actualFoodCostPct <= 33.5
-                      ? "bg-emerald-600 text-white"
-                      : "bg-amber-600 text-white"
+                      ? "border-emerald-700/30 bg-emerald-50 text-emerald-800"
+                      : "border-rose-700/30 bg-rose-50 text-rose-800",
                   )}
                 >
                   {actualFoodCostPct <= 33.5
                     ? `Đạt chuẩn tối ưu (${actualFoodCostPct}% ≤ 33,5%)`
                     : `Vượt ngưỡng mục tiêu (+${(actualFoodCostPct - 33.5).toFixed(1)}%)`}
-                </Badge>
+                </span>
               </div>
             </CardHeader>
-            <CardContent className="p-4 sm:p-5 space-y-4">
+
+            <CardContent className="space-y-4 p-4 sm:p-5">
               {/* Thanh tiến trình đo Food Cost */}
               <div>
-                <div className="flex justify-between text-xs font-semibold mb-1.5 text-stone-700">
-                  <span>Tỷ lệ giá vốn thực tế: <strong className="text-[#b45309]">{actualFoodCostPct}%</strong></span>
-                  <span>Mục tiêu chuẩn: <strong className="text-emerald-700">33,5%</strong></span>
+                <div className="mb-1.5 flex justify-between text-xs font-semibold text-stone-700">
+                  <span>
+                    Tỷ lệ giá vốn thực tế: <strong className="text-[#92400e]">{actualFoodCostPct}%</strong>
+                  </span>
+                  <span>
+                    Mục tiêu chuẩn: <strong className="text-emerald-800">33,5%</strong>
+                  </span>
                 </div>
-                <div className="h-3 w-full rounded-full bg-stone-100 overflow-hidden relative border border-border">
+                <div className="relative h-3 w-full overflow-hidden rounded-sm border border-stone-300 bg-[#f6efe0]">
                   <div
                     style={{ width: `${Math.min(100, (actualFoodCostPct / 50) * 100)}%` }}
                     className={cn(
                       "h-full transition-all duration-500",
-                      actualFoodCostPct <= 33.5 ? "bg-emerald-600" : "bg-amber-500"
+                      actualFoodCostPct <= 33.5 ? "bg-emerald-700" : "bg-[#7c2d12]",
                     )}
                   />
                   <div
                     style={{ left: `${(33.5 / 50) * 100}%` }}
-                    className="absolute top-0 bottom-0 w-0.5 bg-rose-600 z-10"
+                    className="absolute bottom-0 top-0 z-10 w-0.5 bg-rose-700"
                     title="Ngưỡng mục tiêu 33,5%"
                   />
                 </div>
               </div>
 
               {/* Bảng phân bổ cơ cấu 7 nhóm nguyên liệu */}
-              <div className="pt-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-600 mb-2">
+              <div className="pt-1">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-stone-600">
                   Cơ cấu giá vốn theo 7 nhóm nguyên liệu
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
                   {groupCostSummary.map((g) => (
-                    <div key={g.group} className="rounded-xl border border-border/70 bg-stone-50/50 p-2.5">
-                      <div className="text-[10.5px] font-medium text-stone-600 truncate">{g.label}</div>
-                      <div className="mt-1 font-heading text-sm font-bold text-[#92400e]">{formatVND(g.cost)}</div>
-                      <div className="mt-0.5 text-[10px] text-muted-foreground">{g.share}% tổng vốn</div>
+                    <div key={g.group} className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-2.5">
+                      <div className="truncate text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
+                        {g.label}
+                      </div>
+                      <div className="mt-1 font-heading text-sm font-bold tabular-nums text-[#92400e]">
+                        {formatVND(g.cost)}
+                      </div>
+                      <div className="mt-0.5 text-[10px] tabular-nums text-muted-foreground">
+                        {g.share}% tổng vốn
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1494,85 +1674,106 @@ export function AdminRecipes({
             </CardContent>
           </Card>
 
-          {/* Bảng xếp hạng giá vốn 7 món Tasting từ cao đến thấp */}
-          <Card className="border-border/80 bg-card shadow-xs">
-            <CardHeader className="border-b border-border/80 pb-3">
-              <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
-                <UtensilsCrossed className="h-4 w-4 text-[#b45309]" />
-                Bảng xếp hạng Giá vốn theo món ({bomData?.dishes?.length ?? 0} món)
+          {/* Bảng xếp hạng giá vốn các món Tasting */}
+          <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+            <CardHeader className="border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+              <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+                <UtensilsCrossed className="h-4 w-4 text-[#7c2d12]" />
+                Sổ phân tích Giá vốn theo món ({bomData?.dishes?.length ?? 0} món)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <Table className="min-w-[760px] font-heading">
                 <TableHeader>
-                  <TableRow className="border-border/80 bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                    <TableHead className="w-16 text-center">STT</TableHead>
-                    <TableHead>Tên món ăn</TableHead>
-                    <TableHead className="text-right">Giá vốn / suất</TableHead>
-                    <TableHead className="text-right">Tỷ trọng Food Cost</TableHead>
-                    <TableHead className="text-right">Giá vốn ca 42 khách</TableHead>
-                    <TableHead className="text-center w-28">Thao tác</TableHead>
+                  <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
+                    <TableHead className="w-20 pl-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Thứ tự
+                    </TableHead>
+                    <TableHead className="text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Tên món ăn
+                    </TableHead>
+                    <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Giá vốn / suất
+                    </TableHead>
+                    <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Tỷ trọng Food Cost
+                    </TableHead>
+                    <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Giá vốn ca 42 khách
+                    </TableHead>
+                    <TableHead className="w-28 pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                      Thao tác
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {!bomData?.dishes || bomData.dishes.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="py-12 text-center text-xs text-muted-foreground">
-                        Concept này đang để trống thực đơn, chưa có món ăn nào để phân tích food cost. Hãy thêm món ăn trước.
+                        Concept này đang để trống thực đơn, chưa có món ăn nào để phân tích Food Cost.
                       </TableCell>
                     </TableRow>
                   ) : (
                     bomData.dishes.map((dish) => {
-                    const cost = dishCostMap.get(dish.index) || 0;
-                    const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
-                    return (
-                      <TableRow key={dish.index} className="hover:bg-[#fffdf9]">
-                        <TableCell className="text-center font-bold text-[#b45309]">Món 0{dish.index}</TableCell>
-                        <TableCell className="font-medium text-[#292524]">
-                          <div>
-                            <span className="font-bold">{dish.name}</span>
-                            <span className="block text-[10.5px] text-muted-foreground">{dish.region}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right font-heading font-bold text-[#b45309]">
-                          {formatVND(cost)}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-stone-700">
-                          {share}%
-                        </TableCell>
-                        <TableCell className="text-right font-heading text-xs tabular-nums text-stone-600">
-                          {formatVND(cost * 42)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedDish(dish.index);
-                              setViewMode("recipes");
-                            }}
-                            className="h-7 text-xs border-[#b45309]/30 text-[#92400e] hover:bg-[#fdf0d5]"
-                          >
-                            Xem BOM
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }))}
+                      const cost = dishCostMap.get(dish.index) || 0;
+                      const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
+                      return (
+                        <TableRow
+                          key={dish.index}
+                          className="border-b border-stone-200/80 bg-[#fffdf8] transition-colors hover:bg-[#fdf0d5]/30"
+                        >
+                          <TableCell className="pl-4 text-center font-heading text-xs font-bold text-[#7c2d12]">
+                            Món 0{dish.index}
+                          </TableCell>
+                          <TableCell className="font-heading font-semibold text-[#292524]">
+                            <div>
+                              <span>{dish.name}</span>
+                              {dish.region && (
+                                <span className="ml-1.5 text-[11px] font-normal italic text-muted-foreground">
+                                  — {dish.region}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-[#92400e]">
+                            {formatVND(cost)}
+                          </TableCell>
+                          <TableCell className="text-right text-xs font-semibold tabular-nums text-stone-700">
+                            {share}%
+                          </TableCell>
+                          <TableCell className="text-right font-heading text-xs tabular-nums text-stone-600">
+                            {formatVND(cost * 42)}
+                          </TableCell>
+                          <TableCell className="pr-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedDish(dish.index);
+                                setViewMode("recipes");
+                                if (onNavigateTab) onNavigateTab("recipes");
+                              }}
+                              className="inline-flex h-6 items-center rounded-sm border border-stone-400 bg-transparent px-2 text-[10.5px] font-semibold text-stone-700 transition-colors hover:border-[#7c2d12] hover:bg-[#7c2d12] hover:text-[#fdf0d5] cursor-pointer"
+                            >
+                              Xem định lượng
+                            </button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
                 </TableBody>
-                <TableFooter className="bg-[#fdf0d5]/40 font-heading">
+                <TableFooter className="border-t-2 border-[#7c2d12]/30 bg-[#f6efe0] font-heading">
                   <TableRow>
-                    <TableCell colSpan={2} className="font-semibold text-[#92400e]">
+                    <TableCell colSpan={2} className="pl-4 font-bold text-[#292524]">
                       Tổng giá vốn thực đơn ({bomData?.dishes?.length ?? 0} món):
                     </TableCell>
-                    <TableCell className="text-right font-bold text-[#b45309]">
+                    <TableCell className="text-right font-bold tabular-nums text-[#92400e]">
                       {formatVND(totalFoodCost)}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-[#92400e]">
+                    <TableCell className="text-right font-bold tabular-nums text-[#7c2d12]">
                       {actualFoodCostPct}% menu
                     </TableCell>
-                    <TableCell className="text-right font-bold text-[#92400e]">
+                    <TableCell className="text-right font-bold tabular-nums text-[#7c2d12]">
                       {formatVND(shift42Cost)}
                     </TableCell>
                     <TableCell />

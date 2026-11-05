@@ -41,7 +41,6 @@ import { AdminWaitlist } from "./waitlist-manager";
 import { AdminSurveys } from "./surveys-view";
 import { AdminBookingSettingsView } from "./booking-settings-view";
 import { AdminRecipes } from "./recipes-view";
-import { AdminConceptsView } from "./concepts-view";
 import { AdminFoodCost } from "./food-cost-view";
 import { AdminInventory } from "./inventory-view";
 import { AdminWarehouseCost } from "./warehouse-cost-view";
@@ -116,19 +115,13 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
       {
         key: "inventory",
         label: "Tồn kho nguyên vật liệu",
-        description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
+        description: "Nhập hàng · Kiểm kê · Dự báo thiếu hụt",
         icon: Warehouse,
       },
       {
-        key: "concepts",
-        label: "Concept thực đơn",
-        description: "Quản lý Concept · Kế hoạch theo ngày",
-        icon: Sparkles,
-      },
-      {
         key: "recipes",
-        label: "Công thức món (BOM)",
-        description: "Bảng định lượng · 7 món Tasting",
+        label: "Concept & Công thức (BOM)",
+        description: "Quản lý Concept · Thiết kế món · Định lượng",
         icon: ChefHat,
       },
       {
@@ -546,11 +539,7 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {activeTab === "concepts" && (
-                <AdminConceptsView onNavigateTab={handleNavigateTab} />
-              )}
-
-              {(activeTab === "recipes" || activeTab === "food-cost") && (
+              {(activeTab === "recipes" || activeTab === "concepts" || activeTab === "food-cost") && (
                 <AdminRecipes
                   initialViewMode={activeTab === "food-cost" ? "food-cost" : "recipes"}
                   onNavigateTab={handleNavigateTab}
