@@ -76,6 +76,7 @@ import {
 } from "./admin-shared";
 import { formatCheckinTime, formatLongDate, formatVND } from "@/lib/tram/format";
 import { parseReservationDishes } from "@/lib/tram/dishes";
+import { getPersonalizedVoucherForCustomer } from "@/lib/tram/vouchers";
 import { SLOT_LABELS, PRICES } from "@/lib/tram/constants";
 import {
   LOYALTY_TIERS,
@@ -1505,6 +1506,79 @@ export function AdminCustomers() {
                     ))}
                   </div>
                 </div>
+
+                {/* FR-38: Phân tích Gu Ẩm Thực & Gợi Ý Combo Giữ Chân Thực Khách */}
+                {(() => {
+                  const pastPairings = detail.reservations.map((r) => r.pairing);
+                  const teaCount = pastPairings.filter((p) => p === "TEA").length;
+                  const wineCount = pastPairings.filter((p) => p === "WINE").length;
+                  const personalizedVoucher = getPersonalizedVoucherForCustomer({
+                    visits: detail.visits,
+                    pastPairings,
+                  });
+
+                  const tasteLabel =
+                    teaCount > 0 && teaCount >= wineCount
+                      ? "🍵 Gu Thanh Nhã (Ưa chuộng Trà & Bánh tráng miệng)"
+                      : wineCount > 0
+                        ? "🍷 Gu Sành Vang (Ưa chuộng Wine Pairing thượng hạng)"
+                        : "🍽️ Gu Tasting Menu Chuẩn vị";
+
+                  return (
+                    <div className="rounded-xl border border-amber-300 bg-gradient-to-br from-amber-50/80 via-[#fffdf9] to-amber-50/40 p-3.5 space-y-2.5 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#92400e]">
+                          <Sparkles className="h-4 w-4 text-[#b45309]" />
+                          Phân tích Gu Ẩm Thực &amp; Gợi Ý Voucher Giữ Chân (FR-38)
+                        </span>
+                        <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-bold">
+                          Khách cũ: Ưu đãi 15%
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-stone-700">
+                        <span className="font-semibold text-stone-900">{tasteLabel}</span>
+                        <span className="text-stone-400">·</span>
+                        <span className="text-stone-500">
+                          Đã dùng: {wineCount} lần Rượu, {teaCount} lần Trà
+                        </span>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-2.5 border border-amber-200/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-stone-900 text-xs flex items-center gap-1.5">
+                            <span>Voucher đề xuất: {personalizedVoucher.name}</span>
+                            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-[#92400e] font-mono text-[10px] font-extrabold">
+                              {personalizedVoucher.code}
+                            </code>
+                          </p>
+                          <p className="text-[11px] text-stone-600 truncate">
+                            {personalizedVoucher.description}
+                          </p>
+                          {personalizedVoucher.giftDescription && (
+                            <p className="text-[10.5px] text-amber-800 font-semibold pt-0.5">
+                              🎁 {personalizedVoucher.giftDescription}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            setReEngageCustomer({
+                              customer: detail,
+                              days: getDaysSinceLastVisit(detail.lastVisit),
+                            });
+                          }}
+                          className="h-8 rounded-full bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e] gap-1 shrink-0 shadow-xs"
+                        >
+                          <Send className="h-3 w-3" />
+                          Gửi mời lại ngay
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Lịch sử đặt bàn & Tích điểm từng bữa ăn */}
                 <div className="space-y-3">

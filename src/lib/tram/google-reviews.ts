@@ -1,5 +1,3 @@
-// FR-24: Dữ liệu mô phỏng Google Maps Places API & Đồng bộ đánh giá cho TRẦM Reserve
-// FR-23: Quản lý lời mời đánh giá Google Maps qua SMS/Zalo theo SĐT đặt cọc
 
 import type { GoogleMapsReviewDTO, GoogleMapsSyncStats } from "./types";
 
@@ -29,8 +27,6 @@ export const INITIAL_GOOGLE_MAPS_STATS: GoogleMapsSyncStats = {
   lastSyncedAt: new Date().toISOString(),
 };
 
-// Danh sách đánh giá Google Maps mẫu đã đồng bộ (mô phỏng Places API)
-// Nhận diện theo SĐT đặt cọc để có thể tặng 200 điểm tri ân (FR-23 & FR-24)
 export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
   {
     id: "g_rev_001",
