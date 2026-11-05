@@ -97,7 +97,8 @@ import {
 import type { BomResponse } from "@/lib/tram/recipes-server";
 import { toast } from "sonner";
 import { formatPercent, formatVND } from "@/lib/tram/format";
-import * as XLSX from "xlsx";
+import { useConceptLifecycle } from "@/hooks/tram/use-concept-lifecycle";
+import { emitTramEvent } from "@/lib/tram/events";
 
 // Màu nhận diện từng nhóm nguyên liệu
 const GROUP_STYLES: Record<IngredientGroup, { badge: string; dot: string }> = {
@@ -224,30 +225,38 @@ export function AdminRecipes({
   const [submittingLine, setSubmittingLine] = useState(false);
 
   // Modal Nhập hàng vào kho (Goods Receipt)
-  // Quản lý Concept Thực đơn đa tuần / đa mùa (Multi-Concept)
-  const [concepts, setConcepts] = useState<any[]>([]);
-  const [activeConceptId, setActiveConceptId] = useState<string>("concept-2");
-  const [selectedConceptId, setSelectedConceptId] = useState<string>("concept-2");
-  const [createConceptOpen, setCreateConceptOpen] = useState(initialOpenConceptModal);
-  const [editConceptOpen, setEditConceptOpen] = useState(false);
-  const [conceptToEdit, setConceptToEdit] = useState<any | null>(null);
-  const [manageConceptsOpen, setManageConceptsOpen] = useState(false);
-  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
-  const [conceptToDelete, setConceptToDelete] = useState<any | null>(null);
-  const [deletingConcept, setDeletingConcept] = useState(false);
+  // Custom Hook: Quản lý vòng đời Concept Thực đơn đa tuần (Multi-Concept)
+  const {
+    concepts,
+    activeConceptId,
+    setActiveConceptId,
+    selectedConceptId,
+    setSelectedConceptId,
+    createConceptOpen,
+    setCreateConceptOpen,
+    editConceptOpen,
+    setEditConceptOpen,
+    conceptToEdit,
+    setConceptToEdit,
+    manageConceptsOpen,
+    setManageConceptsOpen,
+    deleteAlertOpen,
+    setDeleteAlertOpen,
+    conceptToDelete,
+    setConceptToDelete,
+    deletingConcept,
+    activatingConcept,
+    setActivatingConcept,
+    loadConcepts,
+    notifyConceptActivated,
+    handleConfirmDeleteConcept: confirmDeleteConceptHook,
+  } = useConceptLifecycle(initialOpenConceptModal);
 
   useEffect(() => {
     if (initialViewMode) {
       setViewMode(initialViewMode);
     }
   }, [initialViewMode]);
-
-  useEffect(() => {
-    if (initialOpenConceptModal) {
-      setCreateConceptOpen(true);
-    }
-  }, [initialOpenConceptModal]);
-  const [activatingConcept, setActivatingConcept] = useState(false);
 
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
@@ -296,24 +305,6 @@ export function AdminRecipes({
     return "Kế hoạch mới";
   };
 
-  // Tải danh sách các Concept thực đơn
-  const loadConcepts = useCallback(async () => {
-    try {
-      const res = await fetch("/api/recipes/concepts");
-      if (res.ok) {
-        const data = await res.json();
-        setConcepts(data.concepts || []);
-        if (data.activeId) setActiveConceptId(data.activeId);
-      }
-    } catch (err) {
-      console.error("Error loading concepts:", err);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadConcepts();
-  }, [loadConcepts]);
-
   // Tải dữ liệu từ API theo Concept được chọn
   const loadBom = useCallback(
     async (g: number = guests, silent: boolean = false, cid?: string) => {
@@ -341,30 +332,9 @@ export function AdminRecipes({
   }, [guests, selectedConceptId, loadBom]);
 
   const handleConfirmDeleteConcept = async () => {
-    if (!conceptToDelete) return;
-    try {
-      setDeletingConcept(true);
-      const res = await fetch("/api/recipes/concepts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", conceptId: conceptToDelete.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi khi xóa Concept.");
-
-      toast.success(data.message || `Đã xóa "${conceptToDelete.name}" thành công!`);
-      setDeleteAlertOpen(false);
-      setConceptToDelete(null);
-
-      const nextId = activeConceptId;
-      setSelectedConceptId(nextId);
-      await loadConcepts();
-      await loadBom(guests, true, nextId);
-    } catch (err: any) {
-      toast.error(err.message || "Không thể xóa Concept.");
-    } finally {
-      setDeletingConcept(false);
-    }
+    await confirmDeleteConceptHook((nextId) => {
+      void loadBom(guests, true, nextId);
+    });
   };
 
   const handleSetActiveConcept = async (conceptId: string) => {
@@ -379,6 +349,7 @@ export function AdminRecipes({
       if (!res.ok) throw new Error(data.error || "Lỗi khi kích hoạt concept.");
       toast.success(data.message || "Đã kích hoạt Concept làm thực đơn chính thức!");
       setActiveConceptId(conceptId);
+      notifyConceptActivated(conceptId);
       await loadConcepts();
       await loadBom(guests, true, conceptId);
     } catch (err: any) {
@@ -572,6 +543,8 @@ export function AdminRecipes({
     setPreviewRows([]);
 
     try {
+      // Dynamic import: chỉ tải thư viện xlsx khi người dùng chọn file Excel
+      const XLSX = await import("xlsx");
       const arrayBuffer = await file.arrayBuffer();
       const wb = XLSX.read(arrayBuffer, { type: "array" });
       const sheetName = wb.SheetNames.includes("CongThuc_BOM") ? "CongThuc_BOM" : wb.SheetNames[0];
@@ -1490,7 +1463,33 @@ export function AdminRecipes({
                               </TableCell>
                               <TableCell className="font-heading font-semibold text-[#292524]">
                                 <div>
-                                  <span>{line.ingredientName}</span>
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span>{line.ingredientName}</span>
+                                    {(() => {
+                                      const stockInfo = bomData?.allIngredients.find(
+                                        (i) => i.id === line.ingredientId,
+                                      );
+                                      if (!stockInfo) return null;
+                                      const isOut = stockInfo.currentStock <= 0;
+                                      const isLow =
+                                        !isOut && stockInfo.currentStock <= stockInfo.minStock;
+                                      return (
+                                        <span
+                                          className={cn(
+                                            "inline-flex items-center rounded-sm border px-1.5 py-0.2 font-mono text-[10px] font-medium",
+                                            isOut
+                                              ? "border-rose-300 bg-rose-50 text-rose-700"
+                                              : isLow
+                                                ? "border-amber-300 bg-amber-50 text-amber-800"
+                                                : "border-emerald-200 bg-emerald-50/70 text-emerald-800",
+                                          )}
+                                          title="Tồn kho thực tế hiện tại"
+                                        >
+                                          Kho: {formatQty(stockInfo.currentStock, stockInfo.unit as IngredientUnit)}
+                                        </span>
+                                      );
+                                    })()}
+                                  </div>
                                   {line.prepNote && (
                                     <span className="block text-[10.5px] font-normal italic text-muted-foreground">
                                       {line.prepNote}

@@ -115,6 +115,10 @@ import {
 } from "./checkin-reward-dialog";
 import { SurveyDialog } from "../survey/survey-dialog";
 import { TableCourseTracker } from "./table-course-tracker";
+import { useBookingFilters } from "@/hooks/tram/use-booking-filters";
+import { useFloorplanData } from "@/hooks/tram/use-floorplan-data";
+import { useReservationFormModal } from "@/hooks/tram/use-reservation-form";
+import { emitTramEvent } from "@/lib/tram/events";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -218,51 +222,49 @@ export function AdminBookingUnifiedView({
   onNavigateToSettings,
   targetDate,
 }: BookingUnifiedViewProps) {
-  // 1. Trạng thái bộ lọc toàn giao diện (Global Filter State)
-  const [date, setDate] = useState(targetDate || today);
-
-  useEffect(() => {
-    if (targetDate) setDate(targetDate);
-  }, [targetDate]);
-  const [slotFilter, setSlotFilter] = useState<"ALL" | "SLOT_1730" | "SLOT_1945">("ALL");
-  const [mapSlot, setMapSlot] = useState<Slot>("SLOT_1945");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Nạp cấu hình chương trình để hiển thị trạng thái ngày giống trải nghiệm khách hàng
-  const { data: bookingSettings } = useJson<BookingProgramSettings>("/api/booking-settings");
-
-  const selectedDateCheck = useMemo(() => {
-    if (!bookingSettings) return { allowed: true };
-    return checkDateBookingAllowed(date, bookingSettings, today);
-  }, [date, bookingSettings, today]);
-
-  // Đồng bộ slot sơ đồ bàn khi người dùng chọn khung giờ cụ thể
-  const activeTableSlot: Slot = slotFilter === "ALL" ? mapSlot : slotFilter;
-
-  // 2. Fetch dữ liệu Sơ đồ bàn (theo ngày & activeTableSlot)
+  // 1. Custom Hook: Bộ lọc toàn giao diện (Global Filter State)
   const {
-    data: tableData,
-    loading: loadingTables,
-    refresh: refreshTables,
-  } = useJson<AvailResp>(
-    `/api/availability?date=${date}&slot=${activeTableSlot}&partySize=2&admin=1`,
-  );
+    date,
+    setDate,
+    slotFilter,
+    setSlotFilter,
+    mapSlot,
+    setMapSlot,
+    statusFilter,
+    setStatusFilter,
+    searchQuery,
+    setSearchQuery,
+    highlightedTableCode,
+    setHighlightedTableCode,
+    bookingSettings,
+    selectedDateCheck,
+    activeTableSlot,
+  } = useBookingFilters(today, targetDate);
 
-  // 3. Fetch dữ liệu Danh sách đặt bàn (theo ngày)
+  // 2. Custom Hook: Dữ liệu Sơ đồ 10 bàn & Danh sách đặt bàn đồng bộ
   const {
-    data: listData,
-    loading: loadingList,
-    error: listError,
-    refresh: refreshList,
-  } = useJson<ListResponse>(`/api/reservations?date=${date}`);
-
-  // Hàm refresh đồng bộ cả sơ đồ bàn và danh sách
-  const handleRefreshAll = useCallback(() => {
-    refreshTables();
-    refreshList();
-    toast.success("Đã làm mới dữ liệu đặt bàn.");
-  }, [refreshTables, refreshList]);
+    tableData,
+    loadingTables,
+    refreshTables,
+    listData,
+    loadingList,
+    listError,
+    refreshList,
+    handleRefreshAll,
+    allReservations,
+    DEFAULT_TABLE_DEFS,
+    tables,
+    filteredReservations,
+    stats,
+    tableCounts,
+  } = useFloorplanData({
+    date,
+    activeTableSlot,
+    slotFilter,
+    statusFilter,
+    searchQuery,
+    highlightedTableCode,
+  });
 
   // Các dialog và tác vụ thao tác
   const [selectedTable, setSelectedTable] = useState<TableAvailability | null>(null);
@@ -271,157 +273,63 @@ export function AdminBookingUnifiedView({
   const [acting, setActing] = useState(false);
   const [rewardData, setRewardData] = useState<CheckinLoyaltyReward | null>(null);
   const [surveyTarget, setSurveyTarget] = useState<ReservationDTO | null>(null);
-
-  // Quản lý Modal Đặt bàn mới (Admin Create)
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [createTableCode, setCreateTableCode] = useState<string>("A01");
-  const [createDate, setCreateDate] = useState(today);
-  const [createSlot, setCreateSlot] = useState<Slot>("SLOT_1730");
-  const [createPartySize, setCreatePartySize] = useState<number>(2);
-  const [createCustomerName, setCreateCustomerName] = useState("");
-  const [createPhone, setCreatePhone] = useState("");
-  const [createEmail, setCreateEmail] = useState("");
-  const [createSource, setCreateSource] = useState<"PHONE" | "ZALO" | "WEB">("PHONE");
-  const [createPairing, setCreatePairing] = useState<Pairing>("NONE");
-  const [createAllergy, setCreateAllergy] = useState("");
-  const [createNotes, setCreateNotes] = useState("");
-  const [creating, setCreating] = useState(false);
-
-  // Quản lý Modal Sửa đặt bàn (Admin Edit)
-  const [editReservation, setEditReservation] = useState<ReservationDTO | null>(null);
-  const [editTableCode, setEditTableCode] = useState("");
-  const [editSlot, setEditSlot] = useState<Slot>("SLOT_1730");
-  const [editPartySize, setEditPartySize] = useState<number>(2);
-  const [editCustomerName, setEditCustomerName] = useState("");
-  const [editPhone, setEditPhone] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editPairing, setEditPairing] = useState<Pairing>("NONE");
-  const [editStatus, setEditStatus] = useState<ReservationStatus>("CONFIRMED");
-  const [editAllergy, setEditAllergy] = useState("");
-  const [editNotes, setEditNotes] = useState("");
-  const [savingEdit, setSavingEdit] = useState(false);
-
-  // Quản lý Xóa mềm (Soft Delete)
   const [softDeleteTarget, setSoftDeleteTarget] = useState<ReservationDTO | null>(null);
 
-  const allReservations = useMemo(() => listData?.reservations ?? [], [listData]);
-
-  // Danh sách 10 bàn của TRẦM (A01–A05 & B01–B05) — B11 & B12 đã bỏ
-  const DEFAULT_TABLE_DEFS = useMemo(
-    () => [
-      { id: "tbl_A01", code: "A01", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_A02", code: "A02", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_A03", code: "A03", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_A04", code: "A04", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_A05", code: "A05", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_B01", code: "B01", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B02", code: "B02", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B03", code: "B03", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B04", code: "B04", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B05", code: "B05", seats: 4, zone: "Khu trung tâm" },
-    ],
-    []
-  );
-
-  // Ghép nối thông tin bàn với các đặt bàn của ca hiện tại (lọc bỏ B11 và B12)
-  const tables: TableAvailability[] = useMemo(() => {
-    let sourceTables: TableAvailability[] = [];
-
-    if (tableData?.tables && tableData.tables.length > 0) {
-      sourceTables = tableData.tables.map((t) => {
-        // Đảm bảo reservation được liên kết nếu có từ allReservations
-        if (!t.reservation) {
-          const matched = allReservations.find(
-            (r) =>
-              (r.table.id === t.table.id || r.table.code === t.table.code) &&
-              r.slot === activeTableSlot &&
-              r.status !== "CANCELLED"
-          );
-          if (matched) {
-            return {
-              ...t,
-              available: false,
-              reason: "BOOKED" as const,
-              reservation: matched,
-            };
-          }
-        }
-        return t;
-      });
-    } else {
-      // Fallback tức thì nếu tableData chưa tải xong
-      sourceTables = DEFAULT_TABLE_DEFS.map((tbl) => {
-        const matched = allReservations.find(
-          (r) =>
-            r.table.code === tbl.code &&
-            r.slot === activeTableSlot &&
-            r.status !== "CANCELLED"
-        );
-        return {
-          table: tbl,
-          available: !matched,
-          reason: matched ? ("BOOKED" as const) : null,
-          reservation: matched ?? null,
-        };
-      });
-    }
-
-    // Lọc bỏ bàn B11 và B12
-    return sourceTables.filter(
-      (t) => t.table.code !== "B11" && t.table.code !== "B12"
-    );
-  }, [tableData, allReservations, activeTableSlot, DEFAULT_TABLE_DEFS]);
-
-  // Lọc danh sách đặt bàn theo bộ lọc toàn giao diện
-  const filteredReservations = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return allReservations.filter((r) => {
-      // Lọc khung giờ
-      if (slotFilter !== "ALL" && r.slot !== slotFilter) return false;
-      // Lọc trạng thái
-      if (statusFilter !== "ALL" && r.status !== statusFilter) return false;
-      // Lọc tìm kiếm
-      if (q) {
-        const matchName = r.customerName.toLowerCase().includes(q);
-        const matchPhone = r.phone.includes(q);
-        const matchCode = r.code.toLowerCase().includes(q);
-        const matchTable = r.table.code.toLowerCase().includes(q);
-        if (!matchName && !matchPhone && !matchCode && !matchTable) return false;
-      }
-      return true;
-    });
-  }, [allReservations, slotFilter, statusFilter, searchQuery]);
-
-  // Thống kê nhanh
-  const stats = useMemo(() => {
-    const valid = allReservations.filter((r) => r.status !== "CANCELLED");
-    const seatedCount = valid.filter((r) => r.status === "SEATED").length;
-    const totalSeats = valid.reduce((sum, r) => sum + r.partySize, 0);
-    const totalDeposit = valid.reduce((sum, r) => sum + r.depositAmount, 0);
-    return {
-      totalCount: allReservations.length,
-      validCount: valid.length,
-      seatedCount,
-      totalSeats,
-      totalDeposit,
-    };
-  }, [allReservations]);
-
-  // Thống kê 4 trạng thái bàn trên sơ đồ (Trống, Đã đặt, Đã đến, Không đến)
-  const tableCounts = useMemo(() => {
-    let empty = 0;
-    let booked = 0;
-    let seated = 0;
-    let noShow = 0;
-    for (const t of tables) {
-      const state = tableState(t);
-      if (state === "EMPTY") empty++;
-      else if (state === "BOOKED") booked++;
-      else if (state === "SEATED") seated++;
-      else if (state === "NO_SHOW") noShow++;
-    }
-    return { empty, booked, seated, noShow, total: tables.length };
-  }, [tables]);
+  // 3. Custom Hook (useReducer): Quản lý Modal Tạo mới & Sửa đặt bàn (thay 24 useState rời)
+  const {
+    isCreateOpen,
+    setIsCreateOpen,
+    createTableCode,
+    setCreateTableCode,
+    createDate,
+    setCreateDate,
+    createSlot,
+    setCreateSlot,
+    createPartySize,
+    setCreatePartySize,
+    createCustomerName,
+    setCreateCustomerName,
+    createPhone,
+    setCreatePhone,
+    createEmail,
+    setCreateEmail,
+    createSource,
+    setCreateSource,
+    createPairing,
+    setCreatePairing,
+    createAllergy,
+    setCreateAllergy,
+    createNotes,
+    setCreateNotes,
+    creating,
+    setCreating,
+    editReservation,
+    setEditReservation,
+    editTableCode,
+    setEditTableCode,
+    editSlot,
+    setEditSlot,
+    editPartySize,
+    setEditPartySize,
+    editCustomerName,
+    setEditCustomerName,
+    editPhone,
+    setEditPhone,
+    editEmail,
+    setEditEmail,
+    editPairing,
+    setEditPairing,
+    editStatus,
+    setEditStatus,
+    editAllergy,
+    setEditAllergy,
+    editNotes,
+    setEditNotes,
+    savingEdit,
+    setSavingEdit,
+    openCreate,
+    openEdit,
+  } = useReservationFormModal(today);
 
   // Thao tác Check-in
   async function handleCheckin(id: string) {
@@ -445,6 +353,7 @@ export function AdminBookingUnifiedView({
         setDetailReservation(body.reservation);
       }
       setSelectedTable(null);
+      emitTramEvent({ type: "RESERVATION_CHANGED", date });
       refreshTables();
       refreshList();
     } catch {
@@ -455,35 +364,22 @@ export function AdminBookingUnifiedView({
   }
 
   // Mở form sửa đặt bàn và điền sẵn dữ liệu
-  const openEditModal = useCallback((res: ReservationDTO) => {
-    setEditReservation(res);
-    setEditTableCode(res.table.code);
-    setEditSlot(res.slot);
-    setEditPartySize(res.partySize);
-    setEditCustomerName(res.customerName);
-    setEditPhone(res.phone);
-    setEditEmail(res.email || "");
-    setEditPairing(res.pairing);
-    setEditStatus(res.status);
-    setEditAllergy(res.allergy || "");
-    setEditNotes(res.notes || "");
-  }, []);
+  const openEditModal = useCallback(
+    (res: ReservationDTO) => {
+      openEdit(res);
+    },
+    [openEdit],
+  );
 
   // Mở form tạo đặt bàn mới
-  const openCreateModal = useCallback((tableCode?: string) => {
-    setCreateDate(date);
-    setCreateSlot(activeTableSlot);
-    setCreateTableCode(tableCode || (tables.find(t => tableState(t) === "EMPTY")?.table.code ?? "A01"));
-    setCreatePartySize(2);
-    setCreateCustomerName("");
-    setCreatePhone("");
-    setCreateEmail("");
-    setCreateSource("PHONE");
-    setCreatePairing("NONE");
-    setCreateAllergy("");
-    setCreateNotes("");
-    setIsCreateOpen(true);
-  }, [date, activeTableSlot, tables]);
+  const openCreateModal = useCallback(
+    (tableCode?: string) => {
+      const fallbackTable =
+        tableCode || (tables.find((t) => tableState(t) === "EMPTY")?.table.code ?? "A01");
+      openCreate(date, activeTableSlot, fallbackTable);
+    },
+    [date, activeTableSlot, tables, openCreate],
+  );
 
   // Thao tác Tạo đặt bàn mới
   async function handleCreateReservation(e: React.FormEvent) {
@@ -522,6 +418,7 @@ export function AdminBookingUnifiedView({
       }
       toast.success(`Đặt bàn thành công cho khách ${createCustomerName}! Mã: ${body.reservation.code}`);
       setIsCreateOpen(false);
+      emitTramEvent({ type: "RESERVATION_CHANGED", date: createDate });
       refreshTables();
       refreshList();
     } catch {
@@ -575,6 +472,7 @@ export function AdminBookingUnifiedView({
       if (selectedTable?.reservation?.id === editReservation.id) {
         setSelectedTable(null);
       }
+      emitTramEvent({ type: "RESERVATION_CHANGED", date });
       refreshTables();
       refreshList();
     } catch {
@@ -939,6 +837,14 @@ export function AdminBookingUnifiedView({
                           <span className={cn("text-xs sm:text-sm md:text-base font-extrabold leading-none tracking-tight select-none", textStyle)}>
                             {t.table.code}
                           </span>
+                          {res?.allergy && (
+                            <span
+                              title={`Dị ứng: ${res.allergy}`}
+                              className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-rose-600 text-[9px] font-black text-white shadow-xs"
+                            >
+                              !
+                            </span>
+                          )}
                           {res && (
                             <span className="max-w-[85%] truncate text-[8px] sm:text-[9px] font-semibold leading-none opacity-95 mt-0.5">
                               {res.customerName.split(" ").slice(-1)[0]}
@@ -1318,6 +1224,43 @@ export function AdminBookingUnifiedView({
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Thanh lọc nhanh theo từng bàn (2-way sync Sơ đồ <-> Danh sách) */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+            <span className="mr-1 font-semibold text-stone-600">Lọc nhanh theo bàn:</span>
+            <button
+              type="button"
+              onClick={() => setHighlightedTableCode(null)}
+              className={cn(
+                "rounded-md border px-2.5 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
+                !highlightedTableCode
+                  ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                  : "border-stone-300 bg-white text-stone-700 hover:border-[#7c2d12]",
+              )}
+            >
+              Tất cả 10 bàn
+            </button>
+            {tables.map((t) => {
+              const isActive = highlightedTableCode === t.table.code;
+              return (
+                <button
+                  key={`quick-filter-${t.table.code}`}
+                  type="button"
+                  onClick={() =>
+                    setHighlightedTableCode(isActive ? null : t.table.code)
+                  }
+                  className={cn(
+                    "rounded-md border px-2 py-1 font-mono text-xs font-semibold transition-colors cursor-pointer",
+                    isActive
+                      ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                      : "border-stone-300 bg-white text-stone-700 hover:border-[#7c2d12]",
+                  )}
+                >
+                  {t.table.code}
+                </button>
+              );
+            })}
           </div>
         </CardHeader>
         <CardContent className="p-0">

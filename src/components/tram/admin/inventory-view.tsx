@@ -67,6 +67,8 @@ import {
   type InventoryItem,
 } from "@/lib/tram/inventory";
 import { ShiftPurchaseCard } from "./shift-purchase-card";
+import { useInventoryOptimisticSync } from "@/hooks/tram/use-inventory-sync";
+import { useDemandForecastEngine } from "@/hooks/tram/use-demand-forecast";
 
 const GROUP_STYLES: Record<
   IngredientGroup,
@@ -232,14 +234,26 @@ export function AdminInventory({
   hideTitleHeader?: boolean;
   today?: string | null;
 } = {}) {
-  const [loaded, setLoaded] = useState(false);
-  const [savedStock, setSavedStock] = useState<Record<string, number>>({});
-  const [draftStock, setDraftStock] = useState<Record<string, number>>({});
-  const [savedReorder, setSavedReorder] = useState<Record<string, number>>({});
-  const [draftReorder, setDraftReorder] = useState<Record<string, number>>({});
-  const [priceOverrides, setPriceOverrides] = useState<Record<string, number>>({});
-  const [extraIngredients, setExtraIngredients] = useState<ExtraInventoryIngredient[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
+  // 1. Custom Hook: Đồng bộ tồn kho Optimistic + Debounce 380ms + Mô phỏng What-if giá nhập
+  const {
+    loaded,
+    savedStock,
+    setSavedStock,
+    draftStock,
+    setDraftStock,
+    savedReorder,
+    setSavedReorder,
+    draftReorder,
+    setDraftReorder,
+    priceOverrides,
+    setPriceOverrides,
+    isSaving,
+    setIsSaving,
+    fetchSnapshot,
+    foodCostKpi,
+    handlePriceChange,
+    report,
+  } = useInventoryOptimisticSync();
 
   const [scope, setScope] = useState<StockScope>("ALL");
   const [selectedGroup, setSelectedGroup] = useState<IngredientGroup | "ALL">("ALL");
@@ -247,159 +261,12 @@ export function AdminInventory({
   const [isDispatching, setIsDispatching] = useState(false);
   const [stockInOpen, setStockInOpen] = useState(false);
   const [stockInTargetId, setStockInTargetId] = useState<string | undefined>(undefined);
-
-  const pendingSyncRef = useRef(false);
-  const isPendingSync = useMemo(
-    () =>
-      loaded &&
-      (!areMapsEqual(draftStock, savedStock) ||
-        !areMapsEqual(draftReorder, savedReorder)),
-    [loaded, draftStock, savedStock, draftReorder, savedReorder],
-  );
-
-  useEffect(() => {
-    pendingSyncRef.current = isPendingSync || isSaving;
-  }, [isPendingSync, isSaving]);
-
-  // Tải trạng thái tồn kho & đơn giá nhập kho hiệu lực từ server
-  const fetchSnapshot = useCallback((isInitial: boolean) => {
-    fetch(`/api/inventory?_t=${Date.now()}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return;
-        if (!isInitial && pendingSyncRef.current) return;
-        const nextStock =
-          data.stockOverrides && typeof data.stockOverrides === "object"
-            ? (data.stockOverrides as Record<string, number>)
-            : {};
-        const nextPrices =
-          data.priceOverrides && typeof data.priceOverrides === "object"
-            ? (data.priceOverrides as Record<string, number>)
-            : {};
-        const nextReorder =
-          data.reorderOverrides && typeof data.reorderOverrides === "object"
-            ? (data.reorderOverrides as Record<string, number>)
-            : {};
-        setSavedStock(nextStock);
-        setDraftStock(nextStock);
-        setSavedReorder(nextReorder);
-        setDraftReorder(nextReorder);
-        setPriceOverrides(nextPrices);
-        if (Array.isArray(data.extraIngredients)) {
-          setExtraIngredients(data.extraIngredients as ExtraInventoryIngredient[]);
-        }
-        setLoaded(true);
-      })
-      .catch(() => {
-        setLoaded(true);
-      });
-  }, []);
-
-  useEffect(() => {
-    fetchSnapshot(true);
-
-    const onWindowFocus = () => {
-      if (!pendingSyncRef.current) fetchSnapshot(false);
-    };
-    window.addEventListener("focus", onWindowFocus);
-
-    return () => {
-      window.removeEventListener("focus", onWindowFocus);
-    };
-  }, [fetchSnapshot]);
+  const [workspaceSection, setWorkspaceSection] = useState<"ALL" | "LEDGER" | "FORECAST" | "SHIFT">("ALL");
 
   const handleStockInSuccess = useCallback(() => {
     fetchSnapshot(true);
     toast.success("Đã ghi nhận phiếu nhập kho và cập nhật số lượng tồn");
   }, [fetchSnapshot]);
-
-  // Tự động đồng bộ tồn kho & mức đặt lại lên server mỗi khi chỉnh sửa (liên tục, debounce 380ms)
-  useEffect(() => {
-    if (
-      !loaded ||
-      (areMapsEqual(draftStock, savedStock) && areMapsEqual(draftReorder, savedReorder))
-    )
-      return;
-
-    let cancelled = false;
-    const stockSnapshot = draftStock;
-    const reorderSnapshot = draftReorder;
-    const timer = window.setTimeout(() => {
-      setIsSaving(true);
-      fetch("/api/inventory", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          stock: stockSnapshot,
-          reorderPoints: reorderSnapshot,
-          fullReplace: true,
-        }),
-      })
-        .then(async (res) => {
-          const body = await res.json();
-          if (!res.ok) throw new Error(body.error ?? "Không lưu được tồn kho.");
-          if (!cancelled) {
-            const persisted = (body.stockOverrides ?? {}) as Record<string, number>;
-            const persistedReorder = (body.reorderOverrides ?? {}) as Record<string, number>;
-            const latestPrices = (body.priceOverrides ?? {}) as Record<string, number>;
-            setSavedStock(persisted);
-            setSavedReorder(persistedReorder);
-            setPriceOverrides(latestPrices);
-          }
-        })
-        .catch((err) => {
-          if (!cancelled) {
-            toast.error(err instanceof Error ? err.message : "Lỗi đồng bộ tồn kho.");
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setIsSaving(false);
-        });
-    }, 380);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [loaded, draftStock, savedStock, draftReorder, savedReorder]);
-
-  // FR-33: Tính KPI Food Cost thời gian thực từ bảng giá kho
-  const foodCostKpi = useMemo(
-    () => getFoodCostKpiSummary(priceOverrides),
-    [priceOverrides],
-  );
-
-  // Đổi đơn giá nguyên liệu để mô phỏng What-if trực tiếp trong Tồn kho
-  const handlePriceChange = useCallback(
-    async (ingredientId: string, defaultPrice: number, nextPrice: number) => {
-      const clamped = Math.min(MAX_IMPORT_PRICE, Math.max(MIN_IMPORT_PRICE, Math.round(nextPrice)));
-      const nextOverrides = { ...priceOverrides };
-      if (clamped === defaultPrice) {
-        delete nextOverrides[ingredientId];
-      } else {
-        nextOverrides[ingredientId] = clamped;
-      }
-      setPriceOverrides(nextOverrides);
-
-      try {
-        const res = await fetch("/api/food-cost", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prices: nextOverrides }),
-        });
-        if (res.ok) {
-          const updatedKpi = getFoodCostKpiSummary(nextOverrides);
-          toast.success(`Đã cập nhật đơn giá ${formatVND(clamped)}.`, {
-            description: `KPI Food Cost tự nhảy: ${formatPercent(updatedKpi.foodCostPct, 1)} (Giá vốn ${formatVND(updatedKpi.costPerGuest)}/khách).`,
-          });
-        }
-      } catch {
-        toast.error("Lỗi khi lưu đơn giá kho.");
-      }
-    },
-    [priceOverrides],
-  );
-
 
   async function handleResetAllStock() {
     setIsSaving(true);
@@ -422,12 +289,6 @@ export function AdminInventory({
       setIsSaving(false);
     }
   }
-
-  // ---------- Báo cáo tồn kho & tổng giá trị kho tự tính tức thời ----------
-  const report = useMemo(
-    () => calculateInventoryReport(draftStock, priceOverrides, draftReorder, extraIngredients),
-    [draftStock, priceOverrides, draftReorder, extraIngredients],
-  );
 
   const topGroup = useMemo(() => {
     return report.groupSummary.reduce(
@@ -736,24 +597,62 @@ export function AdminInventory({
         </CardContent>
       </Card>
 
+      {/* ==================== THANH CHUYỂN NHANH KHU VỰC LÀM VIỆC (SEGMENTED WORKSPACE) ==================== */}
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-sm border border-border/80 bg-[#f6efe0]/70 px-3.5 py-2.5">
+        <span className="text-xs font-bold uppercase tracking-wider text-stone-700">
+          Khu vực hiển thị:
+        </span>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Chọn khu vực hiển thị tồn kho">
+          {[
+            { id: "ALL" as const, label: "Tất cả khu vực" },
+            { id: "LEDGER" as const, label: `Sổ tồn kho (${report.totalIngredients})` },
+            { id: "FORECAST" as const, label: "Dự báo thiếu hụt theo đặt bàn" },
+            { id: "SHIFT" as const, label: "Danh sách mua trước ca" },
+          ].map((tab) => {
+            const active = workspaceSection === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setWorkspaceSection(tab.id)}
+                aria-pressed={active}
+                className={cn(
+                  "rounded-sm border px-3 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
+                  active
+                    ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                    : "border-stone-300 bg-[#fffdf8] text-stone-700 hover:border-[#7c2d12] hover:text-[#7c2d12]",
+                )}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* ==================== 3B. DỰ BÁO NHU CẦU & KHO THIẾU HỤT THEO LỊCH ĐẶT BÀN ==================== */}
-      <InventoryDemandForecastSection
-        items={report.items}
-        totalWarehouseValue={report.totalValue}
-        onStockIn={(id) => {
-          setStockInTargetId(id);
-          setStockInOpen(true);
-        }}
-      />
+      {(workspaceSection === "ALL" || workspaceSection === "FORECAST") && (
+        <InventoryDemandForecastSection
+          items={report.items}
+          totalWarehouseValue={report.totalValue}
+          onStockIn={(id) => {
+            setStockInTargetId(id);
+            setStockInOpen(true);
+          }}
+        />
+      )}
 
       {/* ==================== 3C. DANH SÁCH MUA TRƯỚC CA (FR-32) ==================== */}
-      <ShiftPurchaseCard
-        stockOverrides={draftStock}
-        priceOverrides={priceOverrides}
-        today={today}
-      />
+      {(workspaceSection === "ALL" || workspaceSection === "SHIFT") && (
+        <ShiftPurchaseCard
+          stockOverrides={draftStock}
+          priceOverrides={priceOverrides}
+          today={today}
+        />
+      )}
 
       {/* ==================== 4. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
+      {(workspaceSection === "ALL" || workspaceSection === "LEDGER") && (
       <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -1010,6 +909,7 @@ export function AdminInventory({
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* MODAL PHIẾU NHẬP HÀNG VÀO KHO */}
       <StockInModal
@@ -1329,152 +1229,23 @@ function InventoryDemandForecastSection({
   totalWarehouseValue: number;
   onStockIn: (id: string) => void;
 }) {
-  const [dailyForecasts, setDailyForecasts] = useState<DailyDemandSummary[]>([]);
-  const [forecastConcept, setForecastConcept] = useState<{
-    name: string;
-    startDate: string | null;
-    endDate: string | null;
-  } | null>(null);
-  const [loadingForecast, setLoadingForecast] = useState(true);
-  const [selectedDays, setSelectedDays] = useState<number>(1);
-  const [autoSelectedInfo, setAutoSelectedInfo] = useState<string>("");
+  // Custom Hook: Tính toán dự báo nhu cầu & thiếu hụt theo lịch đặt bàn trong khung Concept
+  const {
+    dailyForecasts,
+    forecastConcept,
+    loadingForecast,
+    selectedDays,
+    setSelectedDays,
+    autoSelectedInfo,
+    PRESET_DAYS,
+    presetShortageCounts,
+    currentAnalyses,
+  } = useDemandForecastEngine(items);
+
   const [forecastSearch, setForecastSearch] = useState("");
   const [viewFilter, setViewFilter] = useState<"SHORTAGE_ONLY" | "ALL">("SHORTAGE_ONLY");
   const [forecastPage, setForecastPage] = useState(1);
   const PAGE_SIZE = 15;
-
-  // Lấy dữ liệu đặt bàn các ngày tới từ API
-  useEffect(() => {
-    let mounted = true;
-    fetch("/api/inventory/demand-forecast")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!mounted || !data || !Array.isArray(data.days)) return;
-        setDailyForecasts(data.days);
-        setForecastConcept(data.concept ?? null);
-        setLoadingForecast(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch demand forecast:", err);
-        if (mounted) setLoadingForecast(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Các mốc ngày chỉ nằm trong khung thời gian của concept (không vượt ngày kết thúc concept)
-  const PRESET_DAYS = useMemo(() => {
-    const maxDays = dailyForecasts.length;
-    if (maxDays === 0) return [1, 2, 3, 4, 5, 7, 14];
-    const base = [1, 2, 3, 4, 5, 7, 14].filter((d) => d <= maxDays);
-    return base.includes(maxDays) ? base : [...base, maxDays];
-  }, [dailyForecasts.length]);
-
-  // Helper tính nhu cầu và thiếu hụt cho 1 mốc số ngày
-  const computeShortagesForDays = useCallback(
-    (daysCount: number) => {
-      if (dailyForecasts.length === 0) return [];
-      const activeDays = dailyForecasts.slice(0, daysCount);
-      const totalGuests = activeDays.reduce((sum, d) => sum + d.guestCount, 0);
-
-      const list: ForecastItemAnalysis[] = items
-        .filter((i) => i.qtyPerGuestStandard > 0)
-        .map((item) => {
-          const stdQty = item.qtyPerGuestStandard;
-          const factor = getImportUnitFactor(item.importUnit) || 1000;
-          const reqQty = stdQty * totalGuests;
-          const shortage = Math.max(0, reqQty - item.stockQty);
-          const isShort = shortage > 0;
-          const shortageImportUnit = roundQty(shortage / factor);
-          const reqImportUnit = roundQty(reqQty / factor);
-          const stockImportUnit = roundQty(item.stockQty / factor);
-          const surplusImportUnit = roundQty(Math.max(0, item.stockQty - reqQty) / factor);
-          const cost = Math.round(shortageImportUnit * item.importPrice);
-          const guestsCovered = Math.floor(item.stockQty / stdQty);
-
-          // Tính số ngày tồn kho đáp ứng được
-          let daysCountCovered = 0;
-          let remaining = item.stockQty;
-          for (const d of dailyForecasts) {
-            const dayDemand = stdQty * d.guestCount;
-            if (dayDemand <= 0) {
-              daysCountCovered += 1;
-              continue;
-            }
-            if (remaining >= dayDemand) {
-              daysCountCovered += 1;
-              remaining -= dayDemand;
-            } else {
-              daysCountCovered += Math.round((remaining / dayDemand) * 10) / 10;
-              break;
-            }
-          }
-
-          let daysCoveredText = `Đủ ${daysCountCovered.toFixed(1)} ngày`;
-          if (item.stockQty === 0) daysCoveredText = "Hết hàng (0 ngày)";
-          else if (dailyForecasts.length > 0 && daysCountCovered >= dailyForecasts.length)
-            daysCoveredText = `Đủ hết Concept (${dailyForecasts.length} ngày)`;
-          else if (daysCountCovered >= 14) daysCoveredText = "> 14 ngày (an toàn)";
-
-          return {
-            item,
-            stdQtyPerGuest: stdQty,
-            totalRequiredQty: reqQty,
-            requiredInImportUnit: reqImportUnit,
-            stockInImportUnit: stockImportUnit,
-            shortageQty: shortage,
-            shortageInImportUnit: shortageImportUnit,
-            isShortage: isShort,
-            procurementCost: cost,
-            surplusInImportUnit: surplusImportUnit,
-            guestsCovered,
-            daysCoveredText,
-          };
-        });
-
-      return list;
-    },
-    [dailyForecasts, items],
-  );
-
-  // Logic tự động chọn ngày theo yêu cầu nghiệp vụ:
-  // "khi click vô page đó thì hiển số nguyên liệu còn dùng dc trong 1 ngày nếu 1 ngày k có thì 2 ngày,..."
-  useEffect(() => {
-    if (dailyForecasts.length === 0) return;
-
-    for (const d of PRESET_DAYS) {
-      const analyses = computeShortagesForDays(d);
-      const shortageCount = analyses.filter((a) => a.isShortage).length;
-      if (shortageCount > 0) {
-        setSelectedDays(d);
-        if (d === 1) {
-          setAutoSelectedInfo(`Đã tự động chọn mốc 1 ngày: Phát hiện ${shortageCount} nguyên liệu thiếu ngay hôm nay!`);
-        } else {
-          setAutoSelectedInfo(`Đã tự động chuyển sang mốc ${d} ngày (vì mốc trước đó đã đủ hàng, mốc ${d} ngày bắt đầu có ${shortageCount} mặt hàng thiếu hụt).`);
-        }
-        return;
-      }
-    }
-    // Nếu tất cả các mốc đều đủ
-    setSelectedDays(3);
-    setAutoSelectedInfo("Kho hiện tại đáp ứng tốt lịch đặt bàn trong 3 ngày tới.");
-  }, [dailyForecasts, computeShortagesForDays]);
-
-  // Số lượng mặt hàng thiếu theo từng nút preset ngày để hiển thị nhãn
-  const presetShortageCounts = useMemo(() => {
-    const map: Record<number, number> = {};
-    for (const d of PRESET_DAYS) {
-      const analyses = computeShortagesForDays(d);
-      map[d] = analyses.filter((a) => a.isShortage).length;
-    }
-    return map;
-  }, [PRESET_DAYS, computeShortagesForDays]);
-
-  // Phân tích dữ liệu theo mốc ngày đang chọn
-  const currentAnalyses = useMemo(() => {
-    return computeShortagesForDays(selectedDays);
-  }, [computeShortagesForDays, selectedDays]);
 
   // Thống kê tổng hợp cho mốc đang chọn
   const activeDays = useMemo(() => dailyForecasts.slice(0, selectedDays), [dailyForecasts, selectedDays]);
