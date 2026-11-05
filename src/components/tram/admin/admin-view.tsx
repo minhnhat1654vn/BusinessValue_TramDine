@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Calculator,
   Warehouse,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { ADMIN_CODE } from "@/lib/tram/constants";
 import { AdminDashboard } from "./dashboard";
 import { AdminRevenueView } from "./revenue-view";
+import { AdminGoldenHourView } from "./golden-hour-view";
 import { AdminBookingUnifiedView } from "./booking-unified-view";
 import { AdminTableMap } from "./table-map";
 import { AdminReservationsList } from "./reservations-list";
@@ -71,6 +73,12 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
     label: "Doanh thu",
     description: "Báo cáo doanh thu",
     icon: TrendingUp,
+  },
+  {
+    key: "golden-hour",
+    label: "Khung Giờ Vàng",
+    description: "Voucher Zalo OA T4-T6",
+    icon: Zap,
   },
   {
     key: "booking",
@@ -493,6 +501,14 @@ export function AdminView() {
               {activeTab === "revenue" && (
                 today ? (
                   <AdminRevenueView today={today} onNavigateTab={handleNavigateTab} />
+                ) : (
+                  <LoadingBlock />
+                )
+              )}
+
+              {activeTab === "golden-hour" && (
+                today ? (
+                  <AdminGoldenHourView today={today} onNavigateTab={handleNavigateTab} />
                 ) : (
                   <LoadingBlock />
                 )

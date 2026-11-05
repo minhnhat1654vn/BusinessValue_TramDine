@@ -29,6 +29,7 @@ import {
   Sparkles,
   RefreshCw,
   User,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -308,6 +309,15 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     revMaxTick,
   ];
 
+  // FR-34: Tìm ca chiều T4, T5, T6 gần nhất có lấp đầy <= 50% để cảnh báo kích hoạt Khung Giờ Vàng
+  const upcomingGoldenHourAlert =
+    data.occupancy.find(
+      (p) =>
+        p.date >= today &&
+        [3, 4, 5].includes(p.weekday) &&
+        (p.slot1730Percent ?? 0) <= 50,
+    ) ?? null;
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       {/* Tiêu đề Dashboard & Nút Làm mới dữ liệu */}
@@ -369,6 +379,44 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           onNavigateTab={onNavigateTab}
         />
       </motion.div>
+
+      {/* ---- FR-34: Banner Cảnh báo Kích hoạt Voucher Khung Giờ Vàng (Ca chiều T4, T5, T6) ---- */}
+      {upcomingGoldenHourAlert && (
+        <motion.div variants={fadeUpItem}>
+          <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-[#fdf0d5]/60 to-amber-500/5 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-[#b45309] shrink-0 shadow-xs">
+                <Zap className="h-4.5 w-4.5" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-heading text-sm font-bold text-stone-900">
+                    Khung Giờ Vàng (FR-34) — Ca Chiều {upcomingGoldenHourAlert.label} 17:30 đang trống nhiều
+                  </h4>
+                  <Badge className="border-amber-300 bg-amber-100 text-[#92400e] text-[10px] font-bold">
+                    Lấp đầy {Math.round(upcomingGoldenHourAlert.slot1730Percent ?? 0)}%
+                  </Badge>
+                </div>
+                <p className="text-xs text-stone-600 mt-0.5">
+                  Mới có {upcomingGoldenHourAlert.slot1730Occupied ?? 0}/42 chỗ đặt. Bạn có thể kích hoạt Voucher giảm 15% – 20% gửi qua Zalo OA ngay để lấp đầy ca này!
+                </p>
+              </div>
+            </div>
+
+            {onNavigateTab && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => onNavigateTab("golden-hour")}
+                className="h-8 rounded-full bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e] gap-1.5 shadow-xs"
+              >
+                Tung Voucher Zalo OA
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* ---- Biểu đồ số lượng khách 4 tuần / 1 tháng (Cuộn ngang, ưu tiên tuần hiện tại) ---- */}
