@@ -1413,6 +1413,8 @@ function InventoryDemandForecastSection({
 
           let daysCoveredText = `Đủ ${daysCountCovered.toFixed(1)} ngày`;
           if (item.stockQty === 0) daysCoveredText = "Hết hàng (0 ngày)";
+          else if (dailyForecasts.length > 0 && daysCountCovered >= dailyForecasts.length)
+            daysCoveredText = `Đủ hết Concept (${dailyForecasts.length} ngày)`;
           else if (daysCountCovered >= 14) daysCoveredText = "> 14 ngày (an toàn)";
 
           return {
@@ -1581,8 +1583,15 @@ function InventoryDemandForecastSection({
             {forecastConcept && (
               <span className="font-semibold text-[#7c2d12]">
                 {forecastConcept.name}
-                {dailyForecasts.length > 0 &&
-                  ` (${dailyForecasts[0].date.split("-").reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").reverse().join("/")} · ${dailyForecasts.length} ngày)`}
+                {forecastConcept.startDate && forecastConcept.endDate
+                  ? ` (${forecastConcept.startDate.split("-").reverse().join("/")} – ${forecastConcept.endDate.split("-").reverse().join("/")}${
+                      dailyForecasts.length > 0
+                        ? ` · Còn ${dailyForecasts.length} ngày phục vụ: ${dailyForecasts[0].date.split("-").slice(1).reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").slice(1).reverse().join("/")}`
+                        : ""
+                    })`
+                  : dailyForecasts.length > 0
+                    ? ` (${dailyForecasts[0].date.split("-").reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").reverse().join("/")} · ${dailyForecasts.length} ngày)`
+                    : ""}
               </span>
             )}
           </div>
@@ -1591,16 +1600,20 @@ function InventoryDemandForecastSection({
             {PRESET_DAYS.map((days) => {
               const isSelected = selectedDays === days;
               const shortageCount = presetShortageCounts[days] ?? 0;
+              const firstDayShort = dailyForecasts[0]?.date.split("-").slice(1).reverse().join("/") ?? "";
+              const targetDayShort = dailyForecasts[days - 1]?.date.split("-").slice(1).reverse().join("/") ?? "";
+
               let dayLabel = `${days} ngày`;
-              if (days === 1)
+              if (days === 1) {
                 dayLabel =
                   dailyForecasts[0]?.dayLabel.startsWith("Hôm nay") === false
-                    ? "1 ngày (đầu concept)"
-                    : "1 ngày (Hôm nay)";
-              else if (days === 7) dayLabel = "7 ngày (1 tuần)";
-              else if (days === 14) dayLabel = "14 ngày (2 tuần)";
-              if (days === dailyForecasts.length && days !== 1 && days !== 7 && days !== 14)
-                dayLabel = `${days} ngày (hết concept)`;
+                    ? `1 ngày (${firstDayShort})`
+                    : `1 ngày (Hôm nay ${firstDayShort})`;
+              } else if (days === dailyForecasts.length) {
+                dayLabel = `${days} ngày (Hết Concept · ${targetDayShort})`;
+              } else if (firstDayShort && targetDayShort) {
+                dayLabel = `${days} ngày (${firstDayShort}–${targetDayShort})`;
+              }
 
               return (
                 <button

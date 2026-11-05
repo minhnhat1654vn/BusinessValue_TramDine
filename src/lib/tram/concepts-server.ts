@@ -69,7 +69,9 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       name: "Concept 2: Hành trình vị Việt",
       description: "Thực đơn Tasting 7 món đang phục vụ tuần này tại TRẦM",
       status: "ACTIVE",
-      weekLabel: "Tuần này (Đang phục vụ)",
+      weekLabel: "02/11/2026 - 08/11/2026",
+      startDate: "2026-11-02",
+      endDate: "2026-11-08",
       sellingPrice: 1190000,
       targetFoodCostPct: 33.5,
       dishes: liveBom.dishes,
@@ -97,6 +99,17 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
     store.activeId = "concept-2";
     store.concepts = [activeConcept, upcomingConcept];
     saveStore(store);
+  } else {
+    let changed = false;
+    for (const c of store.concepts) {
+      if (c.id === "concept-2" && (!c.startDate || !c.endDate)) {
+        c.startDate = "2026-11-02";
+        c.endDate = "2026-11-08";
+        c.weekLabel = "02/11/2026 - 08/11/2026";
+        changed = true;
+      }
+    }
+    if (changed) saveStore(store);
   }
   return store;
 }
