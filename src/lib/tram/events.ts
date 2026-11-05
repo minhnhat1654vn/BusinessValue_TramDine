@@ -33,3 +33,4 @@ export function useTramEventListener(handler: (event: TramDomainEvent) => void):
     return () => window.removeEventListener(EVENT_NAME, listener);
   }, [handler]);
 }
+

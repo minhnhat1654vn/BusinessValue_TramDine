@@ -100,3 +100,4 @@ export function useConceptLifecycle(initialOpenConceptModal = false) {
     handleConfirmDeleteConcept,
   };
 }
+

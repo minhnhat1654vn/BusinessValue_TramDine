@@ -184,3 +184,4 @@ export function useDemandForecastEngine(items: InventoryItem[]) {
     refreshForecast: fetchForecast,
   };
 }
+
