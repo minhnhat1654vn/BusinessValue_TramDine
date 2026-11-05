@@ -7,7 +7,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   ArrowDownToLine,
+  Info,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -146,7 +148,11 @@ export function StockInModal({
             group: it.group || existing?.group || "SEASONING",
             currentStock: it.stockQty ?? existing?.currentStock ?? 0,
             minStock: it.reorderPoint ?? existing?.minStock ?? 200,
+            defaultStockQty: it.defaultStockQty ?? (it.unit === "ml" ? 2000 : 2000),
             defaultImportPrice: it.importPrice ?? existing?.defaultImportPrice ?? 100000,
+            qtyPerGuestStandard: it.qtyPerGuestStandard ?? 0,
+            standardDishIndexes: it.standardDishIndexes ?? [],
+            isStandardIngredient: Boolean(it.isStandardIngredient || (it.standardDishIndexes && it.standardDishIndexes.length > 0)),
           });
         }
 
@@ -246,12 +252,28 @@ export function StockInModal({
     }
   }, [open, viewTab]);
 
-  // Tính toán trước
+  // Tính toán trước & Kiểm tra dư thừa so với định mức Concept
   const unit: IngredientUnit = currentIng ? currentIng.unit : newUnit;
   const currentStock = currentIng ? (currentIng.currentStock ?? 0) : 0;
-  const minStock = currentIng ? (currentIng.minStock ?? 200) : unit === "ml" ? 200 : 200;
+  const minStock = currentIng ? (currentIng.minStock ?? 200) : 200;
+  const defaultStock = currentIng?.defaultStockQty ?? (unit === "ml" ? 2000 : 2000);
+  const isConceptIngredient = Boolean(
+    currentIng?.isStandardIngredient ||
+    (currentIng?.standardDishIndexes && currentIng.standardDishIndexes.length > 0)
+  );
+  const qtyPerGuest = currentIng?.qtyPerGuestStandard ?? 0;
   const newStock = currentStock + (quantity || 0);
   const totalAmount = Math.round(((quantity || 0) * (pricePerUnit || 0)) / 1000);
+
+  // Ngưỡng cảnh báo dư thừa:
+  // Vượt quá 135% định mức chuẩn của kho cho Concept
+  const maxSafeStock = Math.round(defaultStock * 1.35);
+  const isSurplus = Boolean(currentIng && newStock > maxSafeStock);
+  const surplusQty = Math.max(0, newStock - defaultStock);
+  const surplusPct = defaultStock > 0 ? Math.round(((newStock - defaultStock) / defaultStock) * 100) : 0;
+  const surplusCost = Math.round((surplusQty * (pricePerUnit || 0)) / 1000);
+  const estimatedServings = qtyPerGuest > 0 ? Math.round(newStock / qtyPerGuest) : null;
+  const recommendedOptimalQty = Math.max(0, defaultStock - currentStock);
 
   // Các nút số lượng nhanh
   const quickPills: QuickOption[] = useMemo(() => {
@@ -570,9 +592,9 @@ export function StockInModal({
               )}
             </div>
 
-            {/* 2. Thẻ hiển thị trạng thái tồn trước và sau nhập */}
+            {/* 2. Thẻ hiển thị trạng thái tồn trước và sau nhập & CẢNH BÁO DƯ THỪA */}
             {(currentIng || isNewIngredient) && (
-              <div className="rounded-xl border border-border/80 bg-stone-50/70 p-3 text-xs">
+              <div className="rounded-xl border border-border/80 bg-stone-50/70 p-3 text-xs space-y-2.5">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <span className="text-[10px] text-muted-foreground uppercase font-medium">
@@ -597,7 +619,11 @@ export function StockInModal({
                     <p
                       className={cn(
                         "mt-0.5 font-heading text-sm font-bold",
-                        newStock >= minStock ? "text-emerald-700" : "text-amber-700",
+                        isSurplus
+                          ? "text-amber-800"
+                          : newStock >= minStock
+                          ? "text-emerald-700"
+                          : "text-amber-700",
                       )}
                     >
                       {formatQty(newStock, unit as any)}
@@ -605,12 +631,15 @@ export function StockInModal({
                   </div>
                 </div>
 
-                <div className="mt-2.5 flex items-center justify-between border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between border-t border-border/60 pt-2 text-[11px] text-muted-foreground">
                   <span>
-                    Mức cảnh báo tồn an toàn:{" "}
-                    <strong>{formatQty(minStock, unit as any)}</strong>
+                    Định mức Concept: <strong>{formatQty(defaultStock, unit as any)}</strong> (An toàn: {formatQty(minStock, unit as any)})
                   </span>
-                  {newStock >= minStock ? (
+                  {isSurplus ? (
+                    <span className="flex items-center gap-1 font-semibold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded text-[10.5px]">
+                      <AlertTriangle className="h-3 w-3 text-amber-700" /> Vượt định mức (+{surplusPct}%)
+                    </span>
+                  ) : newStock >= minStock ? (
                     <span className="flex items-center gap-1 font-semibold text-emerald-700">
                       <CheckCircle2 className="h-3 w-3" /> Đạt ngưỡng an toàn
                     </span>
@@ -620,6 +649,48 @@ export function StockInModal({
                     </span>
                   )}
                 </div>
+
+                {/* Hộp CẢNH BÁO DƯ THỪA TỒN KHO NẾU VƯỢT QUÁ ĐỊNH MỨC CONCEPT */}
+                {isSurplus && (
+                  <div className="rounded-lg border border-amber-400/90 bg-amber-50/95 p-2.5 text-[11px] text-amber-950 space-y-1">
+                    <div className="flex items-center justify-between font-bold text-amber-900">
+                      <span className="flex items-center gap-1.5">
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                        Cảnh báo tồn kho dư thừa Concept
+                      </span>
+                      <span className="rounded bg-amber-200/80 px-1.5 py-0.2 text-[10px] text-amber-900 font-semibold">
+                        Thừa {formatQty(surplusQty, unit as any)}
+                      </span>
+                    </div>
+                    <p className="text-stone-700 leading-relaxed text-[10.5px]">
+                      Lượng tồn sau nhập ({formatQty(newStock, unit as any)}) vượt quá định mức dự trữ tối ưu ({formatQty(defaultStock, unit as any)}).
+                      {estimatedServings ? ` Lượng này đủ phục vụ tới ${estimatedServings} suất ăn tasting (${(estimatedServings / 42).toFixed(1)} ca tối).` : ""}
+                      {" "}Giá trị hàng dư thừa ước tính <strong>{formatVND(surplusCost)}</strong>, có nguy cơ tồn đọng vốn và giảm độ tươi mới của nguyên liệu.
+                    </p>
+                    {recommendedOptimalQty > 0 && recommendedOptimalQty < quantity && (
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(recommendedOptimalQty)}
+                        className="mt-1 inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#92400e] underline hover:text-amber-950 cursor-pointer"
+                      >
+                        👉 Điều chỉnh về định mức chuẩn vừa đủ (+{formatQty(recommendedOptimalQty, unit as any)})
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Cảnh báo nếu nguyên liệu không nằm trong Concept đang chạy */}
+                {currentIng && !isConceptIngredient && (
+                  <div className="rounded-lg border border-stone-200 bg-stone-100/70 p-2 text-[10.5px] text-stone-600 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <Info className="h-3 w-3 text-stone-500 shrink-0" />
+                      Nguyên liệu này hiện không có trong thực đơn Concept đang chạy.
+                    </span>
+                    {quantity >= 2000 && (
+                      <span className="font-semibold text-amber-700">Cân nhắc giảm lượng nhập</span>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

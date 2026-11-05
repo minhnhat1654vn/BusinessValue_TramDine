@@ -149,7 +149,7 @@ function Select({
 
   return (
     <Ctx.Provider value={ctx}>
-      <Popover open={open} onOpenChange={setOpen} modal>
+      <Popover open={open} onOpenChange={setOpen} modal={false}>
         {children}
       </Popover>
     </Ctx.Provider>

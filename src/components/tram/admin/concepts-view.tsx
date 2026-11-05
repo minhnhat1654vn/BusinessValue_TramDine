@@ -1186,12 +1186,16 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
                 </Select>
               </div>
 
-              {/* Thông tin nguyên liệu được chọn */}
+              {/* Thông tin nguyên liệu được chọn & Tình trạng tồn kho */}
               {selectedIngredientId && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-1 text-[11.5px]">
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3 space-y-2 text-[11.5px]">
                   {(() => {
                     const ing = warehouseIngredients.find((i) => i.id === selectedIngredientId);
                     if (!ing) return null;
+                    const cStock = ing.currentStock ?? 0;
+                    const isSurplusStock = cStock >= 4500;
+                    const isLowStock = cStock > 0 && cStock < 500;
+
                     return (
                       <>
                         <div className="flex items-center justify-between font-semibold text-[#292524]">
@@ -1200,14 +1204,51 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
                             {formatVND(ing.importPrice)} / {ing.importUnit}
                           </span>
                         </div>
-                        <div className="text-muted-foreground text-[10.5px]">
-                          Đơn vị định lượng gốc: <strong>{ing.unit}</strong> · Xuất xứ: {ing.origin || "Việt Nam"}
+                        <div className="flex items-center justify-between text-muted-foreground text-[10.5px]">
+                          <span>Đơn vị: <strong>{ing.unit}</strong> · Xuất xứ: {ing.origin || "Việt Nam"}</span>
+                          {cStock > 0 && (
+                            <span
+                              className={cn(
+                                "rounded px-1.5 py-0.5 font-medium text-[10px]",
+                                isSurplusStock
+                                  ? "bg-amber-100 text-amber-900 border border-amber-300"
+                                  : isLowStock
+                                  ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                  : "bg-emerald-100 text-emerald-800",
+                              )}
+                            >
+                              {isSurplusStock
+                                ? `Kho đang dư thừa: ${formatQty(cStock, ing.unit)}`
+                                : isLowStock
+                                ? `Kho sắp hết: ${formatQty(cStock, ing.unit)}`
+                                : `Tồn kho: ${formatQty(cStock, ing.unit)}`}
+                            </span>
+                          )}
                         </div>
                       </>
                     );
                   })()}
                 </div>
               )}
+
+              {/* CẢNH BÁO NGUYÊN LIỆU TRÙNG LẶP / DƯ THỪA TRONG MÓN */}
+              {(() => {
+                const existing = targetDishForLine?.variants?.[0]?.lines?.find(
+                  (l: any) => l.ingredientId === selectedIngredientId,
+                );
+                if (!existing) return null;
+                return (
+                  <div className="rounded-xl border border-amber-400 bg-amber-50 p-2.5 text-xs text-amber-950 flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-amber-900">Cảnh báo dư thừa / Trùng lặp:</span>
+                      <p className="mt-0.5 text-stone-700 leading-relaxed text-[11px]">
+                        Món <strong>&quot;{targetDishForLine?.name}&quot;</strong> đã có nguyên liệu này trong công thức (hiện tại: <strong>{formatQty(existing.qtyPerGuest, existing.unit)}/suất</strong>). Việc thêm mới có thể gây dư thừa hoặc cộng trùng lặp định lượng.
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Định lượng / suất */}
               <div className="grid grid-cols-2 gap-3">
@@ -1251,21 +1292,40 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
                 />
               </div>
 
-              {/* Tính toán thành tiền xem trước */}
-              {selectedIngredientId && lineQty && Number(lineQty) > 0 && (
-                <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 p-3 text-xs flex items-center justify-between">
-                  <span className="text-emerald-950 font-medium">Chi phí nguyên liệu này / 1 suất:</span>
-                  <span className="font-heading text-sm font-bold text-emerald-900 tabular-nums">
-                    {(() => {
-                      const ing = warehouseIngredients.find((i) => i.id === selectedIngredientId);
-                      if (!ing) return "0 đ";
-                      const factor = ing.importUnit === "kg" || ing.importUnit === "l" ? 1000 : 1;
-                      const cost = Math.round((Number(lineQty) * ing.importPrice) / factor);
-                      return formatVND(cost);
-                    })()}
-                  </span>
-                </div>
-              )}
+              {/* Tính toán thành tiền xem trước & CẢNH BÁO ĐỊNH LƯỢNG / CHI PHÍ DƯ THỪA */}
+              {selectedIngredientId && lineQty && Number(lineQty) > 0 && (() => {
+                const ing = warehouseIngredients.find((i) => i.id === selectedIngredientId);
+                if (!ing) return null;
+                const factor = ing.importUnit === "kg" || ing.importUnit === "l" ? 1000 : 1;
+                const cost = Math.round((Number(lineQty) * ing.importPrice) / factor);
+                const isExcessiveQty = lineUnit === "g" ? Number(lineQty) > 180 : Number(lineQty) > 120;
+                const isExcessiveCost = cost > 160000;
+
+                return (
+                  <div className="space-y-2">
+                    <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 p-3 text-xs flex items-center justify-between">
+                      <span className="text-emerald-950 font-medium">Chi phí nguyên liệu này / 1 suất:</span>
+                      <span className="font-heading text-sm font-bold text-emerald-900 tabular-nums">
+                        {formatVND(cost)}
+                      </span>
+                    </div>
+
+                    {(isExcessiveQty || isExcessiveCost) && (
+                      <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950 flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-bold text-amber-900">Cảnh báo dư thừa định lượng &amp; chi phí:</span>
+                          <p className="mt-0.5 text-stone-700 leading-relaxed text-[11px]">
+                            {isExcessiveCost
+                              ? `Chi phí ${formatVND(cost)}/suất chiếm tới ${Math.round((cost / 398000) * 100)}% ngân sách Food Cost trần (398.000 đ), có nguy cơ đẩy tổng Food Cost của Concept vượt chỉ tiêu 33,5%.`
+                              : `Định lượng ${lineQty} ${lineUnit}/khách là khá lớn cho một món trong thực đơn tasting 7 món (chuẩn 30g–90g/món). Vui lòng kiểm tra lại.`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             <DialogFooter className="border-t border-border/60 bg-muted/20 px-5 py-3">

@@ -1801,6 +1801,21 @@ export function AdminRecipes({
                 </div>
               </div>
 
+              {/* CẢNH BÁO ĐỊNH LƯỢNG / CHI PHÍ DƯ THỪA */}
+              {(editingLine.qtyPerGuest > 180 || estimatedLineCost > 160000) && (
+                <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-2.5 text-xs text-amber-950 flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-amber-900">Cảnh báo dư thừa định lượng &amp; chi phí:</span>
+                    <p className="mt-0.5 text-stone-700 leading-relaxed text-[11px]">
+                      {estimatedLineCost > 160000
+                        ? `Chi phí ${formatVND(estimatedLineCost)}/suất chiếm tỷ trọng cao trong ngân sách món ăn, có thể đẩy thực đơn vượt trần Food Cost 33,5%.`
+                        : `Định lượng ${editingLine.qtyPerGuest} ${editingLine.unit}/khách là khá lớn cho một món trong thực đơn tasting 7 món. Vui lòng kiểm tra lại để tránh dư thừa lãng phí.`}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <DialogFooter className="pt-2">
                 <Button
                   type="button"
