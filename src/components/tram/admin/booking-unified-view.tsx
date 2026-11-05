@@ -569,72 +569,66 @@ export function AdminBookingUnifiedView({
   const selectedReservation = selectedTable?.reservation ?? null;
 
   return (
-    <div className="space-y-6">
-      {/* ==================== THANH CÔNG CỤ & TIÊU ĐỀ ==================== */}
-      <Card className="border-border/80 bg-card shadow-sm">
-        <CardContent className="p-4 sm:p-5">
-          {/* Header: Tiêu đề + Nút Chuyển Settings & Refresh */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#fdf0d5] text-[#b45309]">
-                <ClipboardList className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-heading text-lg font-semibold text-[#292524] sm:text-xl">
-                  Quản lý Đặt bàn &amp; Sơ đồ bàn
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Điều phối vận hành tập trung: Sơ đồ bàn trực quan &amp; Danh sách khách hàng
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {onNavigateToSettings && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onNavigateToSettings}
-                  className="h-9 rounded-full border-[#b45309]/40 bg-[#fdf0d5]/40 text-[#92400e] hover:bg-[#fdf0d5] hover:text-[#78350f] text-xs font-medium shadow-xs"
-                >
-                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
-                  Cài đặt đặt bàn
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefreshAll}
-                disabled={loadingTables || loadingList}
-                className="h-9 rounded-full border-border text-stone-600 hover:bg-muted text-xs"
-                title="Làm mới dữ liệu cả sơ đồ và danh sách"
-              >
-                <RefreshCw
-                  className={cn(
-                    "mr-1.5 h-3.5 w-3.5",
-                    (loadingTables || loadingList) && "animate-spin"
-                  )}
-                />
-                Làm mới
-              </Button>
-            </div>
+    <div className="space-y-6 font-heading">
+      {/* ==================== 1. TIÊU ĐỀ (ĐỒNG BỘ MẪU TỒN KHO) ==================== */}
+      <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+              Đặt bàn &amp; vận hành
+            </span>
           </div>
-        </CardContent>
-      </Card>
+          <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
+            Quản lý Đặt bàn &amp; Sơ đồ bàn
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Điều phối vận hành tập trung: Sơ đồ bàn trực quan &amp; Danh sách khách hàng.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {onNavigateToSettings && (
+            <button
+              type="button"
+              onClick={onNavigateToSettings}
+              className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5] cursor-pointer"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
+              Cài đặt đặt bàn
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleRefreshAll}
+            disabled={loadingTables || loadingList}
+            className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-stone-700 transition-colors hover:bg-[#fdf0d5] hover:text-[#92400e] disabled:opacity-50 cursor-pointer"
+            title="Làm mới dữ liệu cả sơ đồ và danh sách"
+          >
+            <RefreshCw
+              className={cn(
+                "h-3.5 w-3.5 text-[#b45309]",
+                (loadingTables || loadingList) && "animate-spin",
+              )}
+              aria-hidden
+            />
+            Làm mới
+          </button>
+        </div>
+      </div>
 
       {/* ==================== PHẦN 1: SƠ ĐỒ BÀN (NẰM Ở TRÊN) ==================== */}
-      <Card className="border-border/80 bg-card shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-[#fffdf9]/70 py-4 px-5 space-y-3">
+      <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+        <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base text-[#292524] sm:text-lg">
-                <Table2 className="h-5 w-5 text-[#b45309]" />
+              <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+                <Table2 className="h-4 w-4 text-[#7c2d12]" aria-hidden />
                 Sơ đồ bàn theo ca
                 <Badge variant="outline" className="ml-1 text-xs border-[#b45309]/50 bg-[#fdf0d5] text-[#92400e]">
                   {activeTableSlot === "SLOT_1730" ? "Ca 17:30" : "Ca 19:45"}
                 </Badge>
               </CardTitle>
-              <CardDescription className="text-xs">
+              <CardDescription className="mt-0.5 text-xs">
                 10 bàn (A01–A05 &amp; B01–B05). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.
               </CardDescription>
             </div>
@@ -960,103 +954,131 @@ export function AdminBookingUnifiedView({
         </CardContent>
       </Card>
 
-      {/* 4 THẺ BỘ LỌC TRẠNG THÁI BÀN: BÀN TRỐNG, ĐÃ ĐẶT, ĐÃ ĐẾN, KHÔNG ĐẾN (NẰM DƯỚI SƠ ĐỒ) */}
+      {/* 4 THẺ BỘ LỌC TRẠNG THÁI BÀN (ĐỒNG BỘ MẪU KPI TỒN KHO) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* 1. Bàn trống */}
-        <div
+        <Card
           onClick={() => setStatusFilter("ALL")}
           className={cn(
-            "flex flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all cursor-pointer",
+            "min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs transition-all cursor-pointer",
             statusFilter === "ALL" || statusFilter === "CANCELLED"
-              ? "border-stone-300 bg-white hover:border-[#b45309]/50 shadow-sm"
-              : "border-stone-200 bg-stone-50/60 opacity-60"
+              ? "hover:border-[#b45309]/50"
+              : "opacity-60",
           )}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-stone-600">Bàn trống</span>
-            <span className="h-3 w-3 rounded-full border border-dashed border-stone-500 bg-stone-100" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-stone-900">{tableCounts.empty}</span>
-            <span className="text-xs text-muted-foreground">/ {tables.length} bàn</span>
-          </div>
-          <span className="mt-1 text-[11px] text-muted-foreground">Khả dụng ({activeTableSlot === "SLOT_1730" ? "17:30" : "19:45"})</span>
-        </div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Bàn trống
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-600">
+                <span className="h-3 w-3 rounded-full border border-dashed border-stone-500 bg-white" />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-stone-900 sm:text-xl 2xl:text-2xl">
+              {tableCounts.empty} <span className="text-xs font-normal text-muted-foreground">/ {tables.length} bàn</span>
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              Khả dụng ({activeTableSlot === "SLOT_1730" ? "17:30" : "19:45"})
+            </p>
+          </CardContent>
+        </Card>
 
         {/* 2. Đã đặt */}
-        <div
+        <Card
           onClick={() => setStatusFilter("CONFIRMED")}
           className={cn(
-            "flex flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all cursor-pointer",
+            "min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs transition-all cursor-pointer",
             statusFilter === "ALL" || statusFilter === "CONFIRMED" || statusFilter === "PENDING"
-              ? "border-[#b45309]/40 bg-[#fdf0d5]/60 hover:border-[#b45309] shadow-sm"
-              : "border-stone-200 bg-stone-50/60 opacity-60"
+              ? "hover:border-[#b45309]"
+              : "opacity-60",
           )}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#92400e]">Đã đặt</span>
-            <span className="h-3 w-3 rounded-full bg-[#b45309]" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-[#b45309]">{tableCounts.booked}</span>
-            <span className="text-xs text-[#92400e]/70">/ {tables.length} bàn</span>
-          </div>
-          <span className="mt-1 text-[11px] text-[#92400e]/80">Đã cọc &amp; giữ chỗ</span>
-        </div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Đã đặt
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
+                <span className="h-3 w-3 rounded-full bg-[#b45309]" />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-[#92400e] sm:text-xl 2xl:text-2xl">
+              {tableCounts.booked} <span className="text-xs font-normal text-muted-foreground">/ {tables.length} bàn</span>
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              Đã cọc &amp; giữ chỗ
+            </p>
+          </CardContent>
+        </Card>
 
         {/* 3. Đã đến */}
-        <div
+        <Card
           onClick={() => setStatusFilter("SEATED")}
           className={cn(
-            "flex flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all cursor-pointer",
+            "min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs transition-all cursor-pointer",
             statusFilter === "ALL" || statusFilter === "SEATED"
-              ? "border-emerald-300 bg-emerald-50/70 hover:border-emerald-500 shadow-sm"
-              : "border-stone-200 bg-stone-50/60 opacity-60"
+              ? "hover:border-emerald-500"
+              : "opacity-60",
           )}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-emerald-800">Đã đến (Check-in)</span>
-            <span className="h-3 w-3 rounded-full bg-emerald-600" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-emerald-900">{tableCounts.seated}</span>
-            <span className="text-xs text-emerald-700/70">/ {tables.length} bàn</span>
-          </div>
-          <span className="mt-1 text-[11px] text-emerald-700/80">Đang phục vụ tại bàn</span>
-        </div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Đã đến (Check-in)
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <span className="h-3 w-3 rounded-full bg-emerald-600" />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-emerald-800 sm:text-xl 2xl:text-2xl">
+              {tableCounts.seated} <span className="text-xs font-normal text-muted-foreground">/ {tables.length} bàn</span>
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              Đang phục vụ tại bàn
+            </p>
+          </CardContent>
+        </Card>
 
         {/* 4. Không đến */}
-        <div
+        <Card
           onClick={() => setStatusFilter("NO_SHOW")}
           className={cn(
-            "flex flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all cursor-pointer",
+            "min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs transition-all cursor-pointer",
             statusFilter === "ALL" || statusFilter === "NO_SHOW"
-              ? "border-rose-300 bg-rose-50/70 hover:border-rose-500 shadow-sm"
-              : "border-stone-200 bg-stone-50/60 opacity-60"
+              ? "hover:border-rose-500"
+              : "opacity-60",
           )}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-rose-800">Không đến (No-show)</span>
-            <span className="h-3 w-3 rounded-full bg-rose-600" />
-          </div>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-rose-900">{tableCounts.noShow}</span>
-            <span className="text-xs text-rose-700/70">/ {tables.length} bàn</span>
-          </div>
-          <span className="mt-1 text-[11px] text-rose-700/80">Khách vắng mặt</span>
-        </div>
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Không đến (No-show)
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                <span className="h-3 w-3 rounded-full bg-rose-600" />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-rose-700 sm:text-xl 2xl:text-2xl">
+              {tableCounts.noShow} <span className="text-xs font-normal text-muted-foreground">/ {tables.length} bàn</span>
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              Khách vắng mặt
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ==================== PHẦN 2: DANH SÁCH ĐẶT BÀN (NẰM Ở DƯỚI) ==================== */}
-      <Card className="border-border/80 bg-card shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-border/60 bg-[#fffdf9]/70 py-4 px-5 space-y-4">
+      <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+        <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base text-[#292524] sm:text-lg">
-                <ClipboardList className="h-5 w-5 text-[#b45309]" />
+              <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+                <ClipboardList className="h-4 w-4 text-[#7c2d12]" aria-hidden />
                 Danh sách khách hàng đặt bàn
               </CardTitle>
-              <CardDescription className="text-xs">
+              <CardDescription className="mt-0.5 text-xs">
                 Hiển thị theo ngày {formatLongDate(date)} và bộ lọc hiện tại.
               </CardDescription>
             </div>
