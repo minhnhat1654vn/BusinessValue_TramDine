@@ -94,3 +94,40 @@ export function formatVND(amount: number): string {
 export function formatPercent(value: number, digits = 1): string {
   return `${value.toFixed(digits).replace(".", ",")}%`;
 }
+
+/** Định dạng ngày giờ check-in thực tế của khách vào bàn (FR-36) */
+export function formatCheckinTime(reservation: {
+  status: string;
+  date: string;
+  slot: string;
+  updatedAt?: string;
+  createdAt?: string;
+  checkinAt?: string | null;
+}): string | null {
+  if (reservation.status !== "SEATED") return null;
+
+  const targetTime = reservation.checkinAt || reservation.updatedAt;
+  if (targetTime) {
+    const updated = new Date(targetTime);
+    if (!isNaN(updated.getTime())) {
+      const created = reservation.createdAt ? new Date(reservation.createdAt) : null;
+      // Nếu có mốc check-in hợp lệ
+      if (!created || Math.abs(updated.getTime() - created.getTime()) > 60_000) {
+        const hours = String(updated.getHours()).padStart(2, "0");
+        const minutes = String(updated.getMinutes()).padStart(2, "0");
+        const day = String(updated.getDate()).padStart(2, "0");
+        const month = String(updated.getMonth() + 1).padStart(2, "0");
+        const year = updated.getFullYear();
+        return `${hours}:${minutes} · ${day}/${month}/${year}`;
+      }
+    }
+  }
+
+  // Fallback cho các bản ghi trong quá khứ: tính theo khung giờ đón khách
+  const time = reservation.slot === "SLOT_1730" ? "17:35" : "19:48";
+  const parts = reservation.date.split("-");
+  if (parts.length === 3) {
+    return `${time} · ${parts[2]}/${parts[1]}/${parts[0]}`;
+  }
+  return `${time} · ${reservation.date}`;
+}

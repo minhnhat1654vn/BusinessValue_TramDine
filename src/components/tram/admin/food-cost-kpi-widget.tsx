@@ -708,7 +708,7 @@ export function FoodCostKpiWidget({
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={scenarioChartData}
-                        margin={{ top: 25, right: 30, left: 10, bottom: 5 }}
+                        margin={{ top: 25, right: 130, left: 10, bottom: 5 }}
                         maxBarSize={52}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f5efe4" />
@@ -733,7 +733,7 @@ export function FoodCostKpiWidget({
                           strokeWidth={1.5}
                           label={{
                             value: `Trần 50% (${formatVND(Math.round(simMenuPrice * 0.5))})`,
-                            position: "insideTopRight",
+                            position: "right",
                             fill: "#be123c",
                             fontSize: 10,
                             fontWeight: 700,

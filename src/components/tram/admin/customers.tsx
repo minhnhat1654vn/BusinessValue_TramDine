@@ -36,6 +36,7 @@ import {
   Phone,
   UserPlus,
   Trash2,
+  UtensilsCrossed,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AddCustomerDialog } from "./add-customer-dialog";
@@ -73,7 +74,8 @@ import {
   StatusBadge,
   useJson,
 } from "./admin-shared";
-import { formatLongDate, formatVND } from "@/lib/tram/format";
+import { formatCheckinTime, formatLongDate, formatVND } from "@/lib/tram/format";
+import { parseReservationDishes } from "@/lib/tram/dishes";
 import { SLOT_LABELS, PRICES } from "@/lib/tram/constants";
 import {
   LOYALTY_TIERS,
@@ -1510,15 +1512,17 @@ export function AdminCustomers() {
                     <History className="h-4 w-4 text-[#b45309]" />
                     Lịch Sử Dùng Bữa & Tích Điểm ({detail.reservations.length} lần)
                   </h4>
-                  <ul className="space-y-2.5">
+                  <ul className="space-y-3">
                     {detail.reservations.map((r) => {
                       const total =
                         r.partySize * (PRICES.menu + pairingPriceOf(r.pairing));
                       const reward = calculatePointsFromBill(total, detail.tier);
+                      const dishes = parseReservationDishes(r.selectedDishes);
+                      const checkinStr = formatCheckinTime(r);
                       return (
                         <li
                           key={r.id}
-                          className="rounded-xl border border-border/80 bg-card p-3.5 shadow-xs"
+                          className="rounded-xl border border-border/80 bg-card p-3.5 shadow-xs space-y-2.5"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
@@ -1535,17 +1539,25 @@ export function AdminCustomers() {
                             </div>
                           </div>
 
-                          <p className="mt-1.5 text-xs text-muted-foreground">
-                            Khung {SLOT_LABELS[r.slot]} · Bàn {r.table.code} ·{" "}
-                            {r.partySize} khách ·{" "}
-                            {r.pairing === "NONE"
-                              ? "Không pairing"
-                              : r.pairing === "WINE"
-                                ? "Wine pairing (+650k)"
-                                : "Tea pairing (+350k)"}
-                          </p>
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                            <span>
+                              Khung {SLOT_LABELS[r.slot]} · Bàn {r.table.code} ·{" "}
+                              {r.partySize} khách ·{" "}
+                              {r.pairing === "NONE"
+                                ? "Không pairing"
+                                : r.pairing === "WINE"
+                                  ? "Wine pairing (+650k)"
+                                  : "Tea pairing (+350k)"}
+                            </span>
+                            {checkinStr && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+                                <Clock className="h-3 w-3 text-emerald-600" />
+                                Check-in: {checkinStr}
+                              </span>
+                            )}
+                          </div>
 
-                          <div className="mt-2 flex items-center justify-between border-t border-stone-100 pt-2 text-xs">
+                          <div className="flex items-center justify-between border-t border-stone-100 pt-2 text-xs">
                             <span className="text-muted-foreground">
                               Hóa đơn bữa ăn:
                             </span>
@@ -1554,8 +1566,41 @@ export function AdminCustomers() {
                             </span>
                           </div>
 
+                          {/* Thực đơn 7 món Tasting Menu */}
+                          <div className="rounded-lg border border-amber-200/80 bg-amber-50/40 p-2.5 text-xs space-y-1.5">
+                            <p className="flex items-center justify-between text-[11px] font-bold text-[#92400e] uppercase tracking-wide">
+                              <span className="flex items-center gap-1.5">
+                                <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
+                                Thực đơn bữa tiệc (7 món Tasting Menu)
+                              </span>
+                              <span className="font-normal lowercase text-[10px] text-stone-500">
+                                {r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine Pairing" : "Tea Pairing"}
+                              </span>
+                            </p>
+                            <div className="grid gap-1 sm:grid-cols-2">
+                              {dishes.map((dish) => (
+                                <div
+                                  key={dish.index}
+                                  className="flex items-start gap-1.5 rounded-md bg-white/90 p-1.5 border border-stone-200/60"
+                                >
+                                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#b45309] text-[9px] font-bold text-white">
+                                    {dish.index}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-stone-800 text-[11px] truncate">
+                                      {dish.name}
+                                    </p>
+                                    <p className="text-[10px] text-stone-500 truncate">
+                                      {dish.optionName || dish.region}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
                           {r.allergy && (
-                            <div className="mt-2">
+                            <div className="mt-1">
                               <AllergyBadge allergy={r.allergy} />
                             </div>
                           )}

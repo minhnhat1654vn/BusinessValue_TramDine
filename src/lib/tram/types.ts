@@ -38,6 +38,8 @@ export interface ReservationDTO {
   depositAmount: number;
   source: ReservationSource;
   createdAt: string;
+  updatedAt?: string;
+  checkinAt?: string | null;
   table: TableDTO;
   survey?: SurveyDTO | null;
 }
