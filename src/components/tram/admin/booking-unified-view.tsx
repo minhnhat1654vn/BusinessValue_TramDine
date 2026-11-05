@@ -230,6 +230,7 @@ export function AdminBookingUnifiedView({
     setSlotFilter,
     mapSlot,
     setMapSlot,
+    realtimeSlot,
     statusFilter,
     setStatusFilter,
     searchQuery,
@@ -621,12 +622,17 @@ export function AdminBookingUnifiedView({
         <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <CardTitle className="flex flex-wrap items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
                 <Table2 className="h-4 w-4 text-[#7c2d12]" aria-hidden />
                 Sơ đồ bàn theo ca
                 <Badge variant="outline" className="ml-1 text-xs border-[#b45309]/50 bg-[#fdf0d5] text-[#92400e]">
                   {activeTableSlot === "SLOT_1730" ? "Ca 17:30" : "Ca 19:45"}
                 </Badge>
+                {activeTableSlot === realtimeSlot && (
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10.5px] font-medium text-emerald-800">
+                    Theo giờ thực ({realtimeSlot === "SLOT_1730" ? "Trước 17:30 → Ca 17:30" : "Sau 17:30 → Ca 19:45"})
+                  </span>
+                )}
               </CardTitle>
               <CardDescription className="mt-0.5 text-xs">
                 10 bàn (A01–A05 &amp; B01–B05). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.

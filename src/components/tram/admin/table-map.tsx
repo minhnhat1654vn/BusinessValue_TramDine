@@ -91,7 +91,10 @@ interface TableMapProps {
 
 export function AdminTableMap({ today }: TableMapProps) {
   const [date, setDate] = useState(today);
-  const [slot, setSlot] = useState<Slot>("SLOT_1945");
+  const [slot, setSlot] = useState<Slot>(() => {
+    const now = new Date();
+    return now.getHours() * 60 + now.getMinutes() < 17 * 60 + 30 ? "SLOT_1730" : "SLOT_1945";
+  });
   const [selected, setSelected] = useState<TableAvailability | null>(null);
   const [confirmNoShow, setConfirmNoShow] = useState(false);
   const [acting, setActing] = useState(false);
