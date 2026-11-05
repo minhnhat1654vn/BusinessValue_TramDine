@@ -14,7 +14,7 @@
     "nuoc-mam": 3418,
     "tieu-den": 542,
     "dau-an": 4592,
-    "ca-bop": 3960,
+    "ca-bop": 5460,
     "ca-loc": 6300,
     "ca-duoi": 3400,
     "dau-phu": 2720,
@@ -46,8 +46,10 @@
     "tieu-rung": 488,
     "men-tuoi": 486,
     "rom": 5400,
-    "hoa-chuoi": 0
+    "hoa-chuoi": 0,
+    "nam-truffle-den-sa-pa": 500,
+    "nam-truffle-den-sa-pa-vu-dong": 300
   },
   "reorderPoints": {},
-  "updatedAt": "2026-11-04T19:43:32.452Z"
+  "updatedAt": "2026-11-05T05:34:55.070Z"
 }
