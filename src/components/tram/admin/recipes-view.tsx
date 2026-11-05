@@ -98,6 +98,13 @@ import type { BomResponse } from "@/lib/tram/recipes-server";
 import { toast } from "sonner";
 import { formatPercent, formatVND } from "@/lib/tram/format";
 import { useConceptLifecycle } from "@/hooks/tram/use-concept-lifecycle";
+import {
+  useBomMatrixAndFoodCost,
+  MENU_SELLING_PRICE,
+  TARGET_FOOD_COST_PCT,
+  TARGET_FOOD_COST_VND,
+} from "@/hooks/tram/use-bom-matrix";
+import { useExcelBomImporter, type ExcelPreviewRow } from "@/hooks/tram/use-excel-importer";
 import { emitTramEvent } from "@/lib/tram/events";
 
 // Màu nhận diện từng nhóm nguyên liệu
@@ -125,25 +132,6 @@ const COMMON_PREP_SUGGESTIONS = [
 ];
 
 type ViewMode = "recipes" | "food-cost" | "ingredients";
-
-interface ExcelPreviewRow {
-  rowNum: number;
-  dishIndex: number;
-  dishName: string;
-  optionId: string;
-  optionName: string;
-  isDefault: boolean;
-  ingredientId: string;
-  ingredientName: string;
-  group: string;
-  unit: string;
-  qtyPerGuest: number;
-  prepNote: string;
-  price: number;
-  status: "VALID" | "ERROR";
-  statusMessage: string;
-  isNewIngredient: boolean;
-}
 
 /** Hiển thị tổng g và ml, bỏ đơn vị bằng 0 */
 function formatTotals(totals: Record<IngredientUnit, number> | undefined): string {
@@ -181,30 +169,6 @@ export function AdminRecipes({
   // Chế độ xem: "recipes" (Công thức món), "food-cost" (Phân tích Food Cost), "ingredients" (Kho)
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
 
-  // Quy đổi số khách
-  const [guests, setGuests] = useState(1);
-  const [guestsInput, setGuestsInput] = useState("1");
-  const [selectedDish, setSelectedDish] = useState(1);
-  const [variantByDish, setVariantByDish] = useState<Record<number, string>>({});
-  const [summarySearch, setSummarySearch] = useState("");
-  const [summaryGroup, setSummaryGroup] = useState<IngredientGroup | "ALL">("ALL");
-
-  // Kho nguyên liệu: tìm kiếm, lọc & phân trang (tối đa 20 dòng / trang)
-  const [ingSearch, setIngSearch] = useState("");
-  const [ingGroupFilter, setIngGroupFilter] = useState<IngredientGroup | "ALL">("ALL");
-  const [ingStockFilter, setIngStockFilter] = useState<"ALL" | "LOW_STOCK" | "OUT_OF_STOCK">("ALL");
-  const [ingPage, setIngPage] = useState(1);
-  const ING_PAGE_SIZE = 20;
-
-  useEffect(() => {
-    setIngPage(1);
-  }, [ingSearch, ingGroupFilter, ingStockFilter]);
-
-  // Dữ liệu từ API
-  const [bomData, setBomData] = useState<BomResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   // Modal Tạo món ăn mới
   const [createDishOpen, setCreateDishOpen] = useState(false);
   const [newDishName, setNewDishName] = useState("");
@@ -223,9 +187,9 @@ export function AdminRecipes({
     prepNote: string;
   } | null>(null);
   const [submittingLine, setSubmittingLine] = useState(false);
+  const [steppingLineId, setSteppingLineId] = useState<string | null>(null);
 
-  // Modal Nhập hàng vào kho (Goods Receipt)
-  // Custom Hook: Quản lý vòng đời Concept Thực đơn đa tuần (Multi-Concept)
+  // Custom Hook 1: Quản lý vòng đời Concept Thực đơn đa tuần (Multi-Concept)
   const {
     concepts,
     activeConceptId,
@@ -251,6 +215,50 @@ export function AdminRecipes({
     notifyConceptActivated,
     handleConfirmDeleteConcept: confirmDeleteConceptHook,
   } = useConceptLifecycle(initialOpenConceptModal);
+
+  // Custom Hook 2: Ma trận BOM, Quy đổi số khách & Bộ máy tính toán Food Cost 33.5%
+  const {
+    guests,
+    scaled,
+    applyGuests,
+    selectedDish,
+    setSelectedDish,
+    setVariantByDish,
+    bomData,
+    loading,
+    isRefreshing,
+    loadBom,
+    dishCostMap,
+    totalFoodCost,
+    actualFoodCostPct,
+    grossProfit,
+    grossProfitPct,
+    shift42Cost,
+    shift42Revenue,
+    highestDish,
+    groupCostSummary,
+    activeDish,
+    activeDishCost,
+    activeVariant,
+  } = useBomMatrixAndFoodCost(selectedConceptId);
+
+  // Custom Hook 3: Tải động thư viện xlsx & Xem trước / Nhập bảng định lượng Excel
+  const {
+    importModalOpen,
+    setImportModalOpen,
+    selectedFile,
+    setSelectedFile,
+    previewRows,
+    setPreviewRows,
+    isParsingExcel,
+    importing,
+    previewStats,
+    handleFileSelect,
+    handleConfirmImportExcel,
+  } = useExcelBomImporter(bomData, async () => {
+    await loadBom(guests, true);
+    emitTramEvent({ type: "STOCK_UPDATED", ingredientId: "EXCEL_IMPORT" });
+  });
 
   useEffect(() => {
     if (initialViewMode) {
@@ -283,16 +291,6 @@ export function AdminRecipes({
   });
   const [submittingIng, setSubmittingIng] = useState(false);
 
-  // Modal Import Excel & Bảng Preview
-  const [importModalOpen, setImportModalOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewRows, setPreviewRows] = useState<ExcelPreviewRow[]>([]);
-  const [isParsingExcel, setIsParsingExcel] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const [resetting, setResetting] = useState(false);
-
-  const scaled = guests > 1;
-
   const formatConceptPeriod = (c: any) => {
     if (!c) return "";
     if (c.startDate && c.endDate) {
@@ -304,32 +302,6 @@ export function AdminRecipes({
     if (c.weekLabel && !c.weekLabel.toLowerCase().includes("tuần tiếp theo")) return c.weekLabel;
     return "Kế hoạch mới";
   };
-
-  // Tải dữ liệu từ API theo Concept được chọn
-  const loadBom = useCallback(
-    async (g: number = guests, silent: boolean = false, cid?: string) => {
-      try {
-        if (!silent) setLoading(true);
-        else setIsRefreshing(true);
-        const targetCid = cid ?? selectedConceptId;
-        const res = await fetch(`/api/recipes?guests=${g}&conceptId=${targetCid}`);
-        if (!res.ok) throw new Error("Không thể tải bảng định lượng.");
-        const json: BomResponse = await res.json();
-        setBomData(json);
-      } catch (err: any) {
-        console.error(err);
-        toast.error(err.message || "Lỗi tải dữ liệu định lượng.");
-      } finally {
-        setLoading(false);
-        setIsRefreshing(false);
-      }
-    },
-    [guests, selectedConceptId],
-  );
-
-  useEffect(() => {
-    loadBom(guests, false, selectedConceptId);
-  }, [guests, selectedConceptId, loadBom]);
 
   const handleConfirmDeleteConcept = async () => {
     await confirmDeleteConceptHook((nextId) => {
@@ -358,286 +330,6 @@ export function AdminRecipes({
       setActivatingConcept(false);
     }
   };
-
-  function applyGuests(next: number) {
-    const clamped = Math.min(MAX_SCALE_GUESTS, Math.max(1, Math.round(next)));
-    setGuests(clamped);
-    setGuestsInput(String(clamped));
-  }
-
-  function handleGuestsInput(value: string) {
-    const digits = value.replace(/\D/g, "").slice(0, 3);
-    setGuestsInput(digits);
-    const parsed = Number(digits);
-    if (digits !== "" && parsed >= 1 && parsed <= MAX_SCALE_GUESTS) setGuests(parsed);
-  }
-
-  // Món đang chọn
-  // ---------- TÍNH TOÁN FOOD COST & GIÁ VỐN TRỰC TIẾP TRÊN BOM ----------
-  const MENU_SELLING_PRICE = 1190000;
-  const TARGET_FOOD_COST_PCT = 33.5;
-  const TARGET_FOOD_COST_VND = 398650;
-
-  // 1. Giá vốn từng món theo định lượng BOM
-  const dishCostMap = useMemo(() => {
-    if (!bomData) return new Map<number, number>();
-    const map = new Map<number, number>();
-    for (const d of bomData.dishes) {
-      const defVar = d.variants.find((v) => v.isDefault) ?? d.variants[0];
-      if (!defVar) {
-        map.set(d.index, 0);
-        continue;
-      }
-      const cost = defVar.lines.reduce((sum, l) => {
-        const linePrice = l.defaultImportPrice || 0;
-        return sum + Math.round((l.qtyPerGuest * linePrice) / 1000);
-      }, 0);
-      map.set(d.index, cost);
-    }
-    return map;
-  }, [bomData]);
-
-  // 2. Tổng Food Cost thực đơn (1 suất)
-  const totalFoodCost = useMemo(() => {
-    let total = 0;
-    dishCostMap.forEach((cost) => {
-      total += cost;
-    });
-    return total;
-  }, [dishCostMap]);
-
-  // 3. Tỷ lệ Food Cost % trên giá bán menu 1.190.000 đ
-  const actualFoodCostPct = useMemo(() => {
-    if (MENU_SELLING_PRICE <= 0) return 0;
-    return Math.round((totalFoodCost / MENU_SELLING_PRICE) * 1000) / 10;
-  }, [totalFoodCost]);
-
-  // 4. Lãi gộp lý thuyết / 1 suất
-  const grossProfit = Math.max(0, MENU_SELLING_PRICE - totalFoodCost);
-  const grossProfitPct = Math.round((grossProfit / MENU_SELLING_PRICE) * 1000) / 10;
-
-  // 5. Chi phí ca 42 khách
-  const shift42Cost = totalFoodCost * 42;
-  const shift42Revenue = MENU_SELLING_PRICE * 42;
-
-  // 6. Món có chi phí cao nhất
-  const highestDish = useMemo(() => {
-    if (!bomData || bomData.dishes.length === 0) return null;
-    let maxDish = bomData.dishes[0];
-    let maxCost = dishCostMap.get(maxDish.index) || 0;
-    for (const d of bomData.dishes) {
-      const cost = dishCostMap.get(d.index) || 0;
-      if (cost > maxCost) {
-        maxCost = cost;
-        maxDish = d;
-      }
-    }
-    return { dish: maxDish, cost: maxCost };
-  }, [bomData, dishCostMap]);
-
-  // 7. Phân bổ chi phí theo 7 nhóm nguyên liệu
-  const groupCostSummary = useMemo(() => {
-    if (!bomData) return [];
-    const costByGroup: Record<IngredientGroup, number> = {
-      PROTEIN: 0,
-      STARCH: 0,
-      DAIRY_FAT: 0,
-      PRODUCE: 0,
-      FRUIT_NUT: 0,
-      SEASONING: 0,
-      AROMATIC: 0,
-    };
-    for (const d of bomData.dishes) {
-      const defVar = d.variants.find((v) => v.isDefault) ?? d.variants[0];
-      if (!defVar) continue;
-      for (const l of defVar.lines) {
-        const grp = (l.group || "SEASONING") as IngredientGroup;
-        const lineCost = Math.round((l.qtyPerGuest * (l.defaultImportPrice || 0)) / 1000);
-        if (costByGroup[grp] !== undefined) {
-          costByGroup[grp] += lineCost;
-        }
-      }
-    }
-    return INGREDIENT_GROUP_ORDER.map((grp) => {
-      const cost = costByGroup[grp] || 0;
-      const share = totalFoodCost > 0 ? Math.round((cost / totalFoodCost) * 1000) / 10 : 0;
-      return {
-        group: grp,
-        label: INGREDIENT_GROUP_LABELS[grp],
-        cost,
-        share,
-      };
-    });
-  }, [bomData, totalFoodCost]);
-
-  const activeDish = useMemo(() => {
-    if (!bomData) return null;
-    return bomData.dishes.find((d) => d.index === selectedDish) ?? bomData.dishes[0];
-  }, [bomData, selectedDish]);
-
-  // Biến thể đang chọn của món
-  const activeDishCost = useMemo(() => {
-    if (!activeDish) return 0;
-    const defVar = activeDish.variants.find((v) => v.isDefault) ?? activeDish.variants[0];
-    if (!defVar) return 0;
-    return defVar.lines.reduce((sum, l) => {
-      return sum + Math.round((l.qtyPerGuest * (l.defaultImportPrice || 0)) / 1000);
-    }, 0);
-  }, [activeDish]);
-
-  const activeVariant = useMemo(() => {
-    if (!activeDish) return null;
-    const pickedOptionId = variantByDish[selectedDish];
-    if (pickedOptionId) {
-      const found = activeDish.variants.find((v) => v.optionId === pickedOptionId);
-      if (found) return found;
-    }
-    return activeDish.variants.find((v) => v.isDefault) ?? activeDish.variants[0];
-  }, [activeDish, variantByDish, selectedDish]);
-
-  // Danh mục nguyên liệu tổng hợp
-  const menuSummary = useMemo(() => bomData?.summary.ingredients ?? [], [bomData]);
-
-  // Bộ lọc bảng tổng hợp
-  const filteredSummary = useMemo(() => {
-    const q = summarySearch.trim().toLowerCase();
-    return menuSummary.filter((a) => {
-      if (summaryGroup !== "ALL" && a.group !== summaryGroup) return false;
-      if (q && !a.name.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [menuSummary, summarySearch, summaryGroup]);
-
-  // Bộ lọc danh mục nguyên liệu kho
-  const filteredAllIngredients = useMemo(() => {
-    if (!bomData) return [];
-    const q = ingSearch.trim().toLowerCase();
-    return bomData.allIngredients.filter((i) => {
-      if (ingGroupFilter !== "ALL" && i.group !== ingGroupFilter) return false;
-      if (ingStockFilter === "LOW_STOCK" && (i.currentStock > i.minStock || i.currentStock <= 0)) return false;
-      if (ingStockFilter === "OUT_OF_STOCK" && i.currentStock > 0) return false;
-      if (q && !i.name.toLowerCase().includes(q) && !i.id.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  }, [bomData, ingSearch, ingGroupFilter, ingStockFilter]);
-
-  const ingTotalPages = Math.max(1, Math.ceil(filteredAllIngredients.length / ING_PAGE_SIZE));
-  const paginatedIngredients = useMemo(() => {
-    const start = (ingPage - 1) * ING_PAGE_SIZE;
-    return filteredAllIngredients.slice(start, start + ING_PAGE_SIZE);
-  }, [filteredAllIngredients, ingPage]);
-
-  // Thống kê preview Excel
-  const previewStats = useMemo(() => {
-    const total = previewRows.length;
-    const valid = previewRows.filter((r) => r.status === "VALID").length;
-    const errors = total - valid;
-    const newIngredients = previewRows.filter((r) => r.status === "VALID" && r.isNewIngredient).length;
-    return { total, valid, errors, newIngredients };
-  }, [previewRows]);
-
-  // Parse Excel client-side khi người dùng chọn file
-  const handleFileSelect = useCallback(async (file: File) => {
-    setSelectedFile(file);
-    setIsParsingExcel(true);
-    setPreviewRows([]);
-
-    try {
-      // Dynamic import: chỉ tải thư viện xlsx khi người dùng chọn file Excel
-      const XLSX = await import("xlsx");
-      const arrayBuffer = await file.arrayBuffer();
-      const wb = XLSX.read(arrayBuffer, { type: "array" });
-      const sheetName = wb.SheetNames.includes("CongThuc_BOM") ? "CongThuc_BOM" : wb.SheetNames[0];
-      const ws = wb.Sheets[sheetName];
-      if (!ws) {
-        toast.error("File Excel không có sheet dữ liệu hợp lệ.");
-        setIsParsingExcel(false);
-        return;
-      }
-
-      const rows: any[] = XLSX.utils.sheet_to_json(ws);
-      if (!Array.isArray(rows) || rows.length === 0) {
-        toast.warning("File Excel không có dòng dữ liệu nào.");
-        setIsParsingExcel(false);
-        return;
-      }
-
-      const existingIngIds = new Set(bomData?.allIngredients.map((i) => i.id) ?? []);
-      const parsed: ExcelPreviewRow[] = [];
-
-      rows.forEach((row, idx) => {
-        const rowNum = idx + 2;
-        const dishIndex = Number(row["STT Món"] || row["Món"] || row["dishIndex"] || 0);
-        const dishName = String(row["Tên Món"] || row["dishName"] || `Món ${dishIndex}`).trim();
-        const optionId = String(row["Mã Biến Thể"] || row["optionId"] || "std").trim();
-        const optionName = String(row["Tên Biến Thể"] || row["optionName"] || "Chuẩn vị").trim();
-        const isDefault = Number(row["Mặc Định (1=Có, 0=Không)"] ?? 1) === 1;
-
-        const rawIngId = String(row["Mã Nguyên Liệu"] || row["ingredientId"] || "").trim();
-        const ingName = String(row["Tên Nguyên Liệu"] || row["ingredientName"] || "").trim();
-        const group = String(row["Nhóm"] || row["group"] || "SEASONING").trim().toUpperCase();
-        const unit = String(row["Đơn Vị"] || row["unit"] || "g").trim().toLowerCase();
-        const qtyPerGuest = Number(row["Định Lượng / 1 Khách"] || row["qtyPerGuest"] || 0);
-        const prepNote = String(row["Quy Cách / Sơ Chế"] || row["prepNote"] || "").trim();
-        const price = Number(row["Đơn Giá Nhập (VND/đơn vị)"] || row["defaultImportPrice"] || 0);
-
-        let status: "VALID" | "ERROR" = "VALID";
-        let statusMessage = "Hợp lệ";
-
-        if (!dishIndex || dishIndex < 1 || dishIndex > 7) {
-          status = "ERROR";
-          statusMessage = "Mã món phải từ 1 đến 7";
-        } else if (!ingName) {
-          status = "ERROR";
-          statusMessage = "Thiếu tên nguyên liệu";
-        } else if (qtyPerGuest <= 0) {
-          status = "ERROR";
-          statusMessage = "Định lượng phải > 0";
-        } else if (unit !== "g" && unit !== "ml") {
-          status = "ERROR";
-          statusMessage = `Đơn vị '${unit}' không hợp lệ (chỉ nhận g/ml)`;
-        }
-
-        const resolvedId =
-          rawIngId ||
-          ingName
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[đĐ]/g, "d")
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "");
-
-        const isNewIngredient = !existingIngIds.has(resolvedId);
-
-        parsed.push({
-          rowNum,
-          dishIndex,
-          dishName,
-          optionId,
-          optionName,
-          isDefault,
-          ingredientId: resolvedId,
-          ingredientName: ingName,
-          group,
-          unit,
-          qtyPerGuest,
-          prepNote,
-          price,
-          status,
-          statusMessage,
-          isNewIngredient,
-        });
-      });
-
-      setPreviewRows(parsed);
-    } catch (err: any) {
-      console.error(err);
-      toast.error("Không thể đọc file Excel. Vui lòng kiểm tra định dạng .xlsx");
-    } finally {
-      setIsParsingExcel(false);
-    }
-  }, [bomData]);
 
   // ---------- Thao tác CRUD ----------
 
@@ -704,6 +396,48 @@ export function AdminRecipes({
     }
   };
 
+  // Tăng / giảm nhanh định lượng trực tiếp trên dòng BOM (-5 / +5)
+  async function handleQuickStepLineQty(
+    line: {
+      id: string;
+      ingredientId: string;
+      qtyPerGuest: number;
+      unit: string;
+      prepNote?: string | null;
+    },
+    delta: number,
+  ) {
+    if (!activeVariant) return;
+    const nextQty = Math.max(1, Math.round((line.qtyPerGuest + delta) * 10) / 10);
+    if (nextQty === line.qtyPerGuest) return;
+    try {
+      setSteppingLineId(line.id);
+      const res = await fetch("/api/recipes/lines", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: line.id,
+          variantId: activeVariant.id,
+          ingredientId: line.ingredientId,
+          qtyPerGuest: nextQty,
+          unit: line.unit,
+          prepNote: line.prepNote || "",
+          conceptId: selectedConceptId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Lỗi cập nhật định lượng.");
+      await loadBom(guests, true);
+      if (selectedConceptId === activeConceptId) {
+        notifyConceptActivated(selectedConceptId);
+      }
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setSteppingLineId(null);
+    }
+  }
+
   // Lưu dòng định lượng
   async function handleSaveLine(e: React.FormEvent) {
     e.preventDefault();
@@ -720,6 +454,9 @@ export function AdminRecipes({
       toast.success("Đã cập nhật định lượng thành công!");
       setLineModalOpen(false);
       await loadBom(guests, true);
+      if (selectedConceptId === activeConceptId) {
+        notifyConceptActivated(selectedConceptId);
+      }
     } catch (err: any) {
       toast.error(err.message);
     } finally {
@@ -736,6 +473,9 @@ export function AdminRecipes({
       if (!res.ok) throw new Error(data.error || "Không thể xóa dòng định lượng.");
       toast.success("Đã xóa dòng định lượng.");
       await loadBom(guests, true);
+      if (selectedConceptId === activeConceptId) {
+        notifyConceptActivated(selectedConceptId);
+      }
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -765,75 +505,11 @@ export function AdminRecipes({
         minStock: 200,
       });
       await loadBom(guests, true);
+      emitTramEvent({ type: "STOCK_UPDATED", ingredientId: data?.ingredient?.id || "NEW" });
     } catch (err: any) {
       toast.error(err.message);
     } finally {
       setSubmittingIng(false);
-    }
-  }
-
-  // Xóa nguyên liệu khỏi CSDL
-  async function handleDeleteIngredient(id: string, name: string) {
-    if (!confirm(`Xác nhận xóa nguyên liệu "${name}" khỏi kho?`)) return;
-    try {
-      const res = await fetch(`/api/recipes/ingredients?id=${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Không thể xóa nguyên liệu.");
-      toast.success("Đã xóa nguyên liệu thành công.");
-      await loadBom(guests, true);
-    } catch (err: any) {
-      toast.error(err.message);
-    }
-  }
-
-  // Khôi phục mặc định Concept 2
-  async function handleResetConcept2() {
-    if (!confirm("Khôi phục toàn bộ công thức định lượng 7 món về bộ chuẩn Concept 2 ban đầu của TRẦM Reserve?")) return;
-    try {
-      setResetting(true);
-      const res = await fetch("/api/recipes?action=reset", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi khôi phục dữ liệu.");
-      toast.success(data.message || "Đã khôi phục Concept 2 thành công!");
-      await loadBom(guests, true);
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setResetting(false);
-    }
-  }
-
-  // Xác nhận nhập file Excel vào CSDL
-  async function handleConfirmImportExcel() {
-    if (!selectedFile) return;
-    if (previewStats.valid === 0) {
-      toast.error("Không có dòng dữ liệu hợp lệ nào để nhập.");
-      return;
-    }
-    try {
-      setImporting(true);
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      const res = await fetch("/api/recipes/import", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Lỗi khi xử lý file Excel.");
-
-      if (data.errors && data.errors.length > 0) {
-        toast.warning(`Đã nhập ${data.insertedLines} dòng, nhưng có ${data.errors.length} dòng lỗi.`);
-      } else {
-        toast.success(`Đã nhập thành công ${data.insertedLines} dòng định lượng vào hệ thống!`);
-      }
-      setImportModalOpen(false);
-      setSelectedFile(null);
-      setPreviewRows([]);
-      await loadBom(guests, true);
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
-      setImporting(false);
     }
   }
 
@@ -1474,18 +1150,33 @@ export function AdminRecipes({
                                       const isLow =
                                         !isOut && stockInfo.currentStock <= stockInfo.minStock;
                                       return (
-                                        <span
-                                          className={cn(
-                                            "inline-flex items-center rounded-sm border px-1.5 py-0.2 font-mono text-[10px] font-medium",
-                                            isOut
-                                              ? "border-rose-300 bg-rose-50 text-rose-700"
-                                              : isLow
-                                                ? "border-amber-300 bg-amber-50 text-amber-800"
-                                                : "border-emerald-200 bg-emerald-50/70 text-emerald-800",
+                                        <span className="inline-flex items-center gap-1">
+                                          <span
+                                            className={cn(
+                                              "inline-flex items-center rounded-sm border px-1.5 py-0.2 font-mono text-[10px] font-medium",
+                                              isOut
+                                                ? "border-rose-300 bg-rose-50 text-rose-700"
+                                                : isLow
+                                                  ? "border-amber-300 bg-amber-50 text-amber-800"
+                                                  : "border-emerald-200 bg-emerald-50/70 text-emerald-800",
+                                            )}
+                                            title="Tồn kho thực tế hiện tại"
+                                          >
+                                            Kho: {formatQty(stockInfo.currentStock, stockInfo.unit as IngredientUnit)}
+                                          </span>
+                                          {(isOut || isLow) && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setStockInTargetId(line.ingredientId);
+                                                setStockInOpen(true);
+                                              }}
+                                              className="inline-flex items-center gap-0.5 rounded-sm border border-[#7c2d12]/40 bg-[#fdf0d5] px-1.5 py-0.2 font-heading text-[10px] font-semibold text-[#7c2d12] transition-colors hover:bg-[#7c2d12] hover:text-[#fdf0d5] cursor-pointer"
+                                              title="Mở nhanh Phiếu nhập kho cho nguyên liệu này"
+                                            >
+                                              <ArrowDownToLine className="h-2.5 w-2.5" /> Nhập kho
+                                            </button>
                                           )}
-                                          title="Tồn kho thực tế hiện tại"
-                                        >
-                                          Kho: {formatQty(stockInfo.currentStock, stockInfo.unit as IngredientUnit)}
                                         </span>
                                       );
                                     })()}
@@ -1501,7 +1192,29 @@ export function AdminRecipes({
                                 {INGREDIENT_GROUP_LABELS[line.group] ?? line.group}
                               </TableCell>
                               <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-[#292524]">
-                                {formatQty(line.qtyPerGuest, line.unit)}
+                                <div className="inline-flex items-center justify-end gap-1">
+                                  <button
+                                    type="button"
+                                    disabled={steppingLineId === line.id || line.qtyPerGuest <= 5}
+                                    onClick={() => handleQuickStepLineQty(line, -5)}
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-stone-300 bg-[#fffdf8] text-[10px] font-bold text-stone-600 transition-colors hover:border-[#7c2d12] hover:text-[#7c2d12] disabled:opacity-35 cursor-pointer"
+                                    title="Giảm 5 đơn vị"
+                                  >
+                                    -5
+                                  </button>
+                                  <span className="min-w-[54px] text-right">
+                                    {formatQty(line.qtyPerGuest, line.unit)}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={steppingLineId === line.id}
+                                    onClick={() => handleQuickStepLineQty(line, 5)}
+                                    className="inline-flex h-5 w-5 items-center justify-center rounded-sm border border-stone-300 bg-[#fffdf8] text-[10px] font-bold text-stone-600 transition-colors hover:border-[#7c2d12] hover:text-[#7c2d12] disabled:opacity-35 cursor-pointer"
+                                    title="Tăng 5 đơn vị"
+                                  >
+                                    +5
+                                  </button>
+                                </div>
                               </TableCell>
                               {scaled && (
                                 <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-[#7c2d12]">
@@ -2365,6 +2078,109 @@ export function AdminRecipes({
         </DialogContent>
       </Dialog>
 
+      {/* ==================== MODAL PHIẾU NHẬP HÀNG VÀO KHO (STOCK-IN) ==================== */}
+      <StockInModal
+        open={stockInOpen}
+        onOpenChange={setStockInOpen}
+        initialIngredientId={stockInTargetId}
+        onSuccess={() => {
+          void loadBom(guests, true, selectedConceptId);
+          emitTramEvent({
+            type: "STOCK_UPDATED",
+            ingredientId: stockInTargetId || "STOCK_IN",
+          });
+        }}
+      />
+
+      {/* ==================== MODAL TẠO CONCEPT THỰC ĐƠN MỚI ==================== */}
+      <CreateConceptModal
+        open={createConceptOpen}
+        onOpenChange={setCreateConceptOpen}
+        existingConcepts={concepts}
+        currentActiveId={activeConceptId}
+        onSuccess={async (newId) => {
+          setSelectedConceptId(newId);
+          setSelectedDish(1);
+          await loadConcepts();
+          await loadBom(guests, true, newId);
+        }}
+      />
+
+      {/* ==================== MODAL CHỈNH SỬA CONCEPT THỰC ĐƠN ==================== */}
+      <EditConceptModal
+        open={editConceptOpen}
+        onOpenChange={setEditConceptOpen}
+        concept={conceptToEdit}
+        onSuccess={async (updated) => {
+          await loadConcepts();
+          await loadBom(guests, true, updated.id);
+        }}
+      />
+
+      {/* ==================== MODAL QUẢN LÝ DANH SÁCH CONCEPT ==================== */}
+      <ManageConceptsModal
+        open={manageConceptsOpen}
+        onOpenChange={setManageConceptsOpen}
+        concepts={concepts}
+        activeConceptId={activeConceptId}
+        onSelectConcept={(cid) => {
+          setSelectedConceptId(cid);
+          setSelectedDish(1);
+          void loadBom(guests, false, cid);
+        }}
+        onCreateNew={() => {
+          setManageConceptsOpen(false);
+          setCreateConceptOpen(true);
+        }}
+        onEditConcept={(c) => {
+          setManageConceptsOpen(false);
+          setConceptToEdit(c);
+          setEditConceptOpen(true);
+        }}
+        onRefresh={async () => {
+          await loadConcepts();
+          await loadBom(guests, true, selectedConceptId);
+        }}
+      />
+
+      {/* ==================== ALERT XÁC NHẬN XÓA CONCEPT ==================== */}
+      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+        <AlertDialogContent className="font-heading">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-heading text-lg text-[#292524]">
+              Xác nhận xóa Concept thực đơn?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs leading-relaxed">
+              Bạn có chắc chắn muốn xóa vĩnh viễn{" "}
+              <strong className="text-[#292524]">
+                &ldquo;{conceptToDelete?.name}&rdquo;
+              </strong>{" "}
+              khỏi danh sách? Toàn bộ món ăn và bảng định lượng BOM thuộc Concept này sẽ bị xóa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingConcept} className="text-xs">
+              Hủy
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingConcept}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleConfirmDeleteConcept();
+              }}
+              className="bg-rose-700 text-xs font-semibold text-white hover:bg-rose-800"
+            >
+              {deletingConcept ? (
+                <>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Đang xóa...
+                </>
+              ) : (
+                "Xác nhận xóa Concept"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
