@@ -20,8 +20,9 @@ node_modules
 # production
 /build
 
-# database (sinh lại bằng `npm run db:push` + `npm run db:seed`)
+# database (file SQLite custom.db chứa sẵn 474 đơn và 12 bàn để chạy ngay)
 db/*.db
+!db/custom.db
 db/*.db-journal
 
 # misc
@@ -52,3 +53,7 @@ AGENTS.md
 TramDine_structure.md
 
 /docs
+
+# SQLite temporary files
+*.db-shm
+*.db-wal

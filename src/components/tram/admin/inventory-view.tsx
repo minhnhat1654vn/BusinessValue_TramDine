@@ -25,6 +25,8 @@ import {
   Users,
   UtensilsCrossed,
   Warehouse,
+  Calculator,
+  Edit3,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +52,13 @@ import {
   roundQty,
   type IngredientGroup,
 } from "@/lib/tram/recipes";
-import { formatSignedVND, getImportUnitFactor } from "@/lib/tram/food-cost";
+import {
+  formatSignedVND,
+  getImportUnitFactor,
+  getFoodCostKpiSummary,
+  MAX_IMPORT_PRICE,
+  MIN_IMPORT_PRICE,
+} from "@/lib/tram/food-cost";
 import {
   applyDishMovement,
   applyStandardServingsMovement,
@@ -58,6 +66,7 @@ import {
   type ExtraInventoryIngredient,
   type InventoryItem,
 } from "@/lib/tram/inventory";
+import { ShiftPurchaseCard } from "./shift-purchase-card";
 
 const GROUP_STYLES: Record<
   IngredientGroup,
@@ -217,9 +226,11 @@ function areMapsEqual(a: Record<string, number>, b: Record<string, number>): boo
 export function AdminInventory({
   onNavigateTab,
   hideTitleHeader = false,
+  today,
 }: {
   onNavigateTab?: (tab: string) => void;
   hideTitleHeader?: boolean;
+  today?: string | null;
 } = {}) {
   const [loaded, setLoaded] = useState(false);
   const [savedStock, setSavedStock] = useState<Record<string, number>>({});
@@ -352,6 +363,42 @@ export function AdminInventory({
     };
   }, [loaded, draftStock, savedStock, draftReorder, savedReorder]);
 
+  // FR-33: Tính KPI Food Cost thời gian thực từ bảng giá kho
+  const foodCostKpi = useMemo(
+    () => getFoodCostKpiSummary(priceOverrides),
+    [priceOverrides],
+  );
+
+  // Đổi đơn giá nguyên liệu để mô phỏng What-if trực tiếp trong Tồn kho
+  const handlePriceChange = useCallback(
+    async (ingredientId: string, defaultPrice: number, nextPrice: number) => {
+      const clamped = Math.min(MAX_IMPORT_PRICE, Math.max(MIN_IMPORT_PRICE, Math.round(nextPrice)));
+      const nextOverrides = { ...priceOverrides };
+      if (clamped === defaultPrice) {
+        delete nextOverrides[ingredientId];
+      } else {
+        nextOverrides[ingredientId] = clamped;
+      }
+      setPriceOverrides(nextOverrides);
+
+      try {
+        const res = await fetch("/api/food-cost", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prices: nextOverrides }),
+        });
+        if (res.ok) {
+          const updatedKpi = getFoodCostKpiSummary(nextOverrides);
+          toast.success(`Đã cập nhật đơn giá ${formatVND(clamped)}.`, {
+            description: `KPI Food Cost tự nhảy: ${formatPercent(updatedKpi.foodCostPct, 1)} (Giá vốn ${formatVND(updatedKpi.costPerGuest)}/khách).`,
+          });
+        }
+      } catch {
+        toast.error("Lỗi khi lưu đơn giá kho.");
+      }
+    },
+    [priceOverrides],
+  );
 
 
   async function handleResetAllStock() {
@@ -515,8 +562,8 @@ export function AdminInventory({
         ) : null
       )}
 
-      {/* ==================== 2. CHỈ SỐ TỒN KHO TRỰC TIẾP ==================== */}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      {/* ==================== 2. CHỈ SỐ TỒN KHO TRỰC TIẾP & KPI FOOD COST ==================== */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {[
           {
             id: "total-value",
@@ -546,6 +593,16 @@ export function AdminInventory({
                 : report.maxStandardGuests >= 42
                   ? ("good" as const)
                   : ("default" as const),
+          },
+          {
+            id: "food-cost-kpi",
+            label: "Food cost (Mục tiêu 50%)",
+            value: formatPercent(foodCostKpi.foodCostPct, 1),
+            sub: `${formatVND(foodCostKpi.costPerGuest)}/khách · ${
+              foodCostKpi.isWithinTarget ? "✓ Đạt mục tiêu" : "⚠️ Vượt trần 50%"
+            }`,
+            icon: Calculator,
+            tone: foodCostKpi.isWithinTarget ? ("good" as const) : ("warn" as const),
           },
           {
             id: "total-volume",
@@ -687,6 +744,13 @@ export function AdminInventory({
           setStockInTargetId(id);
           setStockInOpen(true);
         }}
+      />
+
+      {/* ==================== 3C. DANH SÁCH MUA TRƯỚC CA (FR-32) ==================== */}
+      <ShiftPurchaseCard
+        stockOverrides={draftStock}
+        priceOverrides={priceOverrides}
+        today={today}
       />
 
       {/* ==================== 4. BẢNG TỒN KHO THEO TỪNG NGUYÊN LIỆU ==================== */}
@@ -859,6 +923,7 @@ export function AdminInventory({
                       setStockInTargetId(id);
                       setStockInOpen(true);
                     }}
+                    onPriceChange={handlePriceChange}
                   />
                 ))}
               </TableBody>
@@ -964,11 +1029,13 @@ function InventoryGroupSection({
   items,
   totalWarehouseValue,
   onStockIn,
+  onPriceChange,
 }: {
   group: IngredientGroup;
   items: InventoryItem[];
   totalWarehouseValue: number;
   onStockIn: (id: string) => void;
+  onPriceChange?: (ingredientId: string, defaultPrice: number, nextPrice: number) => void;
 }) {
   const groupSubtotal = items.reduce((sum, i) => sum + i.stockValue, 0);
   const groupPct =
@@ -995,7 +1062,7 @@ function InventoryGroupSection({
         </TableCell>
       </TableRow>
       {items.map((item) => (
-        <InventoryStockRow key={item.ingredientId} item={item} onStockIn={onStockIn} />
+        <InventoryStockRow key={item.ingredientId} item={item} onStockIn={onStockIn} onPriceChange={onPriceChange} />
       ))}
     </>
   );
@@ -1004,10 +1071,28 @@ function InventoryGroupSection({
 function InventoryStockRow({
   item,
   onStockIn,
+  onPriceChange,
 }: {
   item: InventoryItem;
   onStockIn: (id: string) => void;
+  onPriceChange?: (ingredientId: string, defaultPrice: number, nextPrice: number) => void;
 }) {
+  const [editingPrice, setEditingPrice] = useState(false);
+  const [priceInput, setPriceInput] = useState(String(item.importPrice));
+
+  useEffect(() => {
+    setPriceInput(String(item.importPrice));
+  }, [item.importPrice]);
+
+  const commitPrice = () => {
+    setEditingPrice(false);
+    const parsed = parseInt(priceInput.replace(/\D/g, ""), 10);
+    if (!isNaN(parsed) && parsed !== item.importPrice && onPriceChange) {
+      onPriceChange(item.ingredientId, item.defaultImportPrice, parsed);
+    } else {
+      setPriceInput(String(item.importPrice));
+    }
+  };
   const isOut = item.stockQty === 0;
   const isWarning = item.isWarning; // stockPercent < 32% or isOut
   const isSafe = item.isSafe; // stockPercent >= 32%
@@ -1139,9 +1224,40 @@ function InventoryStockRow({
         )}
       </TableCell>
 
-      {/* 6. Đơn giá kho */}
+      {/* 6. Đơn giá kho (bấm để sửa mô phỏng What-if KPI Food Cost) */}
       <TableCell className="text-right text-xs tabular-nums text-stone-600">
-        {formatVND(item.importPrice)}/{item.importUnitLabel}
+        {editingPrice ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              commitPrice();
+            }}
+            className="inline-flex items-center gap-1 justify-end"
+          >
+            <Input
+              type="text"
+              inputMode="numeric"
+              value={priceInput}
+              onChange={(e) => setPriceInput(e.target.value)}
+              onBlur={commitPrice}
+              autoFocus
+              className="h-6 w-24 text-right text-xs px-1 font-mono border-amber-400 bg-white shadow-xs"
+            />
+            <span className="text-[10px] text-muted-foreground">/{item.importUnitLabel}</span>
+          </form>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setEditingPrice(true)}
+            title="Bấm để sửa đơn giá kho (mô phỏng What-if KPI Food Cost)"
+            className="group inline-flex items-center gap-1 rounded px-1.5 py-0.5 hover:bg-amber-100/70 hover:text-[#92400e] transition-colors"
+          >
+            <span>
+              {formatVND(item.importPrice)}/{item.importUnitLabel}
+            </span>
+            <Edit3 className="h-3 w-3 opacity-0 group-hover:opacity-100 text-[#b45309] transition-opacity" />
+          </button>
+        )}
       </TableCell>
 
       {/* 7. Giá trị tồn */}

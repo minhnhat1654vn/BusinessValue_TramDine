@@ -2,7 +2,7 @@
 
 // 3.3 Danh sách đặt bàn theo ngày — filter khung giờ + trạng thái, dialog chi tiết
 import { useMemo, useState } from "react";
-import { Eye, LogIn, Star } from "lucide-react";
+import { Clock, Eye, LogIn, Star, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +37,8 @@ import {
   StatusBadge,
   useJson,
 } from "./admin-shared";
-import { formatLongDate, formatVND, relativeDayLabel } from "@/lib/tram/format";
+import { formatCheckinTime, formatLongDate, formatVND, relativeDayLabel } from "@/lib/tram/format";
+import { parseReservationDishes } from "@/lib/tram/dishes";
 import {
   PAIRING_LABELS,
   SLOT_LABELS,
@@ -385,6 +386,15 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                   <span className="text-muted-foreground">Trạng thái</span>
                   <StatusBadge status={detail.status} />
                 </p>
+
+                {/* Ngày giờ check-in nếu đã đến */}
+                {detail.status === "SEATED" && (
+                  <div className="flex items-center gap-2 rounded-lg bg-emerald-50 border border-emerald-200/80 p-2 text-xs text-emerald-900 font-medium">
+                    <Clock className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>Đã Check-in vào bàn lúc: <strong>{formatCheckinTime(detail)}</strong></span>
+                  </div>
+                )}
+
                 <Separator className="my-2 bg-border" />
                 {detail.allergy && (
                   <p className="pb-1">
@@ -396,6 +406,37 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                     {detail.notes}
                   </p>
                 )}
+
+                {/* Thực đơn 7 món Tasting Menu */}
+                <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-2.5 text-xs space-y-2 mt-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#92400e] flex items-center gap-1.5 uppercase text-[10px] tracking-wide">
+                      <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
+                      Thực đơn bữa tiệc (7 món Tasting Menu)
+                    </span>
+                    <Badge variant="outline" className="text-[10px] border-amber-300 bg-white text-amber-900">
+                      {PAIRING_LABELS[detail.pairing]}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {parseReservationDishes(detail.selectedDishes).map((dish) => (
+                      <div key={dish.index} className="flex items-center justify-between gap-1.5 rounded-md bg-white/90 px-2 py-1 border border-stone-200/60">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#b45309] text-[9px] font-bold text-white">
+                            {dish.index}
+                          </span>
+                          <span className="font-medium text-stone-900 text-[11px] truncate">
+                            {dish.name}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-stone-500 shrink-0 italic">
+                          {dish.optionName || dish.region}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <p className="pt-1 text-[11px] text-muted-foreground">
                   Tạo lúc {new Date(detail.createdAt).toLocaleString("vi-VN")} ·
                   Ngày đến: {relativeDayLabel(detail.date, today)}

@@ -7,6 +7,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
+  AlertTriangle,
   ArrowRightLeft,
   Banknote,
   Calculator,
@@ -52,9 +53,11 @@ import {
   type IngredientGroup,
 } from "@/lib/tram/recipes";
 import {
+  CEILING_FOOD_COST_PER_GUEST,
   IMPORT_UNIT_LABELS,
   MAX_IMPORT_PRICE,
   MIN_IMPORT_PRICE,
+  TARGET_FOOD_COST_CEILING_PCT,
   calculateDishCost,
   calculateMenuFoodCost,
   formatBaseUnitCost,
@@ -594,19 +597,32 @@ export function AdminFoodCost({
         <CardContent className="space-y-5 p-4 sm:p-5">
           {/* Thanh tỷ lệ giá vốn / giá bán menu */}
           <div className="space-y-2">
-            <div className="text-xs font-semibold text-[#292524]">
-              Giá vốn nguyên liệu:{" "}
-              <span className="tabular-nums text-[#92400e]">{formatVND(report.costPerGuest)}</span> (
-              {formatPercent(report.foodCostPct, 1)})
+            <div className="flex items-center justify-between text-xs font-semibold text-[#292524]">
+              <div>
+                Giá vốn nguyên liệu:{" "}
+                <span className="tabular-nums text-[#92400e]">{formatVND(report.costPerGuest)}</span> (
+                {formatPercent(report.foodCostPct, 1)} giá menu)
+              </div>
+              <div className="text-[11px] font-normal text-muted-foreground">
+                Trần an toàn FR-33: ≤ 50% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
+              </div>
             </div>
 
             <div className="relative pt-5 pb-1">
-              {/* Nhãn mốc mục tiêu 33,5% */}
+              {/* Nhãn mốc mục tiêu chuẩn 33,5% */}
               <div
                 style={{ left: `${report.targetFoodCostPct}%` }}
-                className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10.5px] font-semibold text-stone-700"
+                className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold text-emerald-800"
               >
                 Mục tiêu {formatPercent(report.targetFoodCostPct, 1)} ({formatVND(report.targetFoodCostPerGuest)})
+              </div>
+
+              {/* Nhãn mốc trần 50% (FR-33) */}
+              <div
+                style={{ left: "50%" }}
+                className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-rose-700"
+              >
+                Mục tiêu trần 50% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
               </div>
 
               <div className="relative h-4 w-full overflow-hidden rounded-full border border-border/80 bg-[#f5efe4]">
@@ -614,7 +630,7 @@ export function AdminFoodCost({
                   style={{ width: `${barFillPct}%` }}
                   className={cn(
                     "h-full rounded-l-full transition-all duration-300",
-                    report.isWithinTarget ? "bg-[#b45309]" : "bg-rose-600",
+                    report.foodCostPct <= TARGET_FOOD_COST_CEILING_PCT ? "bg-[#b45309]" : "bg-rose-600",
                   )}
                 />
               </div>
@@ -623,10 +639,47 @@ export function AdminFoodCost({
               <div
                 style={{ left: `${report.targetFoodCostPct}%` }}
                 aria-hidden
-                className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-stone-800"
+                className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-emerald-700"
+              />
+
+              {/* Vạch dọc mốc 50% */}
+              <div
+                style={{ left: "50%" }}
+                aria-hidden
+                className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-rose-700"
               />
             </div>
           </div>
+
+          {/* Cảnh báo & 3 lựa chọn quản trị nếu Food Cost vượt 50% */}
+          {report.foodCostPct > TARGET_FOOD_COST_CEILING_PCT && (
+            <div className="rounded-xl border border-rose-300 bg-rose-50/90 p-4 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-rose-900">
+                <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+                <span>Ý nghĩa quản trị (FR-33): Food Cost đang vượt trần 50% → 3 Lựa chọn:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-stone-700">
+                <div className="rounded-lg bg-white p-2.5 border border-rose-200">
+                  <p className="font-semibold text-rose-950">1. Tăng giá menu</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Điều chỉnh giá bán tasting {formatVND(report.menuPricePerGuest)} lên mức phù hợp để hạ tỷ lệ chi phí.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-white p-2.5 border border-rose-200">
+                  <p className="font-semibold text-rose-950">2. Đàm phán lại đơn giá</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Đàm phán giảm giá nhập kho với các nhà cung cấp chủ lực cho các nguyên liệu chiếm tỷ trọng cao.
+                  </p>
+                </div>
+                <div className="rounded-lg bg-white p-2.5 border border-rose-200">
+                  <p className="font-semibold text-rose-950">3. Đổi nguyên liệu (BOM)</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">
+                    Sử dụng các phương án nguyên liệu thay thế sẵn có trong BOM 7 món để tối ưu hóa giá vốn.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Đối chiếu với 3 gói thực đơn khách đặt (Không pairing · Tea Pairing · Wine Pairing) */}
           <div className="grid gap-3 border-t border-border/60 pt-4 md:grid-cols-3">

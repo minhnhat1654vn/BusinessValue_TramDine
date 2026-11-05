@@ -28,6 +28,7 @@ type ReservationWithTable = {
   depositAmount: number;
   source: string;
   createdAt: Date;
+  updatedAt?: Date;
   table: { id: string; code: string; seats: number; zone: string };
   survey?: {
     id: string;
@@ -62,6 +63,8 @@ export function serializeReservation(r: ReservationWithTable): ReservationDTO {
     depositAmount: r.depositAmount,
     source: r.source as ReservationSource,
     createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt ? r.updatedAt.toISOString() : undefined,
+    checkinAt: r.status === "SEATED" && r.updatedAt ? r.updatedAt.toISOString() : null,
     table: r.table,
     survey: r.survey
       ? {

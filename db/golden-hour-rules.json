@@ -1,0 +1,13 @@
+{
+  "applicableDays": [
+    3,
+    4,
+    5
+  ],
+  "applicableSlot": "SLOT_1730",
+  "minOccupancyPct": 15,
+  "maxOccupancyPct": 50,
+  "defaultDiscountType": "PERCENT",
+  "defaultDiscountValue": 15,
+  "autoAlertOnDashboard": true
+}

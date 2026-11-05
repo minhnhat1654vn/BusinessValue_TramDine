@@ -29,6 +29,7 @@ import {
   Sparkles,
   RefreshCw,
   User,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ import {
 import { SLOT_LABELS } from "@/lib/tram/constants";
 import type { AdminStats } from "@/lib/tram/types";
 import { cn } from "@/lib/utils";
+import { FoodCostKpiWidget } from "./food-cost-kpi-widget";
 
 interface DashboardProps {
   today: string;
@@ -307,6 +309,15 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
     revMaxTick,
   ];
 
+  // FR-34: Tìm ca chiều T4, T5, T6 gần nhất có lấp đầy <= 50% để cảnh báo kích hoạt Khung Giờ Vàng
+  const upcomingGoldenHourAlert =
+    data.occupancy.find(
+      (p) =>
+        p.date >= today &&
+        [3, 4, 5].includes(p.weekday) &&
+        (p.slot1730Percent ?? 0) <= 50,
+    ) ?? null;
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
       {/* Tiêu đề Dashboard & Nút Làm mới dữ liệu */}
@@ -359,6 +370,51 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
         />
       </div>
 
+      {/* ---- FR-33: Widget KPI Food cost / Doanh thu menu · Mục tiêu 50% ---- */}
+      <motion.div variants={fadeUpItem}>
+        <FoodCostKpiWidget
+          kpi={data.foodCostKpi}
+          futureGuests={data.futureGuests}
+          expectedPairingRevenue={data.expectedPairingRevenue}
+          onNavigateTab={onNavigateTab}
+        />
+      </motion.div>
+
+      {/* ---- FR-34: Banner Cảnh báo Kích hoạt Voucher Khung Giờ Vàng (Ca chiều T4, T5, T6) ---- */}
+      {upcomingGoldenHourAlert && (
+        <motion.div variants={fadeUpItem}>
+          <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-[#fdf0d5]/60 to-amber-500/5 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-[#b45309] shrink-0 shadow-xs">
+                <Zap className="h-4.5 w-4.5" />
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-heading text-sm font-bold text-stone-900">
+                    Khung Giờ Vàng — Ca Chiều {upcomingGoldenHourAlert.label} 17:30 đang trống nhiều
+                  </h4>
+                  <Badge className="border-amber-300 bg-amber-100 text-[#92400e] text-[10px] font-bold">
+                    Lấp đầy {Math.round(upcomingGoldenHourAlert.slot1730Percent ?? 0)}%
+                  </Badge>
+                </div>
+              </div>
+            </div>
+
+            {onNavigateTab && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => onNavigateTab("golden-hour")}
+                className="h-8 rounded-full bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e] gap-1.5 shadow-xs"
+              >
+                Tung Voucher Zalo OA
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-3">
         {/* ---- Biểu đồ số lượng khách 4 tuần / 1 tháng (Cuộn ngang, ưu tiên tuần hiện tại) ---- */}
         <motion.div variants={fadeUpItem} className="lg:col-span-2">
@@ -370,9 +426,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
                     Số Lượng Khách 2 Khung Giờ (4 Tuần / 1 Tháng)
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Thống kê số chỗ đặt thực tế mỗi ngày · Tối đa 42 chỗ/khung · Đường mục tiêu 36 chỗ (85%)
-                  </p>
                 </div>
 
                 {/* Nút lướt nhanh giữa các tuần */}
@@ -423,9 +476,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     Mục tiêu 36 chỗ (85%)
                   </span>
                 </div>
-                <span className="text-[11px] text-stone-500 italic">
-                  ↔ Cuộn chuột ngang để lướt xem 28 ngày
-                </span>
               </div>
             </CardHeader>
             <CardContent>
@@ -620,9 +670,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </div>
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                So sánh 2 khung giờ: Khung 19:45 (vàng hổ phách) thường đạt mục tiêu 36 khách cao hơn khung 17:30 (xanh biển) — tối ưu bài toán yield management và xếp bàn.
-              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -668,10 +715,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </div>
                 </div>
               ))}
-              <p className="rounded-lg border border-dashed border-[#b45309]/30 bg-[#fdf0d5]/40 p-2.5 text-[11px] leading-relaxed text-stone-600">
-                Kênh Web đang dẫn đầu — kết quả của việc đưa đặt bàn lên mạng
-                (trọng tâm chuyển đổi số của đồ án).
-              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -746,9 +789,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-stone-500 italic">
-                ↔ Cuộn chuột ngang để lướt xem toàn bộ 28 ngày
-              </span>
             </div>
           </CardHeader>
 

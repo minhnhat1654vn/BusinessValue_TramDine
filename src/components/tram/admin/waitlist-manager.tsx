@@ -314,9 +314,6 @@ export function AdminWaitlist({
             <h2 className="text-sm font-semibold text-[#292524]">
               Danh sách chờ tự động (Waitlist)
             </h2>
-            <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
-              Dành cho khách xếp hàng khi hết chỗ. Nếu khách đã hoàn tất quy trình đặt bàn chính thức (đã chọn bàn &amp; cọc), vui lòng kiểm tra tại mục <strong>Đặt bàn &amp; Sơ đồ</strong>.
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
@@ -449,29 +446,14 @@ export function AdminWaitlist({
           </div>
         </div>
 
-        {/* Thông tin thống kê sau khi lọc & Chú thích ưu tiên */}
+        {/* Thông tin thống kê sau khi lọc */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-stone-200/60 pt-2.5 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">
             <p>
               Hiển thị <strong className="text-amber-950 font-bold">{filteredEntries.length}</strong> / {data?.entries.length ?? 0} khách chờ
               {groups.length > 0 && ` (${groups.length} nhóm ngày & khung)`}
             </p>
-            {newCountToday > 0 && (
-              <Badge className="bg-emerald-100 text-emerald-800 border-emerald-300 text-[10px] font-semibold gap-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                Có {newCountToday} lượt đăng ký mới trong ngày
-              </Badge>
-            )}
-            {totalBooked2DaysCount > 0 && (
-              <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-semibold">
-                Có {totalBooked2DaysCount} khách book trước ≥ 2 ngày (Ưu tiên xếp đầu)
-              </Badge>
-            )}
           </div>
-          <p className="text-[11px] text-[#92400e] font-medium flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-[#b45309]" />
-            Thứ tự ưu tiên: Khách đặt trước ≥ 2 ngày được xếp lên trên đầu danh sách mời.
-          </p>
         </div>
       </div>
 

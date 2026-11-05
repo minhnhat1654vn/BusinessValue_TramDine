@@ -36,6 +36,7 @@ import {
   Phone,
   UserPlus,
   Trash2,
+  UtensilsCrossed,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AddCustomerDialog } from "./add-customer-dialog";
@@ -73,7 +74,9 @@ import {
   StatusBadge,
   useJson,
 } from "./admin-shared";
-import { formatLongDate, formatVND } from "@/lib/tram/format";
+import { formatCheckinTime, formatLongDate, formatVND } from "@/lib/tram/format";
+import { parseReservationDishes } from "@/lib/tram/dishes";
+import { getPersonalizedVoucherForCustomer } from "@/lib/tram/vouchers";
 import { SLOT_LABELS, PRICES } from "@/lib/tram/constants";
 import {
   LOYALTY_TIERS,
@@ -1504,21 +1507,96 @@ export function AdminCustomers() {
                   </div>
                 </div>
 
+                {/* FR-38: Phân tích Gu Ẩm Thực & Gợi Ý Combo Giữ Chân Thực Khách */}
+                {(() => {
+                  const pastPairings = detail.reservations.map((r) => r.pairing);
+                  const teaCount = pastPairings.filter((p) => p === "TEA").length;
+                  const wineCount = pastPairings.filter((p) => p === "WINE").length;
+                  const personalizedVoucher = getPersonalizedVoucherForCustomer({
+                    visits: detail.visits,
+                    pastPairings,
+                  });
+
+                  const tasteLabel =
+                    teaCount > 0 && teaCount >= wineCount
+                      ? "🍵 Gu Thanh Nhã (Ưa chuộng Trà & Bánh tráng miệng)"
+                      : wineCount > 0
+                        ? "🍷 Gu Sành Vang (Ưa chuộng Wine Pairing thượng hạng)"
+                        : "🍽️ Gu Tasting Menu Chuẩn vị";
+
+                  return (
+                    <div className="rounded-xl border border-amber-300 bg-gradient-to-br from-amber-50/80 via-[#fffdf9] to-amber-50/40 p-3.5 space-y-2.5 shadow-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#92400e]">
+                          <Sparkles className="h-4 w-4 text-[#b45309]" />
+                          Phân tích Gu Ẩm Thực &amp; Gợi Ý Voucher Giữ Chân (FR-38)
+                        </span>
+                        <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-bold">
+                          Khách cũ: Ưu đãi 15%
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-stone-700">
+                        <span className="font-semibold text-stone-900">{tasteLabel}</span>
+                        <span className="text-stone-400">·</span>
+                        <span className="text-stone-500">
+                          Đã dùng: {wineCount} lần Rượu, {teaCount} lần Trà
+                        </span>
+                      </div>
+
+                      <div className="rounded-lg bg-white p-2.5 border border-amber-200/80 flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-bold text-stone-900 text-xs flex items-center gap-1.5">
+                            <span>Voucher đề xuất: {personalizedVoucher.name}</span>
+                            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-[#92400e] font-mono text-[10px] font-extrabold">
+                              {personalizedVoucher.code}
+                            </code>
+                          </p>
+                          <p className="text-[11px] text-stone-600 truncate">
+                            {personalizedVoucher.description}
+                          </p>
+                          {personalizedVoucher.giftDescription && (
+                            <p className="text-[10.5px] text-amber-800 font-semibold pt-0.5">
+                              🎁 {personalizedVoucher.giftDescription}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            setReEngageCustomer({
+                              customer: detail,
+                              days: getDaysSinceLastVisit(detail.lastVisit),
+                            });
+                          }}
+                          className="h-8 rounded-full bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e] gap-1 shrink-0 shadow-xs"
+                        >
+                          <Send className="h-3 w-3" />
+                          Gửi mời lại ngay
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Lịch sử đặt bàn & Tích điểm từng bữa ăn */}
                 <div className="space-y-3">
                   <h4 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-stone-700">
                     <History className="h-4 w-4 text-[#b45309]" />
                     Lịch Sử Dùng Bữa & Tích Điểm ({detail.reservations.length} lần)
                   </h4>
-                  <ul className="space-y-2.5">
+                  <ul className="space-y-3">
                     {detail.reservations.map((r) => {
                       const total =
                         r.partySize * (PRICES.menu + pairingPriceOf(r.pairing));
                       const reward = calculatePointsFromBill(total, detail.tier);
+                      const dishes = parseReservationDishes(r.selectedDishes);
+                      const checkinStr = formatCheckinTime(r);
                       return (
                         <li
                           key={r.id}
-                          className="rounded-xl border border-border/80 bg-card p-3.5 shadow-xs"
+                          className="rounded-xl border border-border/80 bg-card p-3.5 shadow-xs space-y-2.5"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
@@ -1535,17 +1613,25 @@ export function AdminCustomers() {
                             </div>
                           </div>
 
-                          <p className="mt-1.5 text-xs text-muted-foreground">
-                            Khung {SLOT_LABELS[r.slot]} · Bàn {r.table.code} ·{" "}
-                            {r.partySize} khách ·{" "}
-                            {r.pairing === "NONE"
-                              ? "Không pairing"
-                              : r.pairing === "WINE"
-                                ? "Wine pairing (+650k)"
-                                : "Tea pairing (+350k)"}
-                          </p>
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+                            <span>
+                              Khung {SLOT_LABELS[r.slot]} · Bàn {r.table.code} ·{" "}
+                              {r.partySize} khách ·{" "}
+                              {r.pairing === "NONE"
+                                ? "Không pairing"
+                                : r.pairing === "WINE"
+                                  ? "Wine pairing (+650k)"
+                                  : "Tea pairing (+350k)"}
+                            </span>
+                            {checkinStr && (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5">
+                                <Clock className="h-3 w-3 text-emerald-600" />
+                                Check-in: {checkinStr}
+                              </span>
+                            )}
+                          </div>
 
-                          <div className="mt-2 flex items-center justify-between border-t border-stone-100 pt-2 text-xs">
+                          <div className="flex items-center justify-between border-t border-stone-100 pt-2 text-xs">
                             <span className="text-muted-foreground">
                               Hóa đơn bữa ăn:
                             </span>
@@ -1554,8 +1640,41 @@ export function AdminCustomers() {
                             </span>
                           </div>
 
+                          {/* Thực đơn 7 món Tasting Menu */}
+                          <div className="rounded-lg border border-amber-200/80 bg-amber-50/40 p-2.5 text-xs space-y-1.5">
+                            <p className="flex items-center justify-between text-[11px] font-bold text-[#92400e] uppercase tracking-wide">
+                              <span className="flex items-center gap-1.5">
+                                <UtensilsCrossed className="h-3.5 w-3.5 text-[#b45309]" />
+                                Thực đơn bữa tiệc (7 món Tasting Menu)
+                              </span>
+                              <span className="font-normal lowercase text-[10px] text-stone-500">
+                                {r.pairing === "NONE" ? "Không pairing" : r.pairing === "WINE" ? "Wine Pairing" : "Tea Pairing"}
+                              </span>
+                            </p>
+                            <div className="grid gap-1 sm:grid-cols-2">
+                              {dishes.map((dish) => (
+                                <div
+                                  key={dish.index}
+                                  className="flex items-start gap-1.5 rounded-md bg-white/90 p-1.5 border border-stone-200/60"
+                                >
+                                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#b45309] text-[9px] font-bold text-white">
+                                    {dish.index}
+                                  </span>
+                                  <div className="min-w-0">
+                                    <p className="font-semibold text-stone-800 text-[11px] truncate">
+                                      {dish.name}
+                                    </p>
+                                    <p className="text-[10px] text-stone-500 truncate">
+                                      {dish.optionName || dish.region}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
                           {r.allergy && (
-                            <div className="mt-2">
+                            <div className="mt-1">
                               <AllergyBadge allergy={r.allergy} />
                             </div>
                           )}

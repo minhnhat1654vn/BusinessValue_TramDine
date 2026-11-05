@@ -386,7 +386,7 @@ export interface InventoryReport {
 
 // ---------- Tính mức tiêu hao BOM cho từng nguyên liệu ----------
 
-interface UsageMeta {
+export interface UsageMeta {
   qtyPerGuestStandard: number;
   qtyPerGuestMaxVariant: number;
   standardDishIndexes: number[];
@@ -395,7 +395,7 @@ interface UsageMeta {
   shelfLifeDays: number;
 }
 
-function buildIngredientUsageMap(): Map<string, UsageMeta> {
+export function buildIngredientUsageMap(): Map<string, UsageMeta> {
   const map = new Map<string, UsageMeta>();
   for (const ing of INGREDIENTS) {
     map.set(ing.id, {
@@ -450,7 +450,7 @@ function buildIngredientUsageMap(): Map<string, UsageMeta> {
   return map;
 }
 
-const USAGE_MAP = buildIngredientUsageMap();
+export const USAGE_MAP = buildIngredientUsageMap();
 
 // ---------- Hàm tính toán chính ----------
 

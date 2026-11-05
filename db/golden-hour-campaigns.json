@@ -1,0 +1,36 @@
+[
+  {
+    "id": "gh-camp-1793841802066",
+    "createdAt": "2026-11-05T01:23:22.066Z",
+    "targetDate": "2026-11-11",
+    "slot": "SLOT_1730",
+    "voucherCode": "GOLDEN-T4-1111",
+    "discountType": "PERCENT",
+    "discountValue": 15,
+    "discountSummary": "Giảm 15% Menu Tasting (Chỉ 1.011.500 đ/khách)",
+    "occupancyAtLaunch": 0,
+    "bookedSeatsAtLaunch": 0,
+    "availableSeatsAtLaunch": 42,
+    "targetAudience": "ALL",
+    "sentCount": 28,
+    "zaloMessageBody": "[TRẦM RESERVE · ZALO OFFICIAL ACCOUNT]\n⚡ ĐẶC QUYỀN KHUNG GIỜ VÀNG — CA CHIỀU 17:30\n\nKính gửi Quý khách,\n\nTRẦM trân trọng thông báo: Ca chiều 17:30 Thứ Tư (ngày 11/11/2026) hiện đang đạt tỷ lệ lấp đầy 0,0% (chỉ còn lại 42 chỗ trống / 42 chỗ).\n\nNhằm tối ưu trải nghiệm ẩm thực thư thái vào đầu buổi tối, TRẦM dành tặng Thượng khách mã Voucher Khung Giờ Vàng độc quyền:\n\n🏷️ MÃ VOUCHER: GOLDEN-T4-1111\n🎁 ƯU ĐÃI: Giảm 15% Menu Tasting (Chỉ 1.011.500 đ/khách)\n⏰ KHUNG GIỜ ÁP DỤNG: 17:30 Thứ Tư (Ca chiều sớm)\n📍 ĐỊA ĐIỂM: TRẦM — Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh\n\n* Lưu ý: Số lượng voucher có giới hạn theo số chỗ trống còn lại. Quý khách vui lòng đặt bàn trước 16:00 cùng ngày để TRẦM chuẩn bị nguyên liệu tiếp đón chu đáo nhất.\n\nQuý khách bấm nút \"Nhận Voucher & Đặt Bàn Ngay\" bên dưới hoặc liên hệ Hotline 0901 234 567 để được giữ chỗ ưu tiên!",
+    "status": "ACTIVE"
+  },
+  {
+    "id": "gh-camp-1793813583133",
+    "createdAt": "2026-11-04T17:33:03.133Z",
+    "targetDate": "2026-11-06",
+    "slot": "SLOT_1730",
+    "voucherCode": "GOLDEN-T6-0611",
+    "discountType": "PERCENT",
+    "discountValue": 15,
+    "discountSummary": "Giảm 15% Menu Tasting (Chỉ 1.011.500 đ/khách)",
+    "occupancyAtLaunch": 0,
+    "bookedSeatsAtLaunch": 0,
+    "availableSeatsAtLaunch": 42,
+    "targetAudience": "ALL",
+    "sentCount": 28,
+    "zaloMessageBody": "[TRẦM RESERVE · ZALO OFFICIAL ACCOUNT]\n⚡ ĐẶC QUYỀN KHUNG GIỜ VÀNG — CA CHIỀU 17:30\n\nKính gửi Quý khách,\n\nTRẦM trân trọng thông báo: Ca chiều 17:30 Thứ Sáu (ngày 06/11/2026) hiện đang đạt tỷ lệ lấp đầy 0,0% (chỉ còn lại 42 chỗ trống / 42 chỗ).\n\nNhằm tối ưu trải nghiệm ẩm thực thư thái vào đầu buổi tối, TRẦM dành tặng Thượng khách mã Voucher Khung Giờ Vàng độc quyền:\n\n🏷️ MÃ VOUCHER: GOLDEN-T6-0611\n🎁 ƯU ĐÃI: Giảm 15% Menu Tasting (Chỉ 1.011.500 đ/khách)\n⏰ KHUNG GIỜ ÁP DỤNG: 17:30 Thứ Sáu (Ca chiều sớm)\n📍 ĐỊA ĐIỂM: TRẦM — Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh\n\n* Lưu ý: Số lượng voucher có giới hạn theo số chỗ trống còn lại. Quý khách vui lòng đặt bàn trước 16:00 cùng ngày để TRẦM chuẩn bị nguyên liệu tiếp đón chu đáo nhất.\n\nQuý khách bấm nút \"Nhận Voucher & Đặt Bàn Ngay\" bên dưới hoặc liên hệ Hotline 0901 234 567 để được giữ chỗ ưu tiên!",
+    "status": "ACTIVE"
+  }
+]

@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatLongDate, formatVND } from "@/lib/tram/format";
 import { formatPoints, LOYALTY_TIERS } from "@/lib/tram/loyalty";
+import { getPersonalizedVoucherForCustomer } from "@/lib/tram/vouchers";
 import type { CustomerProfileDTO, LoyaltyTier } from "@/lib/tram/types";
 
 interface ReEngagementDialogProps {
@@ -62,6 +63,13 @@ export function ReEngagementDialog({
 
   const tierConfig = LOYALTY_TIERS[customer.tier] ?? LOYALTY_TIERS.HUONG;
 
+  // FR-38: Phân tích gu món ăn từ FR-36 để gợi ý Voucher giữ chân cá nhân hóa
+  const pastPairings = customer.reservations?.map((r) => r.pairing) ?? [];
+  const personalizedVoucher = getPersonalizedVoucherForCustomer({
+    visits: customer.visits,
+    pastPairings,
+  });
+
   // Quyền lợi kích thích quay lại tùy chỉnh theo 3 hạng
   const tierGift =
     customer.tier === "NAM_TRAM"
@@ -70,14 +78,18 @@ export function ReEngagementDialog({
       ? "Tặng 1 ly vang khai vị hảo hạng từ Sommelier & nhân đôi điểm thưởng tích lũy"
       : "Tặng món tráng miệng Trầm Hương Signature & tích lũy thăng hạng Trầm";
 
-  // Nội dung tin nhắn Zalo ZNS
+  // Nội dung tin nhắn Zalo ZNS kèm Voucher cá nhân hóa (FR-38)
   const zaloMessage = `[TRẦM RESERVE] Kính gửi Thượng khách ${customer.name},
 
 Đã ${daysLapsed} ngày kể từ bữa tiệc gần nhất của Quý khách tại TRẦM Reserve. 
 
 Bếp trưởng và Đội ngũ phục vụ trân trọng kính mời Quý khách trở lại thưởng thức Bộ Thực đơn Tasting Mùa Thu mới vừa ra mắt.
 
-Đặc quyền tri ân dành riêng cho Quý khách:
+🎁 Ưu đãi độc quyền theo gu ẩm thực của Quý khách:
+👉 Mã Voucher: ${personalizedVoucher.code} (${personalizedVoucher.name})
+• ${personalizedVoucher.description}
+${personalizedVoucher.giftDescription ? `• ${personalizedVoucher.giftDescription}\n` : ""}
+Đặc quyền tri ân theo Hạng:
 ${tierGift}
 
 Điểm thưởng hiện có: ${formatPoints(customer.points)} pts
@@ -110,7 +122,7 @@ Hân hạnh được đón tiếp Quý khách!`;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl border-amber-900/20 bg-[#faf8f3] p-0 overflow-hidden shadow-2xl [&_[data-slot=dialog-close]]:text-stone-200 [&_[data-slot=dialog-close]]:hover:text-white [&_[data-slot=dialog-close]]:bg-black/40 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:z-20">
+      <DialogContent className="max-w-2xl max-h-[92vh] flex flex-col border-amber-900/20 bg-[#faf8f3] p-0 overflow-hidden shadow-2xl [&_[data-slot=dialog-close]]:text-stone-200 [&_[data-slot=dialog-close]]:hover:text-white [&_[data-slot=dialog-close]]:bg-black/40 [&_[data-slot=dialog-close]]:rounded-full [&_[data-slot=dialog-close]]:p-1.5 [&_[data-slot=dialog-close]]:top-4 [&_[data-slot=dialog-close]]:right-4 [&_[data-slot=dialog-close]]:z-20">
         <DialogHeader className="sr-only">
           <DialogTitle>Chiến dịch mời lại thực khách — TRẦM Reserve</DialogTitle>
           <DialogDescription>
@@ -118,8 +130,8 @@ Hân hạnh được đón tiếp Quý khách!`;
           </DialogDescription>
         </DialogHeader>
 
-        {/* Header sang trọng */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[#292524] via-[#3d3835] to-[#1c1917] p-6 text-white">
+        {/* Header sang trọng - Cố định trên cùng không bao giờ bị cuộn mất */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-[#292524] via-[#3d3835] to-[#1c1917] p-5 sm:p-6 text-white shrink-0">
           <div className="absolute right-0 top-0 -mr-8 -mt-8 h-36 w-36 rounded-full bg-amber-400/10 blur-xl" />
           <div className="relative z-10">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -135,7 +147,7 @@ Hân hạnh được đón tiếp Quý khách!`;
 
             <div className="mt-3 flex flex-wrap items-baseline justify-between gap-2">
               <div>
-                <h3 className="font-heading text-2xl font-bold tracking-tight text-white">
+                <h3 className="font-heading text-xl sm:text-2xl font-bold tracking-tight text-white">
                   Soạn lời mời gửi {customer.name}
                 </h3>
                 <p className="mt-1 text-xs text-stone-300">
@@ -159,8 +171,38 @@ Hân hạnh được đón tiếp Quý khách!`;
           </div>
         </div>
 
-        {/* Nội dung Tabs xem trước */}
-        <div className="p-5 sm:p-6 space-y-4">
+        {/* Thân hộp thoại cuộn mượt mà */}
+        <div className="overflow-y-auto flex-1 p-5 sm:p-6 space-y-4">
+          {/* FR-38: Banner Đề xuất Voucher Giữ chân Cá nhân hóa theo gu món ăn */}
+          <div className="rounded-xl border border-amber-300/90 bg-gradient-to-r from-amber-500/10 via-[#fdf0d5]/70 to-amber-500/5 p-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 shadow-2xs">
+            <div className="flex items-start gap-2.5 min-w-0">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-[#b45309] shrink-0 font-bold mt-0.5 shadow-2xs">
+                <Gift className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 space-y-0.5">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-bold text-stone-900">
+                    Ưu đãi giữ chân theo gu: {personalizedVoucher.name}
+                  </span>
+                  <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-bold font-mono">
+                    {personalizedVoucher.code}
+                  </Badge>
+                </div>
+                <p className="text-[11px] text-stone-600 line-clamp-1">
+                  {personalizedVoucher.description}
+                </p>
+                {personalizedVoucher.giftDescription && (
+                  <p className="text-[10.5px] text-amber-800 font-semibold line-clamp-1">
+                    🎁 {personalizedVoucher.giftDescription}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Badge className="self-start sm:self-center text-[10px] font-bold text-emerald-800 bg-emerald-100 border-emerald-300 shrink-0">
+              ✓ Tự động chèn vào tin nhắn
+            </Badge>
+          </div>
+
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-4">
             <div className="flex items-center justify-between border-b border-stone-200 pb-3">
               <TabsList className="h-10 rounded-full bg-stone-200/70 p-1">
