@@ -1517,30 +1517,25 @@ function InventoryDemandForecastSection({
   }, [selectedDays, viewFilter, forecastSearch]);
 
   return (
-    <Card className="min-w-0 gap-0 overflow-hidden border-[#b45309]/30 bg-card py-0 shadow-sm ring-1 ring-[#b45309]/10">
-      <CardHeader className="gap-3 border-b border-border/70 bg-gradient-to-r from-[#fdf0d5]/60 via-amber-50/40 to-white px-4 py-4 sm:px-5">
-        <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#b45309] text-white shadow-xs">
-                <CalendarDays className="h-4 w-4" />
-              </span>
-              <h3 className="font-heading text-base font-bold text-stone-900 sm:text-lg">
-                Dự báo nhu cầu & Cảnh báo thiếu hụt theo lịch đặt bàn
-              </h3>
-            </div>
-          </div>
+    <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 font-heading shadow-sm">
+      <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+            <CalendarDays className="h-4 w-4 text-[#7c2d12]" aria-hidden />
+            Dự báo nhu cầu &amp; Cảnh báo thiếu hụt theo lịch đặt bàn
+          </CardTitle>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center rounded-lg border border-border/80 bg-white p-0.5 shadow-2xs">
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Chế độ xem dự báo">
               <button
                 type="button"
                 onClick={() => setViewFilter("SHORTAGE_ONLY")}
+                aria-pressed={viewFilter === "SHORTAGE_ONLY"}
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
+                  "rounded-sm border px-3 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
                   viewFilter === "SHORTAGE_ONLY"
-                    ? "bg-rose-600 text-white shadow-2xs"
-                    : "text-stone-600 hover:text-stone-900",
+                    ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                    : "border-stone-300 bg-transparent text-rose-800 hover:border-[#7c2d12]",
                 )}
               >
                 Chỉ hàng thiếu ({shortageItems.length})
@@ -1548,159 +1543,171 @@ function InventoryDemandForecastSection({
               <button
                 type="button"
                 onClick={() => setViewFilter("ALL")}
+                aria-pressed={viewFilter === "ALL"}
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer",
+                  "rounded-sm border px-3 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
                   viewFilter === "ALL"
-                    ? "bg-[#b45309] text-white shadow-2xs"
-                    : "text-stone-600 hover:text-stone-900",
+                    ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                    : "border-stone-300 bg-transparent text-stone-700 hover:border-[#7c2d12]",
                 )}
               >
                 Tất cả ({currentAnalyses.length})
               </button>
             </div>
 
-            <div className="relative w-48 sm:w-56">
-              <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative w-full sm:w-60">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                aria-hidden
+              />
               <Input
                 type="search"
                 value={forecastSearch}
                 onChange={(e) => setForecastSearch(e.target.value)}
                 placeholder="Tìm nguyên liệu..."
-                className="h-8 pl-8 text-xs bg-white"
+                className="h-9 rounded-sm pl-8 text-sm"
               />
             </div>
           </div>
         </div>
 
-        {/* Bộ lọc số ngày */}
-        <div className="mt-1 flex flex-col gap-2 pt-2 border-t border-amber-200/50">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-extrabold uppercase tracking-wide text-stone-700 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-[#b45309]" />
+        {/* Bộ lọc số ngày theo khung concept */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600">
+            <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider text-stone-700">
+              <Clock className="h-3.5 w-3.5 text-[#7c2d12]" aria-hidden />
               Khung thời gian concept:
             </span>
             {forecastConcept && (
-              <span className="text-xs font-semibold text-[#7c2d12]">
+              <span className="font-semibold text-[#7c2d12]">
                 {forecastConcept.name}
                 {dailyForecasts.length > 0 &&
-                  ` · ${dailyForecasts[0].date.split("-").reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").reverse().join("/")} (${dailyForecasts.length} ngày)`}
+                  ` (${dailyForecasts[0].date.split("-").reverse().join("/")} – ${dailyForecasts[dailyForecasts.length - 1].date.split("-").reverse().join("/")} · ${dailyForecasts.length} ngày)`}
               </span>
             )}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {PRESET_DAYS.map((days) => {
-                const isSelected = selectedDays === days;
-                const shortageCount = presetShortageCounts[days] ?? 0;
-                let dayLabel = `${days} ngày`;
-                if (days === 1) dayLabel = dailyForecasts[0]?.dayLabel.startsWith("Hôm nay") === false ? "1 ngày (đầu concept)" : "1 ngày (Hôm nay)";
-                else if (days === 7) dayLabel = "7 ngày (1 tuần)";
-                else if (days === 14) dayLabel = "14 ngày (2 tuần)";
-                if (days === dailyForecasts.length && days !== 1 && days !== 7 && days !== 14)
-                  dayLabel = `${days} ngày (hết concept)`;
-
-                return (
-                  <button
-                    key={`demand-days-${days}`}
-                    type="button"
-                    onClick={() => setSelectedDays(days)}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer",
-                      isSelected
-                        ? "border-[#b45309] bg-[#b45309] text-white ring-2 ring-[#b45309]/30"
-                        : "border-border/80 bg-white text-stone-700 hover:border-[#b45309]/50 hover:bg-[#fdf0d5]/40",
-                    )}
-                  >
-                    <span>{dayLabel}</span>
-                    <span
-                      className={cn(
-                        "rounded-full px-1.5 py-0.2 text-[10px] font-extrabold tabular-nums",
-                        isSelected
-                          ? "bg-white/20 text-white"
-                          : shortageCount > 0
-                            ? "bg-rose-100 text-rose-800"
-                            : "bg-emerald-100 text-emerald-800",
-                      )}
-                    >
-                      {shortageCount > 0 ? `${shortageCount} thiếu` : "Đủ"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
           </div>
 
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Chọn số ngày dự báo">
+            {PRESET_DAYS.map((days) => {
+              const isSelected = selectedDays === days;
+              const shortageCount = presetShortageCounts[days] ?? 0;
+              let dayLabel = `${days} ngày`;
+              if (days === 1)
+                dayLabel =
+                  dailyForecasts[0]?.dayLabel.startsWith("Hôm nay") === false
+                    ? "1 ngày (đầu concept)"
+                    : "1 ngày (Hôm nay)";
+              else if (days === 7) dayLabel = "7 ngày (1 tuần)";
+              else if (days === 14) dayLabel = "14 ngày (2 tuần)";
+              if (days === dailyForecasts.length && days !== 1 && days !== 7 && days !== 14)
+                dayLabel = `${days} ngày (hết concept)`;
 
+              return (
+                <button
+                  key={`demand-days-${days}`}
+                  type="button"
+                  onClick={() => setSelectedDays(days)}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-heading text-[11px] font-medium transition-colors cursor-pointer",
+                    isSelected
+                      ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                      : shortageCount > 0
+                        ? "border-stone-300 bg-transparent text-rose-800 hover:border-[#7c2d12]"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12] hover:text-[#7c2d12]",
+                  )}
+                >
+                  <span>{dayLabel}</span>
+                  <span
+                    className={cn(
+                      "tabular-nums",
+                      isSelected
+                        ? "text-amber-100"
+                        : shortageCount > 0
+                          ? "font-semibold text-rose-700"
+                          : "text-muted-foreground",
+                    )}
+                  >
+                    ({shortageCount > 0 ? `${shortageCount} thiếu` : "Đủ"})
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* 4 Thẻ chỉ số tổng quan cho mốc ngày đang chọn */}
         <div className="grid grid-cols-2 gap-2.5 pt-1 sm:grid-cols-4">
-          <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
               Lịch đặt ({selectedDays} ngày tới)
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-heading text-lg font-black text-stone-900">
+              <span className="font-heading text-lg font-bold tabular-nums text-[#292524]">
                 {totalBookedTables} bàn
               </span>
-              <span className="text-xs font-bold text-stone-600">
+              <span className="text-xs font-semibold tabular-nums text-stone-600">
                 · {totalBookedGuests} khách
               </span>
             </div>
-            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
               {totalBookedGuests} suất thực đơn chuẩn
             </div>
           </div>
 
-          <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-3 text-left shadow-2xs">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-rose-800">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
               Mặt hàng thiếu hụt
             </span>
             <div className="mt-1 flex items-baseline gap-1.5">
-              <span className={cn(
-                "font-heading text-lg font-black",
-                shortageItems.length > 0 ? "text-rose-700" : "text-emerald-700",
-              )}>
+              <span
+                className={cn(
+                  "font-heading text-lg font-bold tabular-nums",
+                  shortageItems.length > 0 ? "text-rose-800" : "text-emerald-800",
+                )}
+              >
                 {shortageItems.length} nguyên liệu
               </span>
             </div>
-            <div className="mt-0.5 text-[10.5px] font-medium text-rose-700">
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
               {zeroStockItems.length > 0
-                ? `${zeroStockItems.length} mặt hàng hết sạch (0%)`
+                ? `${zeroStockItems.length} mặt hàng hết tồn (0%)`
                 : "Không có mặt hàng cạn đáy 0%"}
             </div>
           </div>
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 text-left shadow-2xs">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-900">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
               Dự toán tiền nhập hàng
             </span>
-            <div className="mt-1 font-heading text-lg font-black text-[#92400e]">
+            <div className="mt-1 font-heading text-lg font-bold tabular-nums text-[#92400e]">
               {formatVND(totalProcurementCost)}
             </div>
-            <div className="mt-0.5 text-[10.5px] text-stone-600">
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
               Chi phí nhập đủ số lượng thiếu
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/80 bg-white/90 p-3 text-left shadow-2xs">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
+            <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
               Mức độ ưu tiên
             </span>
-            <div className="mt-1 text-xs font-black">
+            <div className="mt-1 font-heading text-sm font-bold">
               {shortageItems.some((a) => a.item.stockQty === 0) ? (
-                <span className="text-rose-700 flex items-center gap-1 font-extrabold">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Nhập hàng ngay!
+                <span className="flex items-center gap-1 text-rose-800">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Khẩn cấp: Nhập hàng ngay
                 </span>
               ) : shortageItems.length > 0 ? (
-                <span className="text-amber-800 flex items-center gap-1 font-extrabold">
-                  <Clock className="h-3.5 w-3.5" /> Cần đặt hàng NCC trong 24h
+                <span className="flex items-center gap-1 text-[#92400e]">
+                  <Clock className="h-3.5 w-3.5" /> Cần đặt hàng trong 24h
                 </span>
               ) : (
-                <span className="text-emerald-700 flex items-center gap-1 font-extrabold">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> An toàn: Đủ phục vụ
+                <span className="flex items-center gap-1 text-emerald-800">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Đủ phục vụ
                 </span>
               )}
             </div>
-            <div className="mt-0.5 text-[10.5px] text-muted-foreground">
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
               {shortageItems.length > 0 ? "Theo tiến độ phục vụ khách" : "Kho đáp ứng 100% lịch đặt"}
             </div>
           </div>
@@ -1710,27 +1717,26 @@ function InventoryDemandForecastSection({
       <CardContent className="p-0">
         {displayedItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 px-4 py-12 text-center">
-            <CheckCircle2 className="h-8 w-8 text-emerald-600" aria-hidden />
-            <p className="text-sm font-bold text-stone-800">
+            <CheckCircle2 className="h-6 w-6 text-emerald-700" aria-hidden />
+            <p className="text-sm text-muted-foreground">
               {viewFilter === "SHORTAGE_ONLY"
-                ? `Tuyệt vời! Không có nguyên liệu nào bị thiếu hụt cho ${totalBookedTables} bàn (${totalBookedGuests} khách) trong ${selectedDays} ngày tới.`
-                : "Không tìm thấy nguyên liệu phù hợp."}
+                ? `Không có nguyên liệu nào bị thiếu hụt cho ${totalBookedTables} bàn (${totalBookedGuests} khách) trong ${selectedDays} ngày tới.`
+                : "Không có nguyên liệu phù hợp bộ lọc."}
             </p>
             {viewFilter === "SHORTAGE_ONLY" && (
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setViewFilter("ALL")}
-                className="mt-1 text-xs font-semibold"
+                className="mt-1 rounded-sm border border-stone-300 bg-transparent px-3 py-1 font-heading text-xs font-semibold text-stone-700 transition-colors hover:border-[#7c2d12] hover:text-[#7c2d12] cursor-pointer"
               >
                 Xem toàn bộ bảng định mức ({currentAnalyses.length} nguyên liệu)
-              </Button>
+              </button>
             )}
           </div>
         ) : (
-          <Table className="min-w-[1000px] font-heading">
+          <Table className="min-w-[960px] font-heading">
             <TableHeader>
-              <TableRow className="bg-[#fdf0d5]/40 hover:bg-[#fdf0d5]/40">
+              <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
                 <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
                   Nguyên liệu
                 </TableHead>
@@ -1738,22 +1744,22 @@ function InventoryDemandForecastSection({
                   Món dùng
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Tồn hiện tại
+                  Số lượng tồn
                 </TableHead>
                 <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Nhu cầu ({totalBookedGuests} khách)
                 </TableHead>
-                <TableHead className="w-36 whitespace-nowrap text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Khả năng đáp ứng
+                <TableHead className="w-28 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Đủ phục vụ
                 </TableHead>
-                <TableHead className="w-40 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                <TableHead className="w-36 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Thiếu hụt cần nhập
                 </TableHead>
-                <TableHead className="w-28 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                   Đơn giá kho
                 </TableHead>
                 <TableHead className="w-32 whitespace-nowrap text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                  Dự toán tiền nhập
+                  Dự toán nhập
                 </TableHead>
                 <TableHead className="w-24 whitespace-nowrap pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
                   Thao tác
@@ -1776,7 +1782,7 @@ function InventoryDemandForecastSection({
 
         {/* Phân trang */}
         {displayedItems.length > PAGE_SIZE && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
+          <div className="flex flex-col items-center justify-between gap-3 border-t border-stone-200/80 bg-[#f6efe0]/50 px-4 py-2.5 text-xs text-muted-foreground sm:flex-row">
             <div>
               Hiển thị{" "}
               <strong className="text-stone-800">
@@ -1787,7 +1793,7 @@ function InventoryDemandForecastSection({
                 {Math.min(forecastPage * PAGE_SIZE, displayedItems.length)}
               </strong>{" "}
               trong tổng số{" "}
-              <strong className="text-stone-800">{displayedItems.length}</strong> nguyên liệu (tối đa 15 dòng / trang)
+              <strong className="text-stone-800">{displayedItems.length}</strong> nguyên liệu
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -1797,11 +1803,11 @@ function InventoryDemandForecastSection({
                 size="sm"
                 disabled={forecastPage <= 1}
                 onClick={() => setForecastPage((p) => Math.max(1, p - 1))}
-                className="h-7 px-2.5 text-xs text-stone-700 cursor-pointer"
+                className="h-7 rounded-sm border-stone-300 bg-transparent px-2.5 text-xs text-stone-700 cursor-pointer"
               >
                 <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
               </Button>
-              <span className="px-2 text-xs font-medium">
+              <span className="px-2 text-xs font-medium tabular-nums">
                 {forecastPage} / {totalPages}
               </span>
               <Button
@@ -1810,7 +1816,7 @@ function InventoryDemandForecastSection({
                 size="sm"
                 disabled={forecastPage >= totalPages}
                 onClick={() => setForecastPage((p) => Math.min(totalPages, p + 1))}
-                className="h-7 px-2.5 text-xs text-stone-700 cursor-pointer"
+                className="h-7 rounded-sm border-stone-300 bg-transparent px-2.5 text-xs text-stone-700 cursor-pointer"
               >
                 Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
               </Button>
@@ -1833,42 +1839,33 @@ function DemandForecastRow({
 }) {
   const { item, isShortage, shortageInImportUnit, procurementCost, surplusInImportUnit, guestsCovered, daysCoveredText } = analysis;
   const isOut = item.stockQty === 0;
+  const shortagePct =
+    analysis.totalRequiredQty > 0
+      ? Math.round((analysis.shortageQty / analysis.totalRequiredQty) * 100)
+      : 0;
 
   return (
     <TableRow
       className={cn(
         "transition-colors",
-        isOut
-          ? "bg-rose-100/70 border-l-4 border-l-rose-700 hover:bg-rose-200/60"
-          : isShortage
-            ? "bg-rose-50/70 border-l-4 border-l-rose-500 hover:bg-rose-100/60"
-            : "border-l-4 border-l-emerald-500 hover:bg-muted/40",
+        "border-b border-stone-200/80 bg-[#fffdf8] hover:bg-[#fdf0d5]/30",
+        isOut && "bg-rose-50/40",
       )}
     >
       {/* 1. Nguyên liệu */}
       <TableCell className="whitespace-normal pl-4 sm:pl-5">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-semibold text-[#292524]">{item.name}</span>
-            {isOut ? (
-              <Badge className="border-0 bg-rose-700 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-                Hết tồn (0%)
-              </Badge>
-            ) : isShortage ? (
-              <Badge className="border-0 bg-rose-600 px-1.5 py-0 text-[10px] font-bold text-white shadow-xs">
-                Thiếu {Math.round((analysis.shortageQty / analysis.totalRequiredQty) * 100)}%
-              </Badge>
-            ) : (
-              <Badge className="border border-emerald-300 bg-emerald-100 px-1.5 py-0 text-[10px] font-semibold text-emerald-800">
-                Đủ phục vụ
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2 text-[10.5px] text-muted-foreground">
-            <span>Nhóm: <strong className="text-stone-700">{SHORT_GROUP_LABELS[item.group]}</strong></span>
-            <span>·</span>
-            <span>Khu vực: {item.storageZone}</span>
-          </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="font-heading font-semibold text-[#292524]">{item.name}</span>
+          {isOut ? (
+            <span className="text-[11px] font-semibold italic text-rose-800">— hết tồn</span>
+          ) : isShortage ? (
+            <span className="text-[11px] font-semibold italic text-rose-700">
+              — thiếu {shortagePct}%
+            </span>
+          ) : null}
+        </div>
+        <div className="text-[10.5px] text-muted-foreground">
+          {SHORT_GROUP_LABELS[item.group]}
         </div>
       </TableCell>
 
@@ -1881,7 +1878,7 @@ function DemandForecastRow({
               <span
                 key={`forecast-std-${idx}`}
                 title={`Món ${idx}: ${dishName}`}
-                className="flex h-6 w-6 items-center justify-center rounded-full border border-[#b45309]/30 bg-[#fdf0d5]/70 text-[10.5px] font-bold tabular-nums text-[#92400e]"
+                className="flex h-6 w-6 items-center justify-center rounded-sm border border-stone-400 bg-transparent font-heading text-[11px] font-bold tabular-nums text-stone-800"
               >
                 {idx}
               </span>
@@ -1890,26 +1887,24 @@ function DemandForecastRow({
         </div>
       </TableCell>
 
-      {/* 3. Tồn hiện tại */}
+      {/* 3. Số lượng tồn */}
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1.5">
           <span
             className={cn(
               "font-heading text-sm font-bold tabular-nums",
-              isShortage ? "text-rose-700" : "text-emerald-800",
+              isShortage ? "text-rose-800" : "text-stone-900",
             )}
           >
             {formatNumberVi(item.stockInImportUnit)} {item.importUnitLabel}
           </span>
           <span
             className={cn(
-              "rounded-full px-1.5 py-0.2 text-[10px] font-bold tabular-nums border",
-              isShortage
-                ? "border-rose-300 bg-rose-100 text-rose-800"
-                : "border-emerald-300 bg-emerald-100 text-emerald-800",
+              "text-[10.5px] tabular-nums",
+              isShortage ? "font-semibold text-rose-700" : "text-stone-500",
             )}
           >
-            {item.stockPercent}%
+            ({item.stockPercent}%)
           </span>
         </div>
         {item.stockQty > 0 && item.stockQty < 1000 && item.importUnit !== "ml" && (
@@ -1924,50 +1919,44 @@ function DemandForecastRow({
         <div className="font-heading text-sm font-bold tabular-nums text-stone-900">
           {formatNumberVi(analysis.requiredInImportUnit)} {item.importUnitLabel}
         </div>
-        <div className="text-[10px] text-muted-foreground tabular-nums">
-          ({formatQty(analysis.stdQtyPerGuest, item.unit)}/suất × {totalGuests} khách)
+        <div className="text-[10px] tabular-nums text-muted-foreground">
+          {formatQty(analysis.stdQtyPerGuest, item.unit)}/suất × {totalGuests} khách
         </div>
       </TableCell>
 
-      {/* 5. Khả năng đáp ứng */}
-      <TableCell className="text-center">
-        <div className="inline-flex flex-col items-center">
-          <span
-            className={cn(
-              "rounded-lg px-2.5 py-1 font-heading text-xs font-bold tabular-nums border shadow-xs",
-              isOut
-                ? "bg-rose-600 text-white border-rose-700"
-                : isShortage
-                  ? "bg-amber-100 text-amber-950 border-amber-300"
-                  : "bg-emerald-600 text-white border-emerald-700",
-            )}
-          >
-            {guestsCovered} suất
-          </span>
-          <span className="text-[10px] font-medium text-stone-600 mt-0.5">
-            {daysCoveredText}
-          </span>
+      {/* 5. Đủ phục vụ */}
+      <TableCell className="text-right tabular-nums">
+        <div
+          className={cn(
+            "text-xs font-semibold",
+            isShortage ? "text-rose-700" : "text-stone-800",
+          )}
+        >
+          {guestsCovered} suất
+        </div>
+        <div className="text-[10px] text-stone-500">
+          {daysCoveredText}
         </div>
       </TableCell>
 
       {/* 6. Thiếu hụt cần nhập */}
-      <TableCell className="text-right">
+      <TableCell className="text-right tabular-nums">
         {isShortage ? (
           <div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-600 px-2.5 py-0.5 text-xs font-extrabold text-white shadow-xs">
+            <div className="font-heading text-sm font-bold text-rose-800">
               Thiếu {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel}
-            </span>
-            <div className="mt-0.5 text-[10px] font-semibold text-rose-700">
-              Cần nhập trước giờ phục vụ
+            </div>
+            <div className="text-[10px] font-medium text-rose-700">
+              Cần nhập thêm
             </div>
           </div>
         ) : (
           <div>
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-              Đủ dùng (+{formatNumberVi(surplusInImportUnit)} {item.importUnitLabel})
-            </span>
-            <div className="mt-0.5 text-[10px] text-emerald-700">
-              Kho đáp ứng đủ 100%
+            <div className="text-xs font-semibold text-stone-700">
+              Đủ (+{formatNumberVi(surplusInImportUnit)} {item.importUnitLabel})
+            </div>
+            <div className="text-[10px] text-stone-500">
+              Đáp ứng 100%
             </div>
           </div>
         )}
@@ -1978,15 +1967,15 @@ function DemandForecastRow({
         {formatVND(item.importPrice)}/{item.importUnitLabel}
       </TableCell>
 
-      {/* 8. Dự toán tiền nhập */}
+      {/* 8. Dự toán nhập */}
       <TableCell className="text-right">
         {isShortage ? (
           <div>
-            <div className="font-heading text-sm font-extrabold tabular-nums text-rose-700">
+            <div className="font-heading font-semibold tabular-nums text-rose-800">
               {formatVND(procurementCost)}
             </div>
-            <div className="text-[10px] text-muted-foreground">
-              {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel} × {formatVND(item.importPrice)}
+            <div className="text-[10px] tabular-nums text-muted-foreground">
+              {formatNumberVi(shortageInImportUnit)} {item.importUnitLabel}
             </div>
           </div>
         ) : (
@@ -2000,7 +1989,7 @@ function DemandForecastRow({
           type="button"
           onClick={() => onStockIn(item.ingredientId)}
           className={cn(
-            "inline-flex h-7 items-center gap-1 rounded-sm px-2.5 text-xs font-bold transition-colors cursor-pointer",
+            "inline-flex h-6 items-center gap-1 rounded-sm px-2 text-[10.5px] font-semibold transition-colors cursor-pointer",
             isShortage
               ? "border border-rose-700 bg-rose-700 text-white hover:bg-rose-800"
               : "border border-stone-400 bg-transparent text-stone-700 hover:border-[#92400e] hover:bg-[#92400e] hover:text-white",

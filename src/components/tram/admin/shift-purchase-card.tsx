@@ -98,7 +98,6 @@ export function ShiftPurchaseCard({
 
         if (!cancelled) {
           setActualBookedGuests(totalGuests);
-          // Nếu ca đó có khách đặt thật thì ưu tiên lấy số khách đặt thật; nếu 0 thì mặc định 1 ca đầy (42 khách)
           const targetGuests = totalGuests > 0 ? totalGuests : 42;
           setGuests(targetGuests);
           setGuestsInput(String(targetGuests));
@@ -170,36 +169,30 @@ export function ShiftPurchaseCard({
   return (
     <Card
       className={cn(
-        "min-w-0 gap-0 overflow-hidden border-2 border-[#b45309]/30 bg-card py-0 font-heading shadow-sm transition-all",
+        "min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 font-heading shadow-sm transition-all",
         className,
       )}
     >
       {/* ==================== 1. CARD HEADER ==================== */}
-      <CardHeader className="border-b border-border/70 bg-gradient-to-r from-[#fffcf7] via-[#fdf8f0] to-[#fffbf2] px-4 py-3.5 sm:px-5 [.border-b]:pb-3.5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#b45309] text-white shadow-2xs">
-              <ShoppingCart className="h-4.5 w-4.5" aria-hidden />
-            </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="font-heading text-base font-bold text-[#292524] sm:text-lg">
-                  Danh sách mua trước ca
-                </CardTitle>
-                {report.neededCount > 0 ? (
-                  <Badge className="border-0 bg-rose-600 px-2 py-0.5 text-[10.5px] font-bold text-white shadow-2xs">
-                    Cần mua {report.neededCount}/{report.totalCheckedIngredients} món
-                  </Badge>
-                ) : (
-                  <Badge className="border border-emerald-300 bg-emerald-100 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-800">
-                    Đủ tồn kho 100%
-                  </Badge>
-                )}
-              </div>
-              <p className="text-[11.5px] text-muted-foreground">
-                Đối chiếu nhu cầu thực tế theo ca với tồn kho · Dự toán chi phí nhập hàng đầu ca
-              </p>
-            </div>
+      <CardHeader className="gap-3 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <ShoppingCart className="h-4 w-4 text-[#7c2d12]" aria-hidden />
+              Danh sách mua trước ca
+              {report.neededCount > 0 ? (
+                <span className="text-xs font-semibold italic text-rose-800">
+                  — cần mua {report.neededCount}/{report.totalCheckedIngredients} món
+                </span>
+              ) : (
+                <span className="text-xs font-semibold italic text-emerald-800">
+                  — đủ tồn kho 100%
+                </span>
+              )}
+            </CardTitle>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Đối chiếu nhu cầu thực tế theo ca với tồn kho · Dự toán chi phí nhập hàng đầu ca
+            </p>
           </div>
 
           {/* Các nút sao chép nhanh Zalo & Email */}
@@ -209,16 +202,16 @@ export function ShiftPurchaseCard({
               size="sm"
               onClick={() => copyTextToClipboard(report.zaloMessage, "zalo")}
               className={cn(
-                "h-8.5 rounded-xl px-3 text-xs font-semibold shadow-xs transition-all",
+                "h-8 rounded-sm px-3 font-heading text-xs font-semibold shadow-none transition-colors",
                 copiedChannel === "zalo"
-                  ? "bg-emerald-700 text-white hover:bg-emerald-800"
-                  : "bg-[#0068ff] text-white hover:bg-[#0052cc]",
+                  ? "bg-emerald-800 text-white hover:bg-emerald-900"
+                  : "bg-[#7c2d12] text-[#fdf0d5] hover:bg-[#5f200c]",
               )}
             >
               {copiedChannel === "zalo" ? (
                 <>
                   <Check className="mr-1.5 h-3.5 w-3.5" />
-                  Đã chép Zalo!
+                  Đã chép Zalo
                 </>
               ) : (
                 <>
@@ -234,160 +227,157 @@ export function ShiftPurchaseCard({
               variant="outline"
               onClick={() => copyTextToClipboard(report.emailBody, "email")}
               className={cn(
-                "h-8.5 rounded-xl px-3 text-xs font-semibold transition-all border-[#b45309]/40",
+                "h-8 rounded-sm border-stone-300 bg-transparent px-3 font-heading text-xs font-semibold transition-colors",
                 copiedChannel === "email"
-                  ? "bg-emerald-100 text-emerald-800 border-emerald-400"
-                  : "text-[#92400e] hover:bg-[#fdf0d5] hover:text-[#78350f]",
+                  ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                  : "text-stone-700 hover:border-[#7c2d12] hover:text-[#7c2d12]",
               )}
             >
               {copiedChannel === "email" ? (
                 <>
                   <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-700" />
-                  Đã chép Email!
+                  Đã chép Email
                 </>
               ) : (
                 <>
-                  <Mail className="mr-1.5 h-3.5 w-3.5 text-[#b45309]" />
+                  <Mail className="mr-1.5 h-3.5 w-3.5 text-[#7c2d12]" />
                   Sao chép Email
                 </>
               )}
             </Button>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4 p-4 sm:p-5">
         {/* ==================== 2. THANH ĐIỀU KHIỂN CA PHỤC VỤ ==================== */}
-        <div className="rounded-xl border border-border/70 bg-muted/20 p-3 sm:p-3.5">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            {/* Chọn Ngày & Ca */}
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
-                <span className="text-xs font-semibold text-stone-700">Ngày:</span>
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="h-8 w-36 rounded-lg text-xs font-medium"
-                />
-              </div>
-
-              <div className="h-4 w-px bg-border/80 hidden sm:block" />
-
-              <div className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 text-[#b45309] mr-0.5" aria-hidden />
-                {(
-                  [
-                    { key: "SLOT_1730" as const, label: SLOT_LABELS.SLOT_1730 },
-                    { key: "SLOT_1945" as const, label: SLOT_LABELS.SLOT_1945 },
-                    { key: "ALL" as const, label: "Cả 2 ca" },
-                  ]
-                ).map((slotItem) => {
-                  const active = selectedSlot === slotItem.key;
-                  return (
-                    <button
-                      key={slotItem.key}
-                      type="button"
-                      onClick={() => setSelectedSlot(slotItem.key)}
-                      className={cn(
-                        "rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors",
-                        active
-                          ? "bg-[#b45309] text-white shadow-2xs"
-                          : "border border-border/80 bg-background text-stone-600 hover:border-[#b45309]/40 hover:bg-[#fdf0d5]/40",
-                      )}
-                    >
-                      {slotItem.label}
-                    </button>
-                  );
-                })}
-              </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+          {/* Chọn Ngày & Ca */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-[#7c2d12]" aria-hidden />
+              <span className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Ngày:
+              </span>
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="h-8 w-36 rounded-sm text-xs font-medium"
+              />
             </div>
 
-            {/* Điều khiển số suất khách của ca */}
-            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-2 lg:border-t-0 lg:pt-0">
-              <div className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
-                <span className="text-xs font-semibold text-stone-700">Quy mô ca:</span>
-                {loadingReservations ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <RefreshCw className="h-3 w-3 animate-spin text-[#b45309]" />
-                    Đang tải đơn...
-                  </span>
-                ) : actualBookedGuests !== null && actualBookedGuests > 0 ? (
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-300 bg-emerald-50 text-[10.5px] font-semibold text-emerald-800"
-                    title="Số khách thực tế từ các đơn đặt bàn chưa hủy của ca này"
-                  >
-                    Đơn đặt thật: {actualBookedGuests} khách
-                  </Badge>
-                ) : null}
-              </div>
-
-              {/* Stepper điều chỉnh số khách */}
-              <div className="flex items-center rounded-lg border border-border bg-background p-0.5">
-                <button
-                  type="button"
-                  onClick={() => applyGuests(guests - 1)}
-                  disabled={guests <= 1}
-                  className="flex h-7 w-7 items-center justify-center rounded text-stone-600 hover:bg-muted disabled:opacity-30"
-                  aria-label="Giảm 1 khách"
-                >
-                  <Minus className="h-3 w-3" />
-                </button>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={guestsInput}
-                  onChange={handleGuestsInputChange}
-                  className="h-7 w-11 border-0 bg-transparent text-center font-heading text-sm font-bold tabular-nums text-stone-900 focus:outline-none"
-                  aria-label="Số lượng khách của ca"
-                />
-                <button
-                  type="button"
-                  onClick={() => applyGuests(guests + 1)}
-                  disabled={guests >= MAX_SCALE_GUESTS}
-                  className="flex h-7 w-7 items-center justify-center rounded text-stone-600 hover:bg-muted disabled:opacity-30"
-                  aria-label="Tăng 1 khách"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-
-              {/* Nút chọn nhanh */}
-              <div className="flex items-center gap-1">
-                {QUICK_GUESTS_BUTTONS.map((q) => (
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-[#7c2d12]" aria-hidden />
+              {(
+                [
+                  { key: "SLOT_1730" as const, label: SLOT_LABELS.SLOT_1730 },
+                  { key: "SLOT_1945" as const, label: SLOT_LABELS.SLOT_1945 },
+                  { key: "ALL" as const, label: "Cả 2 ca" },
+                ]
+              ).map((slotItem) => {
+                const active = selectedSlot === slotItem.key;
+                return (
                   <button
-                    key={`q-btn-${q}`}
+                    key={slotItem.key}
                     type="button"
-                    onClick={() => applyGuests(q)}
+                    onClick={() => setSelectedSlot(slotItem.key)}
+                    aria-pressed={active}
                     className={cn(
-                      "rounded-lg px-2 py-0.5 text-[11px] font-bold tabular-nums transition-colors",
-                      guests === q
-                        ? "bg-stone-800 text-white"
-                        : "border border-border/80 bg-background text-stone-600 hover:border-stone-400",
+                      "rounded-sm border px-2.5 py-1 font-heading text-xs font-semibold transition-colors cursor-pointer",
+                      active
+                        ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                        : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12] hover:text-[#7c2d12]",
                     )}
                   >
-                    {q === 42 ? "42 (Đầy ca)" : `${q}k`}
+                    {slotItem.label}
                   </button>
-                ))}
-              </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Điều khiển số suất khách của ca */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-[#7c2d12]" aria-hidden />
+              <span className="text-xs font-semibold uppercase tracking-wider text-stone-700">
+                Quy mô ca:
+              </span>
+              {loadingReservations ? (
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <RefreshCw className="h-3 w-3 animate-spin text-[#7c2d12]" />
+                  Đang tải...
+                </span>
+              ) : actualBookedGuests !== null && actualBookedGuests > 0 ? (
+                <span className="text-xs font-semibold text-emerald-800">
+                  (Đặt thật: {actualBookedGuests} khách)
+                </span>
+              ) : null}
+            </div>
+
+            {/* Stepper điều chỉnh số khách */}
+            <div className="flex items-center rounded-sm border border-stone-300 bg-[#fffdf8] p-0.5">
+              <button
+                type="button"
+                onClick={() => applyGuests(guests - 1)}
+                disabled={guests <= 1}
+                className="flex h-6 w-6 items-center justify-center rounded-sm text-stone-600 hover:bg-[#fdf0d5] disabled:opacity-30 cursor-pointer"
+                aria-label="Giảm 1 khách"
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={guestsInput}
+                onChange={handleGuestsInputChange}
+                className="h-6 w-11 border-0 bg-transparent text-center font-heading text-xs font-bold tabular-nums text-stone-900 focus:outline-none"
+                aria-label="Số lượng khách của ca"
+              />
+              <button
+                type="button"
+                onClick={() => applyGuests(guests + 1)}
+                disabled={guests >= MAX_SCALE_GUESTS}
+                className="flex h-6 w-6 items-center justify-center rounded-sm text-stone-600 hover:bg-[#fdf0d5] disabled:opacity-30 cursor-pointer"
+                aria-label="Tăng 1 khách"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Nút chọn nhanh */}
+            <div className="flex items-center gap-1">
+              {QUICK_GUESTS_BUTTONS.map((q) => (
+                <button
+                  key={`q-btn-${q}`}
+                  type="button"
+                  onClick={() => applyGuests(q)}
+                  className={cn(
+                    "rounded-sm border px-2 py-0.5 font-heading text-[11px] font-semibold tabular-nums transition-colors cursor-pointer",
+                    guests === q
+                      ? "border-[#7c2d12] bg-[#7c2d12] text-[#fdf0d5]"
+                      : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12]",
+                  )}
+                >
+                  {q === 42 ? "42 (Đầy ca)" : `${q} khách`}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* ==================== 3. THỐNG KÊ NHANH (3 THẺ TỔNG KẾT) ==================== */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-border/70 bg-[#fffdfa] p-3 shadow-2xs">
+        <div className="grid grid-cols-1 gap-2.5 pt-1 sm:grid-cols-3">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-600">Nguyên liệu cần mua</span>
-              <ShoppingCart className="h-3.5 w-3.5 text-[#b45309]" />
+              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
+                Nguyên liệu cần mua
+              </span>
+              <ShoppingCart className="h-3.5 w-3.5 text-[#7c2d12]" />
             </div>
             <div
               className={cn(
-                "mt-1 font-heading text-xl font-bold tabular-nums",
-                report.neededCount > 0 ? "text-rose-700" : "text-emerald-700",
+                "mt-1 font-heading text-lg font-bold tabular-nums",
+                report.neededCount > 0 ? "text-rose-800" : "text-emerald-800",
               )}
             >
               {report.neededCount} / {report.totalCheckedIngredients} món
@@ -399,12 +389,14 @@ export function ShiftPurchaseCard({
             </p>
           </div>
 
-          <div className="rounded-xl border border-border/70 bg-[#fffdfa] p-3 shadow-2xs">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-600">Nguyên liệu đủ tồn kho</span>
-              <PackageCheck className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
+                Nguyên liệu đủ tồn kho
+              </span>
+              <PackageCheck className="h-3.5 w-3.5 text-emerald-700" />
             </div>
-            <div className="mt-1 font-heading text-xl font-bold tabular-nums text-emerald-800">
+            <div className="mt-1 font-heading text-lg font-bold tabular-nums text-emerald-800">
               {report.sufficientCount} nguyên liệu
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -412,12 +404,14 @@ export function ShiftPurchaseCard({
             </p>
           </div>
 
-          <div className="rounded-xl border border-border/70 bg-[#fffdfa] p-3 shadow-2xs">
+          <div className="rounded-sm border border-stone-200/90 bg-[#fffdf8] p-3 text-left">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold text-stone-600">Tổng chi phí dự kiến</span>
-              <Coins className="h-3.5 w-3.5 text-[#b45309]" />
+              <span className="text-[10.5px] font-semibold uppercase tracking-wider text-stone-600">
+                Tổng chi phí dự kiến
+              </span>
+              <Coins className="h-3.5 w-3.5 text-[#92400e]" />
             </div>
-            <div className="mt-1 font-heading text-xl font-bold tabular-nums text-[#92400e]">
+            <div className="mt-1 font-heading text-lg font-bold tabular-nums text-[#92400e]">
               {report.formattedTotalCost}
             </div>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -425,87 +419,85 @@ export function ShiftPurchaseCard({
             </p>
           </div>
         </div>
+      </CardHeader>
 
-        {/* ==================== 4. BẢNG CHI TIẾT DANH SÁCH MUA ==================== */}
+      {/* ==================== 4. BẢNG CHI TIẾT DANH SÁCH MUA ==================== */}
+      <CardContent className="p-0">
         {report.items.length === 0 ? (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50/70 p-5 text-center">
-            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              <Check className="h-5 w-5" />
-            </div>
-            <h4 className="mt-2 text-sm font-bold text-emerald-900">
+          <div className="flex flex-col items-center justify-center gap-2 px-4 py-10 text-center">
+            <Check className="h-6 w-6 text-emerald-700" />
+            <p className="text-sm font-semibold text-stone-800">
               Tồn kho hiện tại đã đáp ứng trọn vẹn ca {report.shiftLabel}
-            </h4>
-            <p className="mt-1 text-xs text-emerald-700">
+            </p>
+            <p className="text-xs text-muted-foreground">
               Tất cả {report.totalCheckedIngredients} nguyên liệu trong thực đơn đều đủ định mức dự trữ.
-              Không cần mua thêm — giúp tối ưu vốn lưu động và tránh tồn kho dư thừa.
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border/80">
-            <Table className="font-heading">
-              <TableHeader>
-                <TableRow className="bg-[#fdf0d5]/50 hover:bg-[#fdf0d5]/50">
-                  <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-700">
-                    Nguyên liệu
-                  </TableHead>
-                  <TableHead className="w-28 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-700">
-                    Nhu cầu ca
-                  </TableHead>
-                  <TableHead className="w-28 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-700">
-                    Tồn kho
-                  </TableHead>
-                  <TableHead className="w-40 text-right text-[11px] font-semibold uppercase tracking-wider text-rose-800">
-                    Cần mua (Thiếu)
-                  </TableHead>
-                  <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-700">
-                    Đơn giá kho
-                  </TableHead>
-                  <TableHead className="w-32 pr-4 text-right text-[11px] font-semibold uppercase tracking-wider text-[#92400e]">
-                    Thành tiền
-                  </TableHead>
+          <Table className="min-w-[860px] font-heading">
+            <TableHeader>
+              <TableRow className="border-b-2 border-[#7c2d12]/50 bg-[#f6efe0] hover:bg-[#f6efe0]">
+                <TableHead className="pl-4 text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pl-5">
+                  Nguyên liệu
+                </TableHead>
+                <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Nhu cầu ca
+                </TableHead>
+                <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Số lượng tồn
+                </TableHead>
+                <TableHead className="w-40 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Cần mua (Thiếu)
+                </TableHead>
+                <TableHead className="w-32 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
+                  Đơn giá kho
+                </TableHead>
+                <TableHead className="w-32 pr-4 text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600 sm:pr-5">
+                  Thành tiền
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {report.items.map((item) => (
+                <TableRow
+                  key={item.ingredientId}
+                  className="border-b border-stone-200/80 bg-[#fffdf8] transition-colors hover:bg-[#fdf0d5]/30"
+                >
+                  <TableCell className="pl-4 sm:pl-5">
+                    <div className="flex flex-col">
+                      <span className="font-heading font-semibold text-[#292524]">{item.name}</span>
+                      {item.origin && (
+                        <span className="truncate text-[10.5px] text-muted-foreground">
+                          {item.origin}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-stone-900">
+                    {item.demandQty} {item.unit}
+                  </TableCell>
+
+                  <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-stone-700">
+                    {item.stockQty} {item.unit}
+                  </TableCell>
+
+                  <TableCell className="text-right font-heading text-sm font-bold tabular-nums text-rose-800">
+                    {item.formattedShortage}
+                  </TableCell>
+
+                  <TableCell className="text-right text-xs tabular-nums text-stone-600">
+                    {formatVND(item.importPrice)}/{item.importUnitLabel}
+                  </TableCell>
+
+                  <TableCell className="pr-4 text-right font-heading font-semibold tabular-nums text-rose-800 sm:pr-5">
+                    {item.formattedCost}
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-
-              <TableBody>
-                {report.items.map((item) => (
-                  <TableRow key={item.ingredientId} className="hover:bg-muted/30">
-                    <TableCell className="pl-4">
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-[#292524]">{item.name}</span>
-                        {item.origin && (
-                          <span className="truncate text-[10.5px] text-muted-foreground">
-                            {item.origin}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="text-right text-xs tabular-nums text-stone-700">
-                      {item.demandQty} {item.unit}
-                    </TableCell>
-
-                    <TableCell className="text-right text-xs tabular-nums text-stone-600">
-                      {item.stockQty} {item.unit}
-                    </TableCell>
-
-                    <TableCell className="text-right">
-                      <Badge className="border-0 bg-rose-100 text-rose-800 px-2 py-0.5 text-xs font-bold tabular-nums">
-                        {item.formattedShortage}
-                      </Badge>
-                    </TableCell>
-
-                    <TableCell className="text-right text-xs tabular-nums text-stone-600">
-                      {formatVND(item.importPrice)}/{item.importUnitLabel}
-                    </TableCell>
-
-                    <TableCell className="pr-4 text-right font-heading text-xs font-bold tabular-nums text-[#92400e]">
-                      {item.formattedCost}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
