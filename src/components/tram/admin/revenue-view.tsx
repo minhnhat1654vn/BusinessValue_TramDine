@@ -35,7 +35,6 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* ==================== 1. TIÊU ĐỀ PHÂN HỆ DOANH THU & DỰ BÁO ==================== */}
       <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
@@ -50,7 +49,6 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
         </div>
       </div>
 
-      {/* ==================== 2. FR-33: WIDGET KPI FOOD COST TRÊN MÀN DỰ BÁO ==================== */}
       <FoodCostKpiWidget
         kpi={kpi}
         futureGuests={totalGuests}
@@ -58,7 +56,6 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
         onNavigateTab={onNavigateTab}
       />
 
-      {/* ==================== 3. CƠ CẤU DOANH THU DỰ THU CHI TIẾT ==================== */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Doanh thu Tasting Menu */}
         <Card className="border-border/80 bg-card shadow-xs">

@@ -391,15 +391,12 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-heading text-sm font-bold text-stone-900">
-                    Khung Giờ Vàng (FR-34) — Ca Chiều {upcomingGoldenHourAlert.label} 17:30 đang trống nhiều
+                    Khung Giờ Vàng — Ca Chiều {upcomingGoldenHourAlert.label} 17:30 đang trống nhiều
                   </h4>
                   <Badge className="border-amber-300 bg-amber-100 text-[#92400e] text-[10px] font-bold">
                     Lấp đầy {Math.round(upcomingGoldenHourAlert.slot1730Percent ?? 0)}%
                   </Badge>
                 </div>
-                <p className="text-xs text-stone-600 mt-0.5">
-                  Mới có {upcomingGoldenHourAlert.slot1730Occupied ?? 0}/42 chỗ đặt. Bạn có thể kích hoạt Voucher giảm 15% – 20% gửi qua Zalo OA ngay để lấp đầy ca này!
-                </p>
               </div>
             </div>
 
@@ -429,9 +426,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     <TrendingUp className="h-5 w-5 text-[#b45309]" aria-hidden />
                     Số Lượng Khách 2 Khung Giờ (4 Tuần / 1 Tháng)
                   </CardTitle>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Thống kê số chỗ đặt thực tế mỗi ngày · Tối đa 42 chỗ/khung · Đường mục tiêu 36 chỗ (85%)
-                  </p>
                 </div>
 
                 {/* Nút lướt nhanh giữa các tuần */}
@@ -482,9 +476,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                     Mục tiêu 36 chỗ (85%)
                   </span>
                 </div>
-                <span className="text-[11px] text-stone-500 italic">
-                  ↔ Cuộn chuột ngang để lướt xem 28 ngày
-                </span>
               </div>
             </CardHeader>
             <CardContent>
@@ -679,9 +670,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </div>
                 </div>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                So sánh 2 khung giờ: Khung 19:45 (vàng hổ phách) thường đạt mục tiêu 36 khách cao hơn khung 17:30 (xanh biển) — tối ưu bài toán yield management và xếp bàn.
-              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -727,10 +715,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </div>
                 </div>
               ))}
-              <p className="rounded-lg border border-dashed border-[#b45309]/30 bg-[#fdf0d5]/40 p-2.5 text-[11px] leading-relaxed text-stone-600">
-                Kênh Web đang dẫn đầu — kết quả của việc đưa đặt bàn lên mạng
-                (trọng tâm chuyển đổi số của đồ án).
-              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -805,9 +789,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </span>
                 )}
               </div>
-              <span className="text-[11px] text-stone-500 italic">
-                ↔ Cuộn chuột ngang để lướt xem toàn bộ 28 ngày
-              </span>
             </div>
           </CardHeader>
 

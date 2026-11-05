@@ -1,11 +1,19 @@
 // Seed dữ liệu giả lập cho TRẦM Reserve
-// Chạy: bun run db:seed  (hoặc bun prisma/seed.ts)
+// Chạy: npm run db:seed  (hoặc tsx prisma/seed.ts)
 //
-// Dữ liệu sinh tương đối so với NGÀY CHẠY SEED (2 tuần quá khứ → 2 tuần tương lai),
-// đảm bảo dashboard luôn có số liệu tươi khi demo/chụp ảnh.
-// Mọi lượt đặt đều hợp nghiệp vụ: không có thứ Hai, không trùng bàn cùng khung.
+// Dữ liệu sinh bao phủ đầy đủ các ngày trong tuần (Thứ 3 -> Chủ Nhật)
+// từ 3 tuần quá khứ đến 2 tuần tương lai, đảm bảo mọi dashboard, báo cáo
+// doanh thu, biểu đồ lấp đầy bàn, quản lý đặt bàn và khảo sát đều phong phú.
+//
+// Mọi lượt đặt đều có NGUỒN RÕ RÀNG:
+//   - WEB (Website đặt bàn trực tuyến ~52%)
+//   - PHONE (Hotline lễ tân tiếp nhận ~30%)
+//   - ZALO (Zalo Official Account CSKH ~18%)
+// Kèm ghi chú tương ứng với từng kênh nguồn và khảo sát đánh giá 5 sao.
 
 import { PrismaClient } from "@prisma/client";
+import fs from "fs";
+import path from "path";
 
 const db = new PrismaClient();
 
@@ -47,6 +55,7 @@ interface Customer {
   phone: string;
   email: string | null;
 }
+
 const NAMES = [
   "Nguyễn Minh Anh",
   "Trần Quốc Bảo",
@@ -80,6 +89,36 @@ const NAMES = [
   "Lê Kiều Trinh",
   "Phạm Tấn Thành",
   "Nguyễn Anh Thư",
+  "Võ Minh Khang",
+  "Đỗ Thảo Nguyên",
+  "Lưu Gia Hân",
+  "Bùi Hoàng Bách",
+  "Trần Thùy Dương",
+  "Ngô Tuấn Kiệt",
+  "Lương Mai Phương",
+  "Huỳnh Tấn Phát",
+  "Trương Ngọc Ánh",
+  "Nguyễn Đức Trí",
+  "Hà Thảo My",
+  "Đoàn Minh Quân",
+  "Phùng Gia Linh",
+  "Dương Quốc Cường",
+  "Cao Thị Kim Ngân",
+  "Mai Văn Thịnh",
+  "Vũ Quỳnh Nga",
+  "Tống Gia Huy",
+  "Đào Thúy Hạnh",
+  "Lê Bá Thông",
+  "Nguyễn Hoàng Long",
+  "Đinh Thị Trúc Mai",
+  "Phan Tấn Tài",
+  "Trần Mai Chi",
+  "Lý Gia Hưng",
+  "Phạm Như Quỳnh",
+  "Bùi Đình Trọng",
+  "Hoàng Hải Nam",
+  "Võ Thị Tuyết Nhung",
+  "Nguyễn Thành Đạt",
 ];
 
 function unaccent(s: string): string {
@@ -95,82 +134,154 @@ function makeCustomer(name: string): Customer {
   const parts = name.split(" ");
   const given = unaccent(parts[parts.length - 1]);
   const family = unaccent(parts[0]);
-  const emailDomain = pick(["gmail.com", "gmail.com", "yahoo.com"]);
+  const emailDomain = pick(["gmail.com", "gmail.com", "yahoo.com", "outlook.com"]);
   return {
     name,
     phone: `09${randInt(10, 99)}${String(randInt(100000, 999999))}`,
     email:
-      rng() < 0.7
+      rng() < 0.75
         ? `${given}.${family}${randInt(1, 99)}@${emailDomain}`
         : null,
   };
 }
 
-// ~10 khách "quen" (đến nhiều lần) để hồ sơ khách đẹp
-const REGULARS: Customer[] = NAMES.slice(0, 10).map(makeCustomer);
-// Khách lẻ
-const OTHERS: Customer[] = NAMES.slice(10).map(makeCustomer);
+// 15 khách quen để hồ sơ khách hàng tích lũy điểm và phân hạng VIP đẹp
+const REGULARS: Customer[] = NAMES.slice(0, 15).map(makeCustomer);
+// Khách vãng lai / mới
+const OTHERS: Customer[] = NAMES.slice(15).map(makeCustomer);
 
-// FR-21 & FR-22: Thượng khách Hạng Nam Trầm cố định để phục vụ demo đặc quyền (>= 6 lượt SEATED)
+// FR-21 & FR-22: Thượng khách Hạng Nam Trầm cố định để phục vụ demo đặc quyền
 const NAM_TRAM_CUSTOMER: Customer = {
   name: "Trần Nam Trầm",
   phone: "0909999999",
   email: "namtram@tramreserve.vn",
 };
 
-// ---------- Ghi chú / dị ứng ----------
+// ---------- Ghi chú theo nguồn đặt bàn & Dịp dùng bữa ----------
 const ALLERGIES = [
   "Hải sản",
-  "Hải sản",
-  "Tôm, cua",
+  "Tôm, cua biển",
   "Lạc (đậu phộng)",
   "Gluten",
-  "Hải sản",
-  "Không dùng rượu",
-  "Hải sản",
-  "Ớt cay",
-  "Sữa",
+  "Không dùng rượu bia",
+  "Ớt cay, tiêu nồng",
+  "Sữa & chế phẩm từ sữa",
+  "Ăn thuần chay món khai vị",
+  "Hành, tỏi tươi",
+  "Mẫn cảm nấm hương",
 ];
-const OCCASION_NOTES = [
-  "Kỷ niệm ngày cưới",
-  "Đặt bàn sinh nhật — giúp nhà hàng chuẩn bị nến",
-  "Tiệc gia đình, ưu tiên chỗ yên tĩnh",
-  "Có hai trẻ em đi cùng",
-  "Kỷ niệm 5 năm làm việc",
-  "Hẹn gặp đối tác, cần bàn hướng cửa sổ",
-  "Ăn chay món đầu (bún đậu)",
-  "Đón khách nước ngoài lần đầu đến Việt Nam",
+
+const OCCASIONS = [
+  "Kỷ niệm 5 năm ngày cưới, chuẩn bị góc hoa và nến ấm cúng",
+  "Tiệc sinh nhật ấm cúng, nhà hàng hỗ trợ chuẩn bị nến chúc mừng",
+  "Tiếp đối tác quan trọng, ưu tiên bàn yên tĩnh nhìn ra vườn",
+  "Hẹn hò lãng mạn 2 người, bàn góc riêng tư",
+  "Gặp mặt gia đình sum họp cuối tuần",
+  "Tiệc chiêu đãi đối tác nước ngoài trải nghiệm ẩm thực Việt Nam đương đại",
+  "Kỷ niệm ngày yêu nhau, tư vấn set Wine Pairing phù hợp",
+  "Ăn tối mừng ký hợp đồng dự án mới",
+  "Gia đình có người lớn tuổi, bố trí bàn cạnh lối đi thoáng",
+  "Thưởng thức thực đơn Tasting Menu mới của bếp trưởng",
 ];
+
+// Hàm sinh nguồn và ghi chú chuẩn xác theo từng kênh (có nguồn gốc rõ ràng)
+function pickSourceAndNotes(): {
+  source: "WEB" | "PHONE" | "ZALO";
+  notes: string | null;
+} {
+  const r = rng();
+  const occasion = rng() < 0.7 ? pick(OCCASIONS) : null;
+
+  if (r < 0.52) {
+    // 1. Nguồn WEB (~52%) — Khách đặt trực tuyến qua website tramreserve.vn
+    const source = "WEB";
+    if (!occasion) {
+      return {
+        source,
+        notes: rng() < 0.35 ? "Đặt trực tuyến qua website tramreserve.vn" : null,
+      };
+    }
+    const webPrefix = pick([
+      "Đặt trực tuyến qua web:",
+      "Website booking:",
+      "Khách ghi chú qua web:",
+      "Ghi chú đặt trực tuyến:",
+    ]);
+    return {
+      source,
+      notes: `${webPrefix} ${occasion}`,
+    };
+  } else if (r < 0.82) {
+    // 2. Nguồn PHONE (~30%) — Khách gọi Hotline lễ tân 0901 234 567
+    const source = "PHONE";
+    const phonePrefix = pick([
+      "Hotline 0901 234 567:",
+      "Lễ tân tiếp nhận cuộc gọi:",
+      "Khách gọi hotline nhà hàng:",
+      "Điện thoại trực tiếp:",
+      "Hotline CSKH:",
+    ]);
+    const phoneDetail = occasion ?? pick([
+      "Khách nhờ giữ bàn view đẹp nhìn ra sân sau",
+      "Khách quen gọi điện đặt trước 3 ngày",
+      "Hỏi chi tiết về thực đơn Tasting Menu 7 món",
+      "Yêu cầu không gian yên tĩnh để trao đổi công việc",
+      "Khách gọi hỏi chỗ đỗ xe ô tô và bàn cho 4 người",
+    ]);
+    return {
+      source,
+      notes: `${phonePrefix} ${phoneDetail}`,
+    };
+  } else {
+    // 3. Nguồn ZALO (~18%) — Khách chat và chốt bàn qua Zalo OA
+    const source = "ZALO";
+    const zaloPrefix = pick([
+      "Zalo OA TRẦM Reserve:",
+      "Tư vấn qua Zalo OA:",
+      "Khách nhắn tin Zalo:",
+      "Zalo CSKH tiếp nhận:",
+      "Kênh Zalo Official:",
+    ]);
+    const zaloDetail = occasion ?? pick([
+      "Khách đã chuyển khoản cọc và gửi ủy nhiệm chi qua Zalo",
+      "Tư vấn thực đơn Tasting và gói Wine Pairing",
+      "Khách hỏi chi tiết set Tea Pairing không cồn",
+      "Đã xác nhận đặt bàn đôi qua tin nhắn Zalo",
+      "Khách gửi yêu cầu cắm hoa tươi trên bàn tiệc",
+    ]);
+    return {
+      source,
+      notes: `${zaloPrefix} ${zaloDetail}`,
+    };
+  }
+}
+
+function pickPairing(): "NONE" | "WINE" | "TEA" {
+  const r = rng();
+  if (r < 0.42) return "NONE";
+  if (r < 0.8) return "WINE";
+  return "TEA";
+}
 
 // ---------- Ngày tiện ích ----------
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
+
 const TODAY = (() => {
   const now = new Date();
   return new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   );
 })();
+
 function dayAt(offset: number): Date {
   const d = new Date(TODAY);
   d.setUTCDate(d.getUTCDate() + offset);
   return d;
 }
-const isPast = (d: Date) => d.getTime() < TODAY.getTime();
 
-function pickSource(): "WEB" | "PHONE" | "ZALO" {
-  const r = rng();
-  if (r < 0.55) return "WEB";
-  if (r < 0.85) return "PHONE";
-  return "ZALO";
-}
-function pickPairing(): "NONE" | "WINE" | "TEA" {
-  const r = rng();
-  if (r < 0.5) return "NONE";
-  if (r < 0.85) return "WINE";
-  return "TEA";
-}
+const isPast = (d: Date) => d.getTime() < TODAY.getTime();
 
 // ---------- Sinh mã TRM-XXXX không trùng ----------
 const usedCodes = new Set<string>();
@@ -187,76 +298,115 @@ function reservationCode(): string {
 }
 
 // =====================================================================
-// PHÂN BỔ CHỖ THEO TỐI (mục tiêu mô phỏng: cuối tuần kín, đầu tuần thưa)
-// Mỗi mục tiêu là "số chỗ muốn đặt" của một (ngày, khung).
+// PHÂN BỔ MỤC TIÊU ĐẶT BÀN (TỪ -21 NGÀY QUÁ KHỨ ĐẾN +14 NGÀY TƯƠNG LAI)
 // =====================================================================
 interface EveningTarget {
   date: Date;
   slot: "SLOT_1730" | "SLOT_1945";
   seats: number;
-  full?: boolean; // kín hoàn toàn (dùng cho T7 19:45 tương lai → có waitlist)
+  full?: boolean; // kín 100% (42/42 chỗ)
 }
 
 const targets: EveningTarget[] = [];
-{
-  // đếm số buổi đã dùng theo thứ trong tuần để rải đều 4 tuần
-  const seen: Record<number, number> = {};
-  for (let offset = -14; offset <= 14; offset++) {
-    const date = dayAt(offset);
-    const wd = date.getUTCDay();
-    seen[wd] = (seen[wd] ?? 0) + 1;
-    const n = seen[wd];
 
-    if (wd === 1) continue; // thứ Hai nghỉ
+// Quét từ -21 ngày đến +14 ngày (tổng cộng 35 ngày)
+for (let offset = -21; offset <= 14; offset++) {
+  const date = dayAt(offset);
+  const wd = date.getUTCDay();
 
-    if (wd === 6) {
-      // Thứ Bảy: 19:45 — tương lai kín 100% (khơi waitlist), quá khứ ~70%
-      targets.push({
-        date,
-        slot: "SLOT_1945",
-        seats: !isPast(date) ? 42 : 30,
-        full: !isPast(date),
-      });
-      // Thứ Bảy: 17:30 — một buổi vừa phải
-      if (n === 2) {
-        targets.push({ date, slot: "SLOT_1730", seats: 14 });
-      }
-    } else if (wd === 0) {
-      // Chủ nhật: 19:45 một buổi; 17:30 một buổi thưa
-      if (n === 1) {
-        targets.push({ date, slot: "SLOT_1945", seats: 20 });
-        targets.push({ date, slot: "SLOT_1730", seats: 8 });
-      }
-    } else if (wd === 5) {
-      // Thứ Sáu: 19:45 một buổi
-      if (n === 1) {
-        targets.push({ date, slot: "SLOT_1945", seats: 14 });
-      }
-    } else if (wd === 2) {
-      // Thứ Ba 17:30: một buổi rất thưa (đúng spec "đầu tuần thưa")
-      if (n === 1) {
-        targets.push({ date, slot: "SLOT_1730", seats: 4 });
-      }
-    } else if (wd === 4) {
-      // Thứ Năm 17:30: một buổi thưa
-      if (n === 2) {
-        targets.push({ date, slot: "SLOT_1730", seats: 6 });
-      }
+  // Thứ Hai (wd === 1): Nhà hàng thường nghỉ định kỳ
+  if (wd === 1) {
+    // Chỉ tạo 1 sự kiện tiệc riêng ở quá khứ (-7 ngày) để báo cáo phong phú
+    if (offset === -7) {
+      targets.push({ date, slot: "SLOT_1945", seats: 12 });
     }
+    continue;
   }
 
-  // Đảm bảo HÔM NAY (nếu không phải thứ Hai) luôn có khách — màn quản trị
-  // mở mặc định theo ngày hiện tại nên cần dữ liệu để demo.
-  const todayHasTarget = targets.some(
-    (t) => t.date.getTime() === TODAY.getTime(),
-  );
-  if (TODAY.getUTCDay() !== 1 && !todayHasTarget) {
-    targets.push({ date: TODAY, slot: "SLOT_1945", seats: 16 });
+  // Thứ Bảy (wd === 6): Cuối tuần cao điểm
+  if (wd === 6) {
+    // 17:30: Rất đông (26 - 34 chỗ)
+    targets.push({
+      date,
+      slot: "SLOT_1730",
+      seats: randInt(26, 34),
+    });
+    // 19:45: Kín 100% (42 chỗ) để kích hoạt danh sách chờ Waitlist
+    targets.push({
+      date,
+      slot: "SLOT_1945",
+      seats: 42,
+      full: true,
+    });
+  }
+  // Chủ Nhật (wd === 0): Cuối tuần ấm cúng
+  else if (wd === 0) {
+    targets.push({
+      date,
+      slot: "SLOT_1730",
+      seats: randInt(18, 28),
+    });
+    targets.push({
+      date,
+      slot: "SLOT_1945",
+      seats: randInt(30, 40),
+    });
+  }
+  // Thứ Sáu (wd === 5): Tối mở màn cuối tuần
+  else if (wd === 5) {
+    targets.push({
+      date,
+      slot: "SLOT_1730",
+      seats: randInt(16, 26),
+    });
+    targets.push({
+      date,
+      slot: "SLOT_1945",
+      seats: randInt(36, 42),
+      full: randInt(1, 2) === 1,
+    });
+  }
+  // Thứ Tư (wd === 3) & Thứ Năm (wd === 4): Giữa tuần thanh lịch
+  else if (wd === 3 || wd === 4) {
+    // 17:30: Khung giờ vàng (12 - 20 chỗ ~ 28% - 47% lấp đầy)
+    targets.push({
+      date,
+      slot: "SLOT_1730",
+      seats: randInt(12, 20),
+    });
+    // 19:45: Giờ ăn tối chính (24 - 34 chỗ)
+    targets.push({
+      date,
+      slot: "SLOT_1945",
+      seats: randInt(24, 34),
+    });
+  }
+  // Thứ Ba (wd === 2): Mở đầu tuần sau ngày nghỉ
+  else if (wd === 2) {
+    targets.push({
+      date,
+      slot: "SLOT_1730",
+      seats: randInt(8, 16),
+    });
+    targets.push({
+      date,
+      slot: "SLOT_1945",
+      seats: randInt(18, 28),
+    });
   }
 }
 
+// Đảm bảo HÔM NAY luôn có khách ở cả 2 ca
+const todayTargets = targets.filter(
+  (t) => t.date.getTime() === TODAY.getTime(),
+);
+if (todayTargets.length === 0 && TODAY.getUTCDay() !== 1) {
+  targets.push({ date: TODAY, slot: "SLOT_1730", seats: 20 });
+  targets.push({ date: TODAY, slot: "SLOT_1945", seats: 34 });
+}
+
 // =====================================================================
-// SINH RESERVATIONS
+// SINH BẢN GHI ĐẶT BÀN (ĐẢM BẢO CÓ NGUỒN VÀ KHÔNG TRÙNG BÀN)
 // =====================================================================
 interface SeedReservation {
   code: string;
@@ -272,48 +422,76 @@ interface SeedReservation {
   allergy: string | null;
   status: string;
   depositAmount: number;
-  source: string;
+  source: "WEB" | "PHONE" | "ZALO";
   createdAt: Date;
 }
 
 const reservations: SeedReservation[] = [];
 
 for (const t of targets) {
-  // Xáo trộn bàn rồi lấy dần đến khi đạt mục tiêu chỗ
+  // Xáo trộn bàn ngẫu nhiên
   const shuffled = [...TABLES];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
+
   let acc = 0;
   for (const table of shuffled) {
     if (acc >= t.seats) break;
-    // Quy mô đoàn: thường đúng sức bàn, thỉnh thoảng thiếu 1 người
+
+    // Quy mô đoàn khớp với sức chứa bàn
     let party = table.seats;
-    if (table.seats >= 4 && rng() < 0.28) party = table.seats - 1;
-    if (t.full) party = table.seats; // tối kín: đoàn đúng sức bàn
+    if (table.seats >= 4 && rng() < 0.25) party = table.seats - 1;
+    if (t.full) party = table.seats;
     if (acc + party > t.seats && !t.full) continue;
     if (acc + party > t.seats && t.full) party = t.seats - acc;
     if (party < 2) continue;
 
-    // Chọn khách: 30% là khách quen
-    const customer =
-      rng() < 0.3 ? pick(REGULARS) : pick(OTHERS);
+    // Chọn khách hàng (35% khách quen, 65% khách mới)
+    const customer = rng() < 0.35 ? pick(REGULARS) : pick(OTHERS);
 
-    // Trạng thái theo mốc thời gian
+    // Xác định trạng thái theo mốc thời gian
     let status: string;
+    const isToday = t.date.getTime() === TODAY.getTime();
     if (isPast(t.date)) {
-      status = "SEATED";
+      const rStatus = rng();
+      if (rStatus < 0.88) {
+        status = "SEATED";
+      } else if (rStatus < 0.94) {
+        status = "CANCELLED";
+      } else {
+        status = "NO_SHOW";
+      }
+    } else if (isToday) {
+      if (t.slot === "SLOT_1730") {
+        status = rng() < 0.8 ? "SEATED" : "CONFIRMED";
+      } else {
+        const rStatus = rng();
+        if (rStatus < 0.72) status = "CONFIRMED";
+        else if (rStatus < 0.9) status = "PENDING";
+        else status = "CANCELLED";
+      }
     } else {
-      status = rng() < 0.12 ? "PENDING" : "CONFIRMED";
+      const rStatus = rng();
+      if (rStatus < 0.76) status = "CONFIRMED";
+      else if (rStatus < 0.92) status = "PENDING";
+      else status = "CANCELLED";
     }
 
+    // Thời điểm tạo: trước ngày dùng bữa từ 1 đến 10 ngày
     let createdAt = new Date(t.date);
-    createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 9));
+    createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 10));
     if (createdAt.getTime() > TODAY.getTime()) {
       createdAt = new Date(TODAY);
-      createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 5));
+      createdAt.setUTCDate(createdAt.getUTCDate() - randInt(1, 4));
     }
+
+    // Nguồn đặt bàn và ghi chú ngữ cảnh tương ứng
+    const { source, notes } = pickSourceAndNotes();
+
+    // Dị ứng (khoảng 18% khách có ghi nhận dị ứng)
+    const allergy = rng() < 0.18 ? pick(ALLERGIES) : null;
 
     reservations.push({
       code: reservationCode(),
@@ -325,113 +503,106 @@ for (const t of targets) {
       date: t.date,
       slot: t.slot,
       pairing: pickPairing(),
-      notes: rng() < 0.3 ? pick(OCCASION_NOTES) : null,
-      allergy: null, // gán tập trung ở dưới
+      notes,
+      allergy,
       status,
       depositAmount: 300000 * party,
-      source: pickSource(),
+      source,
       createdAt,
     });
     acc += party;
   }
 }
 
-// --- FR-21 & FR-22: Đảm bảo Thượng khách Nam Trầm (0909999999) luôn có đủ 7 lượt SEATED trong quá khứ ---
-const namTramCandidates = reservations.filter(
+// =====================================================================
+// KHÁCH HÀNG THÂN THIẾT & VIP THEO SPEC (FR-21, FR-22)
+// =====================================================================
+// Gán cố định mã đặt bàn TRM-HDVF (SEATED) và TRM-HQ7Q (CONFIRMED hôm nay)
+// để các script kiểm thử tự động và tài liệu Word báo cáo hoạt động đúng.
+
+const seatedList = reservations.filter(
   (r) => isPast(r.date) && r.status === "SEATED",
 );
-const namTramCount = Math.min(7, namTramCandidates.length);
+
+// Gán 7 lượt SEATED cho Trần Nam Trầm (0909999999)
+const namTramCount = Math.min(7, seatedList.length);
 for (let i = 0; i < namTramCount; i++) {
-  namTramCandidates[i].customerName = NAM_TRAM_CUSTOMER.name;
-  namTramCandidates[i].phone = NAM_TRAM_CUSTOMER.phone;
-  namTramCandidates[i].email = NAM_TRAM_CUSTOMER.email;
-  namTramCandidates[i].notes = "👑 Thượng khách Nam Trầm quen thuộc của nhà hàng";
+  const item = seatedList[i];
+  if (i === 0) item.code = "TRM-HDVF"; // Dành riêng cho test case khảo sát /survey/TRM-HDVF
+  item.customerName = NAM_TRAM_CUSTOMER.name;
+  item.phone = NAM_TRAM_CUSTOMER.phone;
+  item.email = NAM_TRAM_CUSTOMER.email;
+  item.notes = "👑 Thượng khách Nam Trầm quen thuộc của nhà hàng";
+  item.depositAmount = 0; // Nam Trầm được miễn cọc theo đặc quyền FR-22
+  item.source = i % 2 === 0 ? "WEB" : "PHONE";
 }
 
-// --- Đánh dấu no-show (quá khứ) — không chạm vào khách Nam Trầm ---
-const pastIdx = reservations
-  .map((r, i) => ({ r, i }))
-  .filter(
-    (x) =>
-      isPast(x.r.date) &&
-      x.r.status === "SEATED" &&
-      x.r.phone !== NAM_TRAM_CUSTOMER.phone,
-  )
-  .map((x) => x.i);
-const noShowCount = Math.min(6, pastIdx.length);
-for (let k = 0; k < noShowCount; k++) {
-  const idx = pastIdx.splice(Math.floor(rng() * pastIdx.length), 1)[0];
-  reservations[idx].status = "NO_SHOW";
-}
-
-// --- Hủy bàn: vài lượt trong quá khứ và tương lai (tránh các tối thứ Bảy
-// khung 19:45 tương lai — hai tối này phải kín 100% để demo waitlist) ---
-const cancellable = reservations.map((r, i) => ({ r, i })).filter(
-  (x) =>
-    !["NO_SHOW"].includes(x.r.status) &&
-    x.r.phone !== NAM_TRAM_CUSTOMER.phone &&
-    !(
-      !isPast(x.r.date) &&
-      x.r.date.getUTCDay() === 6 &&
-      x.r.slot === "SLOT_1945"
-    ) &&
-    (isPast(x.r.date) ? x.r.status === "SEATED" : true),
+// Gán 1 lượt hôm nay cho Trần Nam Trầm với mã TRM-HQ7Q để demo check-in
+const todayCandidates = reservations.filter(
+  (r) => r.date.getTime() === TODAY.getTime() && r.slot === "SLOT_1945",
 );
-let cancelled = 0;
-for (const c of cancellable) {
-  if (cancelled >= 5) break;
-  if (rng() < 0.09) {
-    c.r.status = "CANCELLED";
-    cancelled += 1;
-  }
-}
-// Bù thêm nếu ngẫu nhiên cho quá ít lượt hủy (cần "vài lượt" cho dashboard)
-if (cancelled < 4) {
-  const need = 4 - cancelled;
-  const futureOnes = cancellable.filter(
-    (c) => c.r.status !== "CANCELLED" && !isPast(c.r.date),
-  );
-  const pastOnes = cancellable.filter(
-    (c) => c.r.status !== "CANCELLED" && isPast(c.r.date),
-  );
-  const extra: { r: SeedReservation }[] = [];
-  for (let k = 0; extra.length < need; k++) {
-    if (k < futureOnes.length) extra.push(futureOnes[k]);
-    if (extra.length >= need) break;
-    if (k < pastOnes.length) extra.push(pastOnes[k]);
-    if (k >= futureOnes.length && k >= pastOnes.length) break;
-  }
-  for (const c of extra) {
-    c.r.status = "CANCELLED";
-    cancelled += 1;
-  }
+if (todayCandidates.length > 0) {
+  const target = todayCandidates[0];
+  target.code = "TRM-HQ7Q";
+  target.customerName = NAM_TRAM_CUSTOMER.name;
+  target.phone = NAM_TRAM_CUSTOMER.phone;
+  target.email = NAM_TRAM_CUSTOMER.email;
+  target.status = "CONFIRMED";
+  target.notes = "👑 Thượng khách Nam Trầm — Tiệc check-in tiếp đón đối tác";
+  target.source = "WEB";
 }
 
-// --- Gán dị ứng cho ~9 lượt đặt (ưu tiên khung tương lai để badge đỏ lộ rõ) ---
-let allergyCount = 0;
-for (const r of reservations) {
-  if (allergyCount >= 9) break;
-  if (!r.allergy && r.status !== "CANCELLED" && rng() < 0.16) {
-    r.allergy = pick(ALLERGIES);
-    allergyCount += 1;
-  }
+// Gán 6 lượt SEATED cho Nguyễn Hữu Phúc (Hạng Nam Trầm)
+for (let i = 7; i < Math.min(13, seatedList.length); i++) {
+  const item = seatedList[i];
+  item.customerName = "Nguyễn Hữu Phúc";
+  item.phone = "0993738817";
+  item.email = "phuc.nguyen@gmail.com";
+  item.notes = "Thượng khách Hạng Nam Trầm (ưu tiên Wine Pairing)";
+  item.pairing = "WINE";
+  item.source = "PHONE";
+}
+
+// Gán 3 lượt SEATED cho Trần Hải Yến (Hạng Hương)
+for (let i = 13; i < Math.min(16, seatedList.length); i++) {
+  const item = seatedList[i];
+  item.customerName = "Trần Hải Yến";
+  item.phone = "0998593177";
+  item.email = "yen.tran@gmail.com";
+  item.notes = "Khách quen Hạng Hương";
+  item.source = "ZALO";
+}
+
+// Gán 2 lượt SEATED cho Lê Thu Hằng (Hạng Hương)
+for (let i = 16; i < Math.min(18, seatedList.length); i++) {
+  const item = seatedList[i];
+  item.customerName = "Lê Thu Hằng";
+  item.phone = "0913889848";
+  item.email = "hang.le@gmail.com";
+  item.notes = "Khách quen Hạng Hương (ưa chuộng Tea Pairing)";
+  item.pairing = "TEA";
+  item.source = "WEB";
 }
 
 // =====================================================================
-// WAITLIST — 5 lượt chờ cho 2 thứ Bảy tới, khung 19:45 (đã kín bàn)
+// WAITLIST — Danh sách chờ cho các tối Thứ Bảy kín chỗ (SLOT_1945)
 // =====================================================================
 const upcomingSaturdays: Date[] = [];
 for (let offset = 1; offset <= 14; offset++) {
   const d = dayAt(offset);
   if (d.getUTCDay() === 6) upcomingSaturdays.push(d);
 }
+
 const WAITLIST_NAMES = [
   "Nguyễn Đăng Khoa",
   "Phạm Bảo Thảo Vy",
   "Lý Tuấn Kiệt",
   "Đặng Hải Đăng",
   "Hoàng Mỹ Linh",
+  "Võ Quốc Huy",
+  "Trịnh Thu Thảo",
 ];
+
 const waitlist: {
   name: string;
   phone: string;
@@ -441,31 +612,48 @@ const waitlist: {
   position: number;
   status: string;
 }[] = [];
-{
-  let idx = 0;
-  const sats = upcomingSaturdays.slice(0, 2);
-  for (const sat of sats) {
-    const per = sat === sats[0] ? 3 : 2; // thứ Bảy gần nhất: 3 người chờ
-    for (let p = 1; p <= per; p++) {
-      waitlist.push({
-        name: WAITLIST_NAMES[idx % WAITLIST_NAMES.length],
-        phone: `09${randInt(10, 99)}${String(randInt(100000, 999999))}`,
-        partySize: pick([2, 2, 3, 4]),
-        date: sat,
-        slot: "SLOT_1945",
-        position: p,
-        status: idx === 0 || idx === 3 ? "INVITED" : "WAITING",
-      });
-      idx += 1;
-    }
+
+let wlIdx = 0;
+for (const sat of upcomingSaturdays.slice(0, 2)) {
+  const count = sat === upcomingSaturdays[0] ? 4 : 3;
+  for (let p = 1; p <= count; p++) {
+    waitlist.push({
+      name: WAITLIST_NAMES[wlIdx % WAITLIST_NAMES.length],
+      phone: `09${randInt(10, 99)}${String(randInt(100000, 999999))}`,
+      partySize: pick([2, 2, 4, 4]),
+      date: sat,
+      slot: "SLOT_1945",
+      position: p,
+      status: p === 1 ? "INVITED" : "WAITING",
+    });
+    wlIdx++;
   }
 }
 
 // =====================================================================
-// GHI VÀO DATABASE
+// KHẢO SÁT ĐÁNH GIÁ (SURVEY) — FR-23 CHO CÁC LƯỢT SEATED TRONG QUÁ KHỨ
+// =====================================================================
+const SURVEY_COMMENTS = [
+  "Món súp bồ câu tiềm sen rất đậm đà và thanh mát. Không gian ấm cúng, nhạc nền êm dịu.",
+  "Tasting Menu 7 món được dẫn dắt rất cuốn hút. Nhân viên giải thích chi tiết nguồn gốc nguyên liệu.",
+  "Gói Wine Pairing kết hợp với món cá tuyết và bò sốt tiêu rừng vô cùng xuất sắc!",
+  "Đêm kỷ niệm ngày cưới thật trọn vẹn tại TRẦM. Cảm ơn nhà hàng đã chuẩn bị nến và hoa chu đáo.",
+  "Món chè sen long nhãn tráng miệng và trà Shan Tuyết cổ thụ để lại hậu vị khó quên.",
+  "Phục vụ nhẹ nhàng, chuyên nghiệp và rất tinh tế. Chắc chắn sẽ quay lại cùng đối tác.",
+  "Món ăn rất ngon và tinh hoa ẩm thực Việt. Ca tối khá đông khách nhưng mọi thứ vẫn chỉn chu.",
+  "Bàn hướng ra sân sau rất thoáng và riêng tư. Bò nướng lá chuối mềm mọng nước tuyệt vời.",
+  "Rất ấn tượng với set Tea Pairing không cồn, thơm phức hương trà hoa và thảo mộc vùng cao.",
+  "Trải nghiệm fine dining hương vị Việt đúng nghĩa. Đã giới thiệu cho nhiều bạn bè.",
+  "Không gian trầm hương dễ chịu, ánh sáng vừa phải tạo cảm giác thư giãn tuyệt đối sau ngày làm việc.",
+  "Món khai vị bánh tôm giòn rụm và nước chấm pha chuẩn vị Bắc. Rất đáng tiền!",
+];
+
+// =====================================================================
+// THỰC THI GHI VÀO DATABASE
 // =====================================================================
 async function main() {
   console.log("Xóa dữ liệu cũ...");
+  await db.survey.deleteMany();
   await db.waitlistEntry.deleteMany();
   await db.reservation.deleteMany();
   await db.table.deleteMany();
@@ -474,21 +662,25 @@ async function main() {
   const tableRows = await db.table.createMany({
     data: TABLES,
   });
-  console.log(`  → ${tableRows.count} bàn`);
+  console.log(`  → Đã tạo ${tableRows.count} bàn`);
 
-  const tableMap = new Map<string, string>(); // code → id
-  for (const t of await db.table.findMany()) tableMap.set(t.code, t.id);
+  const tableMap = new Map<string, string>();
+  for (const t of await db.table.findMany()) {
+    tableMap.set(t.code, t.id);
+  }
 
   console.log("Tạo lượt đặt bàn...");
-  for (const r of reservations) {
-    await db.reservation.create({
-      data: {
+  const reservationData = reservations
+    .map((r) => {
+      const tableId = tableMap.get(r.tableCode);
+      if (!tableId) return null;
+      return {
         code: r.code,
         customerName: r.customerName,
         phone: r.phone,
         email: r.email,
         partySize: r.partySize,
-        tableId: tableMap.get(r.tableCode)!,
+        tableId,
         date: r.date,
         slot: r.slot,
         pairing: r.pairing,
@@ -498,124 +690,132 @@ async function main() {
         depositAmount: r.depositAmount,
         source: r.source,
         createdAt: r.createdAt,
-      },
-    });
-  }
-  console.log(`  → ${reservations.length} lượt đặt bàn`);
+      };
+    })
+    .filter(Boolean) as any[];
 
-  console.log("Cố định hồ sơ khách hàng mẫu (Nam Trầm & Hạng Hương)...");
-  const firstTableId = tableMap.get("A01") || Array.from(tableMap.values())[0];
-  const vipMembers = [
-    // 1. Trần Nam Trầm (0909999999) - 7 lượt SEATED (Nam Trầm - Miễn cọc VIP)
-    ...Array.from({ length: 7 }, (_, i) => ({
-      code: `TRM-NT0${i + 1}`,
-      customerName: "Trần Nam Trầm",
-      phone: "0909999999",
-      email: "namtram@tramreserve.vn",
-      partySize: 2,
-      tableId: firstTableId,
-      date: dayAt(-(20 - i * 2)),
-      slot: "SLOT_1945",
-      pairing: "WINE",
-      notes: "Thượng khách Nam Trầm",
-      allergy: null,
-      status: "SEATED",
-      depositAmount: 600000,
-      source: "WEB",
-      createdAt: dayAt(-(25 - i * 2)),
-    })),
-    // 2. Nguyễn Hữu Phúc (0993738817) - 7 lượt SEATED (Nam Trầm)
-    ...Array.from({ length: 7 }, (_, i) => ({
-      code: `TRM-HP0${i + 1}`,
-      customerName: "Nguyễn Hữu Phúc",
-      phone: "0993738817",
-      email: "phuc.nguyen@gmail.com",
-      partySize: 2,
-      tableId: firstTableId,
-      date: dayAt(-(21 - i * 2)),
-      slot: "SLOT_1945",
-      pairing: "WINE",
-      notes: null,
-      allergy: null,
-      status: "SEATED",
-      depositAmount: 600000,
-      source: "WEB",
-      createdAt: dayAt(-(26 - i * 2)),
-    })),
-    // 3. Trần Hải Yến (0998593177) - 2 lượt SEATED (Hạng Hương)
-    ...Array.from({ length: 2 }, (_, i) => ({
-      code: `TRM-HY0${i + 1}`,
-      customerName: "Trần Hải Yến",
-      phone: "0998593177",
-      email: "yen.tran@gmail.com",
-      partySize: 2,
-      tableId: firstTableId,
-      date: dayAt(-(10 - i * 3)),
-      slot: "SLOT_1730",
-      pairing: "NONE",
-      notes: null,
-      allergy: null,
-      status: "SEATED",
-      depositAmount: 600000,
-      source: "WEB",
-      createdAt: dayAt(-(14 - i * 3)),
-    })),
-    // 4. Lê Thu Hằng (0913889848) - 2 lượt SEATED (Hạng Hương)
-    ...Array.from({ length: 2 }, (_, i) => ({
-      code: `TRM-TH0${i + 1}`,
-      customerName: "Lê Thu Hằng",
-      phone: "0913889848",
-      email: "hang.le@gmail.com",
-      partySize: 2,
-      tableId: firstTableId,
-      date: dayAt(-(12 - i * 4)),
-      slot: "SLOT_1730",
-      pairing: "TEA",
-      notes: null,
-      allergy: null,
-      status: "SEATED",
-      depositAmount: 600000,
-      source: "WEB",
-      createdAt: dayAt(-(15 - i * 4)),
-    })),
-  ];
+  await db.reservation.createMany({
+    data: reservationData,
+  });
+  console.log(`  → Đã tạo ${reservationData.length} lượt đặt bàn`);
 
-  for (const v of vipMembers) {
-    await db.reservation.upsert({
-      where: { code: v.code },
-      update: { status: "SEATED" },
-      create: v,
-    });
+  console.log("Tạo danh sách chờ (Waitlist)...");
+  await db.waitlistEntry.createMany({
+    data: waitlist,
+  });
+  console.log(`  → Đã tạo ${waitlist.length} lượt chờ`);
+
+  console.log("Tạo dữ liệu khảo sát 5 sao (FR-23)...");
+  const seatedReservations = await db.reservation.findMany({
+    where: { status: "SEATED" },
+    select: { id: true, code: true, date: true },
+  });
+
+  const surveyData: any[] = [];
+  for (const res of seatedReservations) {
+    // Không tạo survey cho TRM-HDVF để đường dẫn /survey/TRM-HDVF dùng được cho test case trực tiếp
+    if (res.code === "TRM-HDVF") continue;
+
+    // Khoảng 65% khách đã dùng bữa gửi khảo sát phản hồi
+    if (rng() < 0.65) {
+      const isFiveStar = rng() < 0.78;
+      const overallRating = isFiveStar ? 5 : 4;
+      surveyData.push({
+        reservationId: res.id,
+        rating: overallRating,
+        foodRating: isFiveStar ? 5 : pick([4, 5]),
+        serviceRating: isFiveStar ? 5 : pick([4, 5]),
+        ambianceRating: isFiveStar ? 5 : pick([4, 5]),
+        pairingRating: isFiveStar ? 5 : pick([4, 5]),
+        comment: rng() < 0.88 ? pick(SURVEY_COMMENTS) : null,
+        recommend: true,
+        bonusPointsGiven: 200,
+        createdAt: new Date(
+          res.date.getTime() + randInt(2, 6) * 3600 * 1000,
+        ),
+      });
+    }
   }
 
-  console.log("Tạo danh sách chờ...");
-  for (const w of waitlist) {
-    await db.waitlistEntry.create({ data: w });
-  }
-  console.log(`  → ${waitlist.length} lượt chờ`);
+  await db.survey.createMany({
+    data: surveyData,
+  });
+  const surveyCount = surveyData.length;
+  console.log(`  → Đã tạo ${surveyCount} bản ghi khảo sát chất lượng`);
 
-  // Thống kê nhanh để kiểm chứng
+  console.log("Cập nhật cài đặt chương trình đặt bàn mở rộng...");
+  await db.bookingSetting.upsert({
+    where: { id: "default" },
+    update: {
+      programEnabled: true,
+      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programMode: "range",
+      programStartDate: "2026-10-15",
+      programEndDate: "2026-11-30",
+      closedDates: "[]",
+      allowMonday: false,
+      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+    },
+    create: {
+      id: "default",
+      programEnabled: true,
+      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programMode: "range",
+      programStartDate: "2026-10-15",
+      programEndDate: "2026-11-30",
+      closedDates: "[]",
+      allowMonday: false,
+      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+    },
+  });
+
+  // Đồng bộ file backup JSON
+  try {
+    const backupPath = path.resolve(process.cwd(), "db/booking-settings.json");
+    const jsonContent = {
+      programEnabled: true,
+      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programMode: "range",
+      programStartDate: "2026-10-15",
+      programEndDate: "2026-11-30",
+      programDays: [],
+      closedDates: [],
+      allowMonday: false,
+      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      updatedAt: new Date().toISOString(),
+    };
+    fs.writeFileSync(backupPath, JSON.stringify(jsonContent, null, 2), "utf8");
+    console.log("  → Đã đồng bộ db/booking-settings.json");
+  } catch (err) {
+    console.warn("  ⚠ Không ghi được file JSON backup:", err);
+  }
+
+  // Thống kê nghiệm thu dữ liệu
   const all = await db.reservation.findMany();
-  const activeSlotKey = new Map<string, number>();
+  const sourceStats = { WEB: 0, PHONE: 0, ZALO: 0 };
+  const statusStats: Record<string, number> = {};
   for (const r of all) {
-    if (r.status === "CANCELLED") continue;
-    const key = `${isoDate(r.date)}|${r.slot}`;
-    activeSlotKey.set(key, (activeSlotKey.get(key) ?? 0) + r.partySize);
+    sourceStats[r.source as keyof typeof sourceStats] =
+      (sourceStats[r.source as keyof typeof sourceStats] ?? 0) + 1;
+    statusStats[r.status] = (statusStats[r.status] ?? 0) + 1;
   }
-  const fill =
-    Array.from(activeSlotKey.values()).reduce((s, v) => s + v / 42, 0) /
-    Math.max(1, activeSlotKey.size);
-  const sourceCount = { WEB: 0, PHONE: 0, ZALO: 0 };
-  for (const r of all) sourceCount[r.source as keyof typeof sourceCount]++;
-  console.log("────────────────────────────────────────");
-  console.log(`Tổng lượt đặt: ${all.length}`);
+
+  const uniqueDates = new Set(all.map((r) => isoDate(r.date)));
+
+  console.log("────────────────────────────────────────────────────────");
+  console.log(`📊 TỔNG KẾT DỮ LIỆU ĐÃ SEED:`);
+  console.log(`- Tổng lượt đặt bàn: ${all.length}`);
+  console.log(`- Số ngày có lượt đặt: ${uniqueDates.size} ngày`);
   console.log(
-    `Lấp chỗ trung bình (các khung có khách): ${(fill * 100).toFixed(1)}%`,
+    `- Phân bổ NGUỒN: Web: ${sourceStats.WEB} (${((sourceStats.WEB / all.length) * 100).toFixed(1)}%) | Hotline: ${sourceStats.PHONE} (${((sourceStats.PHONE / all.length) * 100).toFixed(1)}%) | Zalo: ${sourceStats.ZALO} (${((sourceStats.ZALO / all.length) * 100).toFixed(1)}%)`,
   );
   console.log(
-    `Nguồn: Web ${sourceCount.WEB} / Điện thoại ${sourceCount.PHONE} / Zalo ${sourceCount.ZALO}`,
+    `- Trạng thái: SEATED: ${statusStats["SEATED"] || 0} | CONFIRMED: ${statusStats["CONFIRMED"] || 0} | PENDING: ${statusStats["PENDING"] || 0} | CANCELLED: ${statusStats["CANCELLED"] || 0} | NO_SHOW: ${statusStats["NO_SHOW"] || 0}`,
   );
-  console.log("Seed hoàn tất ✔");
+  console.log(`- Tổng số khảo sát đánh giá: ${surveyCount}`);
+  console.log(`- Khách VIP Nam Trầm: ${NAM_TRAM_CUSTOMER.name} (0909999999) - Có mã test TRM-HDVF và TRM-HQ7Q`);
+  console.log("────────────────────────────────────────────────────────");
+  console.log("Seed hoàn tất thành công ✔");
 }
 
 main()
