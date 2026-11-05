@@ -53,3 +53,7 @@ AGENTS.md
 TramDine_structure.md
 
 /docs
+
+# SQLite temporary files
+*.db-shm
+*.db-wal
