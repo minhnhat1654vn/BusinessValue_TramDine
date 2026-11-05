@@ -33,6 +33,10 @@ import {
   Crown,
   Award,
   Zap,
+  Gift,
+  Tag,
+  Sparkles,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -731,6 +735,16 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
     checkLoyaltyByPhone,
     isNamTram,
     validateStep4,
+    voucherInput,
+    setVoucherInput,
+    appliedVoucherCode,
+    voucherCalc,
+    voucherError,
+    recommendedVoucher,
+    applyVoucher,
+    removeVoucher,
+    rawTotal,
+    discountAmount,
     totalAmount,
     depositAmount,
     payOpen,
@@ -1514,6 +1528,50 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     Bếp sẽ tự động thay thế nguyên liệu hải sản sang gỏi rau rừng chay &amp; canh nấm thanh ngọt.
                   </p>
                 )}
+
+                {/* FR-37 & FR-38: Gợi ý ưu đãi cá nhân hóa theo gu thực khách */}
+                {recommendedVoucher && (
+                  <div className="rounded-xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-[#fdf0d5]/60 to-amber-500/5 p-3 sm:p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 text-[#b45309] shrink-0">
+                        <Gift className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                          <span>{recommendedVoucher.name}</span>
+                          <Badge className="bg-amber-100 text-[#92400e] border-amber-300 text-[10px] font-bold">
+                            Mã: {recommendedVoucher.code}
+                          </Badge>
+                        </p>
+                        <p className="text-[11px] text-stone-600 truncate">
+                          {recommendedVoucher.description}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => applyVoucher(recommendedVoucher.code)}
+                      className={`h-8 rounded-full text-xs font-semibold gap-1 shrink-0 ${
+                        appliedVoucherCode === recommendedVoucher.code
+                          ? "bg-emerald-700 text-white hover:bg-emerald-800"
+                          : "bg-[#b45309] text-white hover:bg-[#92400e]"
+                      }`}
+                    >
+                      {appliedVoucherCode === recommendedVoucher.code ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          Đã kích hoạt ưu đãi
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Kích hoạt ưu đãi ngay
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-between items-center pt-2">
@@ -1635,6 +1693,104 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                         </span>
                       </p>
                     )}
+
+                    {/* FR-37 & FR-38: Khung nhập & Áp dụng Voucher */}
+                    <div className="rounded-xl border border-amber-300/80 bg-amber-50/50 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#92400e] flex items-center gap-1.5 uppercase tracking-wide">
+                          <Ticket className="h-4 w-4 text-[#b45309]" />
+                          Mã Ưu Đãi / Voucher
+                        </label>
+                        <span className="text-[10px] text-stone-500 italic">
+                          (Áp dụng tối đa 1 mã)
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={voucherInput}
+                          onChange={(e) => setVoucherInput(e.target.value.toUpperCase())}
+                          placeholder="Nhập mã (VD: WELCOME10, COMBO-TEA15...)"
+                          disabled={Boolean(appliedVoucherCode)}
+                          className="h-9 bg-white text-xs uppercase font-mono tracking-wider"
+                        />
+                        {appliedVoucherCode ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={removeVoucher}
+                            className="h-9 shrink-0 text-xs text-rose-700 border-rose-300 hover:bg-rose-50"
+                          >
+                            Hủy mã
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => applyVoucher()}
+                            className="h-9 shrink-0 bg-[#b45309] text-xs font-semibold text-white hover:bg-[#92400e]"
+                          >
+                            Áp dụng
+                          </Button>
+                        )}
+                      </div>
+
+                      {voucherError && (
+                        <p className="text-[11px] text-rose-600 font-medium">
+                          {voucherError}
+                        </p>
+                      )}
+
+                      {/* Gợi ý mã thông minh theo gu thực khách (FR-38) */}
+                      {recommendedVoucher && !appliedVoucherCode && (
+                        <div className="flex items-center justify-between gap-2 rounded-lg bg-white/95 border border-amber-300 p-2 text-xs">
+                          <div className="min-w-0">
+                            <p className="font-bold text-[#92400e] flex items-center gap-1 text-[11px] truncate">
+                              <Sparkles className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                              Gợi ý riêng: {recommendedVoucher.name}
+                            </p>
+                            <p className="text-[10px] text-stone-600 truncate">
+                              {recommendedVoucher.description}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => applyVoucher(recommendedVoucher.code)}
+                            className="h-7 shrink-0 text-[11px] font-bold text-[#b45309] hover:bg-amber-100 px-2"
+                          >
+                            Dùng ngay
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Hiển thị chiết khấu khi đã áp dụng mã */}
+                    {voucherCalc && (
+                      <div className="rounded-lg bg-emerald-50 border border-emerald-200/90 p-2.5 text-xs space-y-1">
+                        <div className="flex items-center justify-between text-emerald-900 font-bold">
+                          <span className="flex items-center gap-1.5">
+                            <Tag className="h-3.5 w-3.5 text-emerald-600" />
+                            Đã giảm ({voucherCalc.code}):
+                          </span>
+                          <span className="text-emerald-700 font-extrabold">
+                            - {formatVND(voucherCalc.discountAmount)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-emerald-800 font-medium">
+                          {voucherCalc.discountSummary}
+                        </p>
+                        {voucherCalc.giftDescription && (
+                          <p className="text-[11px] text-amber-900 font-semibold flex items-center gap-1 pt-0.5">
+                            <Gift className="h-3 w-3 text-amber-600 shrink-0" />
+                            {voucherCalc.giftDescription}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <Separator className="bg-border" />
                     <p className="flex justify-between gap-2 text-base">
                       <span className="font-medium text-stone-700">

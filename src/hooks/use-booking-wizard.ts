@@ -9,9 +9,17 @@ import {
 } from "@/lib/tram/constants";
 import {
   addDays,
+  formatVND,
   isClosedMonday,
   todayLocalISO,
 } from "@/lib/tram/format";
+import {
+  calculateVoucherDiscount,
+  getPersonalizedVoucherForCustomer,
+  SYSTEM_VOUCHERS,
+  type AppliedVoucherResult,
+  type VoucherDefinition,
+} from "@/lib/tram/vouchers";
 import {
   checkDateBookingAllowed,
   type BookingProgramSettings,
@@ -125,10 +133,17 @@ export function useBookingWizard() {
   const [loyaltyProfile, setLoyaltyProfile] = useState<LoyaltyProfile | null>(null);
   const [checkingLoyalty, setCheckingLoyalty] = useState(false);
 
+  // FR-37 & FR-38: Voucher & Giảm giá tự động theo gu ẩm thực
+  const [voucherInput, setVoucherInput] = useState("");
+  const [appliedVoucherCode, setAppliedVoucherCode] = useState<string | null>(null);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [recommendedVoucher, setRecommendedVoucher] = useState<VoucherDefinition | null>(null);
+
   const checkLoyaltyByPhone = useCallback(async (phoneNum: string) => {
     const clean = phoneNum.trim();
     if (!/^0\d{9}$/.test(clean)) {
       setLoyaltyProfile(null);
+      setRecommendedVoucher(null);
       return;
     }
     setCheckingLoyalty(true);
@@ -146,8 +161,18 @@ export function useBookingWizard() {
             depositExempt: data.customer.tier === "NAM_TRAM",
           });
           setName((prev) => (prev.trim() ? prev : data.customer.name));
+
+          // Gợi ý voucher cá nhân hóa cho khách cũ theo gu (FR-38)
+          const pastPairings = data.customer.reservations?.map((r: any) => r.pairing) ?? [];
+          const rec = getPersonalizedVoucherForCustomer({
+            visits: data.customer.visits,
+            pastPairings,
+          });
+          setRecommendedVoucher(rec);
         } else {
           setLoyaltyProfile(null);
+          // Gợi ý voucher chào mừng khách mới (FR-38)
+          setRecommendedVoucher(SYSTEM_VOUCHERS.WELCOME10);
         }
       }
     } catch (e) {
@@ -313,15 +338,79 @@ export function useBookingWizard() {
       : pairing === "TEA"
         ? PRICES.teaPairing
         : 0;
-  const totalAmount = partySize * (PRICES.menu + pairingPrice);
-  const depositAmount = isNamTram ? 0 : partySize * PRICES.deposit;
+
+  const rawTotal = partySize * (PRICES.menu + pairingPrice);
+
+  // Tự động tính toán chiết khấu Voucher theo FR-37 & FR-38
+  const voucherCalc = useMemo<AppliedVoucherResult | null>(() => {
+    if (!appliedVoucherCode) return null;
+    const res = calculateVoucherDiscount({
+      code: appliedVoucherCode,
+      partySize,
+      pairing,
+      isReturningCustomer: (loyaltyProfile?.visits ?? 0) > 0,
+      date: date ?? undefined,
+      slot: slot ?? undefined,
+    });
+    return res.success ? res.result : null;
+  }, [appliedVoucherCode, partySize, pairing, loyaltyProfile?.visits, date, slot]);
+
+  const discountAmount = voucherCalc?.discountAmount ?? 0;
+  const totalAmount = Math.max(0, rawTotal - discountAmount);
+  const depositAmount = isNamTram ? 0 : Math.min(totalAmount, partySize * PRICES.deposit);
+
+  const applyVoucher = useCallback(
+    (codeToApply?: string) => {
+      const code = (codeToApply ?? voucherInput).trim().toUpperCase();
+      if (!code) {
+        setVoucherError("Vui lòng nhập mã ưu đãi.");
+        return false;
+      }
+
+      const res = calculateVoucherDiscount({
+        code,
+        partySize,
+        pairing,
+        isReturningCustomer: (loyaltyProfile?.visits ?? 0) > 0,
+        date: date ?? undefined,
+        slot: slot ?? undefined,
+      });
+
+      if (!res.success) {
+        setVoucherError(res.error);
+        toast.error(res.error);
+        return false;
+      }
+
+      setAppliedVoucherCode(code);
+      setVoucherInput(code);
+      setVoucherError(null);
+      toast.success(`Đã áp dụng thành công mã "${code}": ${res.result.discountSummary}`);
+      return true;
+    },
+    [voucherInput, partySize, pairing, loyaltyProfile?.visits, date, slot]
+  );
+
+  const removeVoucher = useCallback(() => {
+    setAppliedVoucherCode(null);
+    setVoucherInput("");
+    setVoucherError(null);
+    toast.info("Đã hủy mã ưu đãi.");
+  }, []);
 
   const finalNotes = useMemo(() => {
     const extra: string[] = [];
     if (birthday) extra.push("Đặt bàn sinh nhật");
     if (anniversary) extra.push("Kỷ niệm");
+    if (voucherCalc) {
+      extra.push(
+        `[VOUCHER: ${voucherCalc.code} - Giảm ${formatVND(voucherCalc.discountAmount)}${
+          voucherCalc.giftDescription ? ` + ${voucherCalc.giftDescription}` : ""
+        }]`
+      );
+    }
     return [extra.join(" · "), notes.trim()].filter(Boolean).join("\n") || null;
-  }, [birthday, anniversary, notes]);
+  }, [birthday, anniversary, notes, voucherCalc]);
 
   const finalAllergy = allergySeafood ? "Hải sản" : null;
 
@@ -514,6 +603,18 @@ export function useBookingWizard() {
     checkLoyaltyByPhone,
     isNamTram,
     validateStep4,
+
+    // FR-37 & FR-38: Voucher & Giảm giá
+    voucherInput,
+    setVoucherInput,
+    appliedVoucherCode,
+    voucherCalc,
+    voucherError,
+    recommendedVoucher,
+    applyVoucher,
+    removeVoucher,
+    rawTotal,
+    discountAmount,
 
     // Step 5 & 6: Pricing, Payment, Completion
     pairingPrice,
