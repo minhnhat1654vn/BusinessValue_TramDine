@@ -617,9 +617,6 @@ function PaymentDialog({
                 </span>
               </button>
             </div>
-            <p className="text-center text-[11px] text-muted-foreground">
-              Cổng thanh toán mô phỏng phục vụ demo
-            </p>
           </>
         )}
 

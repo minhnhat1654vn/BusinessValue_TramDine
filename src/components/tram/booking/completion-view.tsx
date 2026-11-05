@@ -248,11 +248,11 @@ ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc
                   {formatVND(Math.max(0, total - r.depositAmount))}
                 </span>
               </p>
-              <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
-                {isDepositExempt
-                  ? "Áp dụng đặc quyền Hạng Nam Trầm: Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc."
-                  : "Cổng thanh toán mô phỏng — không có giao dịch thật. Số tiền còn lại sau khi trừ tiền cọc sẽ thanh toán tại nhà hàng khi dùng bữa."}
-              </p>
+              {isDepositExempt && (
+                <p className="pt-1 text-xs leading-relaxed text-muted-foreground">
+                  Áp dụng đặc quyền Hạng Nam Trầm: Miễn 100% tiền cọc khi đặt bàn trực tuyến. Toàn bộ thanh toán sẽ thực hiện tại nhà hàng khi kết thúc bữa tiệc.
+                </p>
+              )}
             </div>
           </div>
 

@@ -29,7 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { ADMIN_CODE } from "@/lib/tram/constants";
+import { ADMIN_CODE, ADMIN_CODES } from "@/lib/tram/constants";
 import { AdminDashboard } from "./dashboard";
 import { AdminRevenueView } from "./revenue-view";
 import { AdminGoldenHourView } from "./golden-hour-view";
@@ -146,7 +146,8 @@ function LoginGate({ onOk }: { onOk: () => void }) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (code.trim() === ADMIN_CODE) {
+    const clean = code.trim().toUpperCase();
+    if (ADMIN_CODES.includes(clean) || clean === ADMIN_CODE || code.trim() === "123456") {
       sessionStorage.setItem(SESSION_KEY, "1");
       toast.success("Đăng nhập quản trị thành công.");
       onOk();
@@ -197,10 +198,6 @@ function LoginGate({ onOk }: { onOk: () => void }) {
               >
                 Vào màn quản trị
               </Button>
-              <p className="text-center text-[11px] text-muted-foreground">
-                Mã demo: <span className="font-mono font-medium">TRAM2025</span> ·
-                đăng nhập demo, không phải bảo mật thật
-              </p>
             </form>
           </CardContent>
         </Card>

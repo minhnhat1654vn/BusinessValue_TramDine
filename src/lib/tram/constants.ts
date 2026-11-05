@@ -49,6 +49,7 @@ export const SOURCE_LABELS: Record<string, string> = {
 };
 
 export const ADMIN_CODE = "TRAM2025";
+export const ADMIN_CODES = ["TRAM2025", "123456"];
 
 export interface DishCustomOption {
   id: string;

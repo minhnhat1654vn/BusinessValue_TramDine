@@ -225,7 +225,7 @@ export function AdminBookingUnifiedView({
     if (targetDate) setDate(targetDate);
   }, [targetDate]);
   const [slotFilter, setSlotFilter] = useState<"ALL" | "SLOT_1730" | "SLOT_1945">("ALL");
-  const [mapSlot, setMapSlot] = useState<Slot>("SLOT_1945");
+  const [mapSlot, setMapSlot] = useState<Slot>("SLOT_1730");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -329,22 +329,20 @@ export function AdminBookingUnifiedView({
 
     if (tableData?.tables && tableData.tables.length > 0) {
       sourceTables = tableData.tables.map((t) => {
-        // Đảm bảo reservation được liên kết nếu có từ allReservations
-        if (!t.reservation) {
-          const matched = allReservations.find(
-            (r) =>
-              (r.table.id === t.table.id || r.table.code === t.table.code) &&
-              r.slot === activeTableSlot &&
-              r.status !== "CANCELLED"
-          );
-          if (matched) {
-            return {
-              ...t,
-              available: false,
-              reason: "BOOKED" as const,
-              reservation: matched,
-            };
-          }
+        // Luôn đồng bộ reservation mới nhất từ allReservations nếu có
+        const matched = allReservations.find(
+          (r) =>
+            (r.table.id === t.table.id || r.table.code === t.table.code) &&
+            r.slot === activeTableSlot &&
+            r.status !== "CANCELLED"
+        );
+        if (matched) {
+          return {
+            ...t,
+            available: false,
+            reason: "BOOKED" as const,
+            reservation: matched,
+          };
         }
         return t;
       });
@@ -422,6 +420,32 @@ export function AdminBookingUnifiedView({
     }
     return { empty, booked, seated, noShow, total: tables.length };
   }, [tables]);
+
+  // Thống kê 4 trạng thái thẻ bộ lọc (tương ứng với khung giờ đang chọn)
+  const summaryCounts = useMemo(() => {
+    const valid = allReservations.filter((r) => r.status !== "CANCELLED");
+    const scopeReservations =
+      slotFilter === "ALL"
+        ? valid
+        : valid.filter((r) => r.slot === slotFilter);
+
+    const seated = scopeReservations.filter((r) => r.status === "SEATED").length;
+    const booked = scopeReservations.filter(
+      (r) => r.status === "CONFIRMED" || r.status === "PENDING"
+    ).length;
+    const noShow = scopeReservations.filter((r) => r.status === "NO_SHOW").length;
+    const totalCapacity = slotFilter === "ALL" ? 20 : 10;
+    const empty = Math.max(0, totalCapacity - (seated + booked + noShow));
+
+    return {
+      empty,
+      booked,
+      seated,
+      noShow,
+      totalCapacity,
+      unitLabel: slotFilter === "ALL" ? "lượt bàn" : "bàn",
+    };
+  }, [allReservations, slotFilter]);
 
   // Thao tác Check-in
   async function handleCheckin(id: string) {
@@ -1071,10 +1095,12 @@ export function AdminBookingUnifiedView({
             <span className="h-3 w-3 rounded-full border border-dashed border-stone-500 bg-stone-100" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-stone-900">{tableCounts.empty}</span>
-            <span className="text-xs text-muted-foreground">/ {tables.length} bàn</span>
+            <span className="font-heading text-3xl font-bold text-stone-900">{summaryCounts.empty}</span>
+            <span className="text-xs text-muted-foreground">/ {summaryCounts.totalCapacity} {summaryCounts.unitLabel}</span>
           </div>
-          <span className="mt-1 text-[11px] text-muted-foreground">Khả dụng ({activeTableSlot === "SLOT_1730" ? "17:30" : "19:45"})</span>
+          <span className="mt-1 text-[11px] text-muted-foreground">
+            {slotFilter === "ALL" ? "Khả dụng cả ngày (2 ca)" : `Khả dụng (${slotFilter === "SLOT_1730" ? "17:30" : "19:45"})`}
+          </span>
         </div>
 
         {/* 2. Đã đặt */}
@@ -1092,8 +1118,8 @@ export function AdminBookingUnifiedView({
             <span className="h-3 w-3 rounded-full bg-[#b45309]" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-[#b45309]">{tableCounts.booked}</span>
-            <span className="text-xs text-[#92400e]/70">/ {tables.length} bàn</span>
+            <span className="font-heading text-3xl font-bold text-[#b45309]">{summaryCounts.booked}</span>
+            <span className="text-xs text-[#92400e]/70">/ {summaryCounts.totalCapacity} {summaryCounts.unitLabel}</span>
           </div>
           <span className="mt-1 text-[11px] text-[#92400e]/80">Đã cọc &amp; giữ chỗ</span>
         </div>
@@ -1113,8 +1139,8 @@ export function AdminBookingUnifiedView({
             <span className="h-3 w-3 rounded-full bg-emerald-600" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-emerald-900">{tableCounts.seated}</span>
-            <span className="text-xs text-emerald-700/70">/ {tables.length} bàn</span>
+            <span className="font-heading text-3xl font-bold text-emerald-900">{summaryCounts.seated}</span>
+            <span className="text-xs text-emerald-700/70">/ {summaryCounts.totalCapacity} {summaryCounts.unitLabel}</span>
           </div>
           <span className="mt-1 text-[11px] text-emerald-700/80">Đang phục vụ tại bàn</span>
         </div>
@@ -1134,8 +1160,8 @@ export function AdminBookingUnifiedView({
             <span className="h-3 w-3 rounded-full bg-rose-600" />
           </div>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="font-heading text-3xl font-bold text-rose-900">{tableCounts.noShow}</span>
-            <span className="text-xs text-rose-700/70">/ {tables.length} bàn</span>
+            <span className="font-heading text-3xl font-bold text-rose-900">{summaryCounts.noShow}</span>
+            <span className="text-xs text-rose-700/70">/ {summaryCounts.totalCapacity} {summaryCounts.unitLabel}</span>
           </div>
           <span className="mt-1 text-[11px] text-rose-700/80">Khách vắng mặt</span>
         </div>
