@@ -153,59 +153,162 @@ export function AdminBookingSettingsView({
 
   // Mảng 28 ngày để xem trước trực quan
   const previewDays = Array.from({ length: 28 }, (_, i) => addDays(today, i));
+  const openDaysCount = previewDays.filter((iso) => {
+    const isMon = weekdayOf(iso) === 1;
+    const isClosed = settings.closedDates.includes(iso) || (!settings.allowMonday && isMon);
+    let inProgram = false;
+    if (settings.programEnabled) {
+      if (settings.programMode === "range") {
+        inProgram = iso >= settings.programStartDate && iso <= settings.programEndDate;
+      } else {
+        inProgram = settings.programDays.includes(iso);
+      }
+    }
+    return settings.programEnabled && inProgram && !isClosed;
+  }).length;
 
   return (
-    <div className="space-y-6">
-      {/* Tiêu đề & Nút hành động */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/80 pb-5">
-        <div className="flex flex-wrap items-center gap-3">
-          {onBackToBooking && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onBackToBooking}
-              className="h-10 rounded-full border-border text-stone-700 hover:bg-muted font-medium text-xs shadow-xs"
-            >
-              <ArrowLeft className="mr-1.5 h-4 w-4 text-[#b45309]" />
-              Quay lại Đặt bàn
-            </Button>
-          )}
-          <div>
-            <h2 className="font-heading text-2xl font-semibold text-[#292524]">
-              Cài đặt chương trình &amp; Lịch đặt bàn
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Quản lý ngày áp dụng chương trình ẩm thực, ngày nghỉ nhà hàng và kiểm soát quyền đặt bàn của khách.
-            </p>
+    <div className="space-y-6 font-heading">
+      {/* ==================== 1. TIÊU ĐỀ (ĐỒNG BỘ MẪU TỒN KHO) ==================== */}
+      <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+              Cấu hình &amp; lịch hoạt động
+            </span>
           </div>
+          <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
+            Cài đặt chương trình &amp; Lịch đặt bàn
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Quản lý ngày áp dụng chương trình ẩm thực, ngày nghỉ nhà hàng và kiểm soát quyền đặt bàn của khách.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
+
+        <div className="flex flex-wrap items-center gap-2">
+          {onBackToBooking && (
+            <button
+              type="button"
+              onClick={onBackToBooking}
+              className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-stone-700 transition-colors hover:bg-[#fdf0d5] hover:text-[#92400e] cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
+              Quay lại Đặt bàn
+            </button>
+          )}
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={handleResetDefaults}
-            className="h-10 rounded-full border-border text-stone-600 hover:bg-muted"
+            className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-background px-3 py-1 text-xs font-semibold text-[#92400e] transition-colors hover:bg-[#fdf0d5] cursor-pointer"
           >
-            <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+            <RefreshCw className="h-3.5 w-3.5 text-[#b45309]" aria-hidden />
             Khôi phục mặc định
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            size="sm"
             disabled={saving}
             onClick={handleSave}
-            className="h-10 rounded-full bg-[#b45309] px-5 text-[#fffbf2] shadow-md hover:bg-[#92400e]"
+            className="inline-flex items-center gap-1.5 rounded-full border border-[#b45309] bg-[#b45309] px-4 py-1 text-xs font-semibold text-[#fffbf2] shadow-xs transition-colors hover:bg-[#92400e] disabled:opacity-50 cursor-pointer"
           >
             {saving ? (
-              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
             ) : (
-              <Save className="mr-1.5 h-4 w-4" />
+              <Save className="h-3.5 w-3.5" aria-hidden />
             )}
             Lưu thay đổi
-          </Button>
+          </button>
         </div>
+      </div>
+
+      {/* ==================== 2. 4 THẺ CHỈ SỐ TỔNG QUAN CÀI ĐẶT ==================== */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card className="min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Trạng thái đặt bàn
+              </span>
+              <span
+                className={
+                  settings.programEnabled
+                    ? "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"
+                    : "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700"
+                }
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            </div>
+            <div
+              className={`mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums sm:text-xl 2xl:text-2xl ${
+                settings.programEnabled ? "text-emerald-800" : "text-rose-700"
+              }`}
+            >
+              {settings.programEnabled ? "Đang mở nhận khách" : "Đang tạm dừng"}
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground" title={settings.programName}>
+              {settings.programName}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Khung thời gian áp dụng
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
+                <Calendar className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-[#92400e] sm:text-xl 2xl:text-2xl">
+              {settings.programMode === "range" ? "Khoảng ngày liên tục" : `${settings.programDays.length} ngày lẻ`}
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              {settings.programMode === "range"
+                ? `${settings.programStartDate.split("-").reverse().join("/")} – ${settings.programEndDate.split("-").reverse().join("/")}`
+                : "Chọn từng ngày phục vụ cụ thể"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Ngày mở (4 tuần tới)
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#fdf0d5] text-[#b45309]">
+                <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-[#292524] sm:text-xl 2xl:text-2xl">
+              {openDaysCount} / 28 ngày
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              {settings.allowMonday ? "Mở cả Thứ Hai hàng tuần" : "Nghỉ định kỳ Thứ Hai"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="min-w-0 gap-0 border-border/80 bg-card py-0 shadow-xs">
+          <CardContent className="p-3.5 sm:p-4">
+            <div className="flex items-start justify-between gap-2">
+              <span className="text-[10.5px] font-semibold uppercase leading-tight tracking-wider text-stone-600 sm:text-[11px]">
+                Ngày nghỉ đột xuất
+              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+                <CalendarOff className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            </div>
+            <div className="mt-2 whitespace-nowrap font-heading text-lg font-bold tabular-nums text-rose-700 sm:text-xl 2xl:text-2xl">
+              {settings.closedDates.length} ngày
+            </div>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              {settings.closedDates.length > 0 ? "Đã khóa nhận khách các ngày này" : "Không có ngày đóng cửa bảo trì"}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Thông báo nếu toàn bộ chương trình đang bị tắt */}
@@ -220,15 +323,15 @@ export function AdminBookingSettingsView({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* CARD 1: TRỰC QUAN HÓA 4 TUẦN LỊCH HOẠT ĐỘNG (ĐẨY LÊN ĐẦU) */}
-        <Card className="border-border/80 bg-card shadow-sm lg:col-span-2">
-          <CardHeader>
+        <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm lg:col-span-2">
+          <CardHeader className="gap-2 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2 text-lg text-[#292524]">
-                  <CalendarDays className="h-5 w-5 text-[#b45309]" />
+                <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+                  <CalendarDays className="h-4 w-4 text-[#7c2d12]" aria-hidden />
                   1. Trực quan hóa lịch hoạt động 4 tuần tới (Góc nhìn người dùng)
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="mt-0.5 text-xs">
                   Xem trước khách hàng sẽ nhìn thấy các ngày mở cửa hay bị khóa như thế nào theo cài đặt thời gian thực bên dưới.
                 </CardDescription>
               </div>
@@ -248,7 +351,7 @@ export function AdminBookingSettingsView({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-5">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
               {previewDays.map((iso) => {
                 const isMon = weekdayOf(iso) === 1;
@@ -299,17 +402,17 @@ export function AdminBookingSettingsView({
         </Card>
 
         {/* CARD 2: THÔNG TIN & TRẠNG THÁI CHƯƠNG TRÌNH */}
-        <Card className="border-border/80 bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-[#292524]">
-              <SlidersHorizontal className="h-5 w-5 text-[#b45309]" />
+        <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+          <CardHeader className="gap-2 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+            <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <SlidersHorizontal className="h-4 w-4 text-[#7c2d12]" aria-hidden />
               2. Trạng thái &amp; Tên chương trình
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Thiết lập chính sách hoạt động của luồng đặt bàn trực tuyến.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 p-4 sm:p-5">
             <div className="flex items-center justify-between rounded-xl border border-border/80 bg-[#fffdf9] p-4">
               <div className="space-y-0.5">
                 <Label className="text-sm font-semibold text-[#292524]">
@@ -377,17 +480,17 @@ export function AdminBookingSettingsView({
         </Card>
 
         {/* CARD 3: CÀI ĐẶT NGÀY CHẠY CHƯƠNG TRÌNH */}
-        <Card className="border-border/80 bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-[#292524]">
-              <CalendarCheck className="h-5 w-5 text-[#b45309]" />
+        <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm">
+          <CardHeader className="gap-2 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+            <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <CalendarCheck className="h-4 w-4 text-[#7c2d12]" aria-hidden />
               3. Ngày chạy chương trình
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Nếu ngày nào không thuộc danh sách này, người dùng sẽ không thể đặt bàn.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 p-4 sm:p-5">
             <RadioGroup
               value={settings.programMode}
               onValueChange={(val: "range" | "specific") =>
@@ -498,17 +601,17 @@ export function AdminBookingSettingsView({
         </Card>
 
         {/* CARD 4: CÀI ĐẶT NGÀY NGHỈ ĐỘT XUẤT CỦA NHÀ HÀNG */}
-        <Card className="border-border/80 bg-card shadow-sm lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg text-[#292524]">
-              <CalendarOff className="h-5 w-5 text-red-600" />
+        <Card className="min-w-0 gap-0 overflow-hidden border-border/80 bg-card py-0 shadow-sm lg:col-span-2">
+          <CardHeader className="gap-2 border-b border-border/60 px-4 py-4 sm:px-5 [.border-b]:pb-4">
+            <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
+              <CalendarOff className="h-4 w-4 text-rose-700" aria-hidden />
               4. Ngày nghỉ của nhà hàng (Ngày đóng cửa bảo trì / Lễ tết)
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Các ngày nghỉ ở đây sẽ được ưu tiên khóa hoàn toàn, không nhận bất kỳ lượt đặt bàn nào.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 p-4 sm:p-5">
             <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/80 bg-[#fffdf9] p-4">
               <div className="space-y-1.5 flex-1 min-w-[200px]">
                 <Label htmlFor="add-closed-date" className="text-xs font-semibold text-[#292524]">
