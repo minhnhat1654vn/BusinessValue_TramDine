@@ -389,14 +389,9 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                 <Zap className="h-4.5 w-4.5" />
               </span>
               <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="font-heading text-sm font-bold text-stone-900">
-                    Khung Giờ Vàng — Ca Chiều {upcomingGoldenHourAlert.label} 17:30 đang trống nhiều
-                  </h4>
-                  <Badge className="border-amber-300 bg-amber-100 text-[#92400e] text-[10px] font-bold">
-                    Lấp đầy {Math.round(upcomingGoldenHourAlert.slot1730Percent ?? 0)}%
-                  </Badge>
-                </div>
+                <h4 className="font-heading text-sm font-bold text-stone-900">
+                  Khung Giờ Vàng — Ca Chiều {upcomingGoldenHourAlert.label} 17:30
+                </h4>
               </div>
             </div>
 
@@ -1218,10 +1213,6 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           </Card>
         </motion.div>
       </div>
-
-      <motion.p variants={fadeUpItem} className="pb-2 text-[11px] text-muted-foreground">
-        Cửa sổ thống kê: {data.windowLabel}. Số liệu cập nhật thời gian thực phục vụ vận hành nhà hàng TRẦM Reserve.
-      </motion.p>
     </motion.div>
   );
 }

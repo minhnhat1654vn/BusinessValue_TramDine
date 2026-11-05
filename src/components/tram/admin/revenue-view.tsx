@@ -41,11 +41,8 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
             Tài chính &amp; Dự báo
           </span>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-            Báo cáo Doanh thu &amp; Dự báo Chi phí (FR-33)
+            Báo cáo Doanh thu &amp; Dự báo Chi phí
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Dữ liệu dự thu từ đặt bàn tương lai · Tách bạch doanh thu phần menu và đồ uống pairing
-          </p>
         </div>
       </div>
 
@@ -77,9 +74,6 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
             <p className="text-xs text-muted-foreground">
               {formatVND(PRICES.menu)}/khách · 7 món "Hành trình vị Việt"
             </p>
-            <div className="pt-2 text-[11px] text-stone-600 border-t border-border/50">
-              Cơ sở tính toán cho chỉ số KPI Food Cost (FR-33)
-            </div>
           </CardContent>
         </Card>
 

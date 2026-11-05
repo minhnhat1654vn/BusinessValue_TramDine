@@ -31,6 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
 import { formatPercent, formatVND } from "@/lib/tram/format";
 import {
@@ -171,9 +172,28 @@ export function FoodCostKpiWidget({
   const bufferVND = Math.round(simMenuPrice * 0.5 - simulatedCostPerGuest);
 
   // Dữ liệu cho Biểu đồ Cột Chồng What-if (Recharts BarChart)
+  // Luôn đảm bảo có 4 cột so sánh trực quan, trong đó 1 cột luôn đại diện cho simMenuPrice đang kéo
   const scenarioChartData = useMemo(() => {
-    const presets = [1_190_000, 1_250_000, 1_290_000, 1_350_000];
-    return presets.map((price) => {
+    const basePillars = [1_000_000, 1_190_000, 1_350_000, 1_600_000];
+    let chartPrices: number[];
+    if (basePillars.includes(simMenuPrice)) {
+      chartPrices = basePillars;
+    } else {
+      // Thay thế cột đối chiếu tương ứng để bảo toàn mốc gốc 1.190k và giữ đúng 4 cột đều đẹp
+      if (simMenuPrice < 1_190_000) {
+        chartPrices = [simMenuPrice, 1_190_000, 1_350_000, 1_600_000];
+      } else if (simMenuPrice < 1_350_000) {
+        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_500_000];
+      } else if (simMenuPrice < 1_600_000) {
+        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_800_000];
+      } else {
+        chartPrices = [1_000_000, 1_190_000, 1_400_000, simMenuPrice];
+      }
+    }
+
+    const uniqueSorted = Array.from(new Set(chartPrices)).sort((a, b) => a - b);
+
+    return uniqueSorted.map((price) => {
       const cost = Math.max(10_000, liveKpi.costPerGuest + simCostDelta);
       const profit = Math.max(0, price - cost);
       const foodCostPct = Number(((cost / price) * 100).toFixed(1));
@@ -577,56 +597,107 @@ export function FoodCostKpiWidget({
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* 1. Thử thay đổi Giá Menu */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-stone-700 block">
-                    1. Thử điều chỉnh giá menu:
-                  </label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[1_190_000, 1_250_000, 1_290_000, 1_350_000].map((price) => (
-                      <button
-                        key={price}
-                        type="button"
-                        onClick={() => setSimMenuPrice(price)}
-                        className={cn(
-                          "rounded-lg border px-2.5 py-1 text-xs font-medium tabular-nums transition-colors",
-                          simMenuPrice === price
-                            ? "border-[#b45309] bg-[#b45309] text-white"
-                            : "border-stone-300 bg-white text-stone-700 hover:border-stone-400",
-                        )}
-                      >
-                        {formatVND(price).replace(" đ", "")}
-                      </button>
-                    ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                {/* 1. Thử thay đổi Giá Menu bằng Thanh trượt ngang */}
+                <div className="rounded-xl border border-amber-300/80 bg-white/95 p-3.5 sm:p-4 space-y-3 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                      <Sliders className="h-3.5 w-3.5 text-[#b45309]" />
+                      1. Thử điều chỉnh giá menu (Kéo thanh trượt):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="font-heading text-lg sm:text-xl font-extrabold text-[#b45309] tabular-nums tracking-tight">
+                        {formatVND(simMenuPrice)}
+                      </span>
+                      {simMenuPrice === baselineMenuPrice ? (
+                        <Badge variant="outline" className="text-[10px] bg-stone-100 text-stone-600 border-stone-300 font-semibold">
+                          Giá gốc
+                        </Badge>
+                      ) : simMenuPrice > baselineMenuPrice ? (
+                        <Badge className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border-emerald-300">
+                          +{formatVND(simMenuPrice - baselineMenuPrice)} (+{(((simMenuPrice - baselineMenuPrice) / baselineMenuPrice) * 100).toFixed(1)}%)
+                        </Badge>
+                      ) : (
+                        <Badge className="text-[10px] font-bold bg-rose-100 text-rose-800 border-rose-300">
+                          {formatVND(simMenuPrice - baselineMenuPrice)} ({(((simMenuPrice - baselineMenuPrice) / baselineMenuPrice) * 100).toFixed(1)}%)
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Thanh trượt ngang Slider Giá menu */}
+                  <div className="pt-1 px-1">
+                    <Slider
+                      value={[simMenuPrice]}
+                      min={800_000}
+                      max={2_000_000}
+                      step={10_000}
+                      onValueChange={(vals) => setSimMenuPrice(vals[0])}
+                      className="py-2.5 cursor-grab active:cursor-grabbing [&_[data-slot=slider-track]]:h-2.5 [&_[data-slot=slider-track]]:bg-stone-200 [&_[data-slot=slider-range]]:bg-gradient-to-r [&_[data-slot=slider-range]]:from-amber-600 [&_[data-slot=slider-range]]:to-[#b45309] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#b45309] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:shadow-md [&_[data-slot=slider-thumb]]:hover:scale-110"
+                    />
+                    <div className="flex justify-between text-[10px] text-stone-500 font-medium pt-1">
+                      <span>800.000 đ</span>
+                      <span className="text-[#92400e] font-semibold">1.190.000 đ (Gốc)</span>
+                      <span>2.000.000 đ</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* 2. Thử đàm phán giảm hoặc tăng giá vốn nguyên liệu */}
-                <div className="space-y-1.5 md:text-right">
-                  <label className="text-xs font-semibold text-stone-700 block">
-                    2. Thử thay đổi giá vốn nguyên liệu:
-                  </label>
-                  <div className="flex flex-wrap gap-1.5 md:justify-end">
-                    {[-50_000, -20_000, 0, 50_000, 100_000].map((delta) => (
-                      <button
-                        key={delta}
-                        type="button"
-                        onClick={() => setSimCostDelta(delta)}
+                {/* 2. Thử thay đổi Giá vốn nguyên liệu bằng Thanh trượt ngang */}
+                <div className="rounded-xl border border-amber-300/80 bg-white/95 p-3.5 sm:p-4 space-y-3 shadow-2xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
+                      <Sliders className="h-3.5 w-3.5 text-[#b45309]" />
+                      2. Thử thay đổi giá vốn nguyên liệu (Kéo thanh trượt):
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span
                         className={cn(
-                          "rounded-lg border px-2.5 py-1 text-xs font-medium tabular-nums transition-colors",
-                          simCostDelta === delta
-                            ? "border-[#b45309] bg-[#b45309] text-white"
-                            : "border-stone-300 bg-white text-stone-700 hover:border-stone-400",
+                          "font-heading text-lg sm:text-xl font-extrabold tabular-nums tracking-tight",
+                          simCostDelta > 0
+                            ? "text-rose-700"
+                            : simCostDelta < 0
+                              ? "text-emerald-700"
+                              : "text-stone-800",
                         )}
                       >
-                        {delta > 0
-                          ? `+${formatVND(delta).replace(" đ", "")}`
-                          : delta < 0
-                            ? `${formatVND(delta).replace(" đ", "")}`
-                            : "Gốc"}
-                      </button>
-                    ))}
+                        {simCostDelta > 0
+                          ? `+${formatVND(simCostDelta)}`
+                          : simCostDelta < 0
+                            ? formatVND(simCostDelta)
+                            : "0 đ"}
+                      </span>
+                      {simCostDelta === 0 ? (
+                        <Badge variant="outline" className="text-[10px] bg-stone-100 text-stone-600 border-stone-300 font-semibold">
+                          Giá gốc
+                        </Badge>
+                      ) : simCostDelta > 0 ? (
+                        <Badge className="text-[10px] font-bold bg-rose-100 text-rose-800 border-rose-300">
+                          Tăng vốn
+                        </Badge>
+                      ) : (
+                        <Badge className="text-[10px] font-bold bg-emerald-100 text-emerald-800 border-emerald-300">
+                          Tiết kiệm
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Thanh trượt ngang Slider Giá vốn */}
+                  <div className="pt-1 px-1">
+                    <Slider
+                      value={[simCostDelta]}
+                      min={-100_000}
+                      max={100_000}
+                      step={5_000}
+                      onValueChange={(vals) => setSimCostDelta(vals[0])}
+                      className="py-2.5 cursor-grab active:cursor-grabbing [&_[data-slot=slider-track]]:h-2.5 [&_[data-slot=slider-track]]:bg-stone-200 [&_[data-slot=slider-range]]:bg-gradient-to-r [&_[data-slot=slider-range]]:from-emerald-600 [&_[data-slot=slider-range]]:to-[#b45309] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#b45309] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:shadow-md [&_[data-slot=slider-thumb]]:hover:scale-110"
+                    />
+                    <div className="flex justify-between text-[10px] text-stone-500 font-medium pt-1">
+                      <span className="text-emerald-700 font-semibold">-100.000 đ (Tiết kiệm)</span>
+                      <span className="text-[#92400e] font-semibold">0 đ (Gốc)</span>
+                      <span className="text-rose-700 font-semibold">+100.000 đ (Tăng)</span>
+                    </div>
                   </div>
                 </div>
               </div>

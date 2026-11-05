@@ -1,8 +1,5 @@
 "use client";
 
-// FR-34: Phân hệ Quản trị Khung Giờ Vàng (Golden Hour Promotion)
-// Rà soát tỷ lệ lấp đầy ca chiều (17:30) các ngày Thứ 4, Thứ 5, Thứ 6
-// Tung Voucher kích cầu qua Zalo OA khi tỷ lệ lấp đầy nằm trong dải cấu hình
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import {
@@ -142,16 +139,10 @@ export function AdminGoldenHourView({ today, onNavigateTab }: GoldenHourViewProp
             <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
               Chiến Dịch Kích Cầu · Marketing Zalo OA
             </span>
-            <Badge className="border-amber-300 bg-amber-100/90 text-[#92400e] text-[10px] font-bold">
-              FR-34
-            </Badge>
           </div>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524] flex items-center gap-2">
             Khung Giờ Vàng — Ca Chiều Thứ 4, Thứ 5, Thứ 6
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Tự động theo dõi tỷ lệ lấp đầy ca 17:30 · Tung voucher qua Zalo OA kích hoạt khi lấp đầy trong dải {activeConfig.minOccupancyPct}% – {activeConfig.maxOccupancyPct}%
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -344,9 +335,6 @@ export function AdminGoldenHourView({ today, onNavigateTab }: GoldenHourViewProp
                 <Calendar className="h-4 w-4 text-[#b45309]" />
                 Lịch Các Ca Chiều 17:30 (Thứ 4, Thứ 5, Thứ 6) Trong 4 Tuần
               </CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Chỉ tính các ca chiều 17:30 (42 chỗ/ca) theo đúng yêu cầu FR-34
-              </p>
             </div>
 
             {/* Bộ lọc tab ca */}
