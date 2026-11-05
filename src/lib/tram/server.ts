@@ -141,6 +141,7 @@ export const ACTIVE_STATUSES = [
   "PENDING",
   "CONFIRMED",
   "SEATED",
+  "COMPLETED",
   "NO_SHOW",
 ] as const;
 

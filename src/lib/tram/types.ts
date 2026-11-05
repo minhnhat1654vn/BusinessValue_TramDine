@@ -9,6 +9,7 @@ export type ReservationStatus =
   | "PENDING"
   | "CONFIRMED"
   | "SEATED"
+  | "COMPLETED"
   | "NO_SHOW"
   | "CANCELLED";
 export type ReservationSource = "WEB" | "PHONE" | "ZALO";

@@ -12,6 +12,8 @@ import {
   Banknote,
   Calculator,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   Coins,
   Layers,
   Minus,
@@ -73,6 +75,91 @@ const GROUP_STYLES: Record<IngredientGroup, { badge: string; dot: string; bar: s
   AROMATIC: { badge: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500", bar: "bg-violet-500" },
 };
 
+const GROUP_SECTION_STYLES: Record<
+  IngredientGroup,
+  {
+    rowBg: string;
+    border: string;
+    pillBg: string;
+    pillBorder: string;
+    textColor: string;
+    dotColor: string;
+    countBadge: string;
+    valueBadge: string;
+  }
+> = {
+  PROTEIN: {
+    rowBg: "bg-rose-50/80 hover:bg-rose-50",
+    border: "border-rose-200",
+    pillBg: "bg-rose-100",
+    pillBorder: "border-rose-400",
+    textColor: "text-rose-900",
+    dotColor: "bg-rose-600",
+    countBadge: "bg-rose-200 text-rose-950",
+    valueBadge: "text-rose-900",
+  },
+  STARCH: {
+    rowBg: "bg-amber-50/80 hover:bg-amber-50",
+    border: "border-amber-200",
+    pillBg: "bg-amber-100",
+    pillBorder: "border-amber-400",
+    textColor: "text-amber-900",
+    dotColor: "bg-amber-600",
+    countBadge: "bg-amber-200 text-amber-950",
+    valueBadge: "text-amber-900",
+  },
+  DAIRY_FAT: {
+    rowBg: "bg-yellow-50/80 hover:bg-yellow-50",
+    border: "border-yellow-200",
+    pillBg: "bg-yellow-100",
+    pillBorder: "border-yellow-400",
+    textColor: "text-yellow-950",
+    dotColor: "bg-yellow-600",
+    countBadge: "bg-yellow-200 text-yellow-950",
+    valueBadge: "text-yellow-900",
+  },
+  PRODUCE: {
+    rowBg: "bg-emerald-50/80 hover:bg-emerald-50",
+    border: "border-emerald-200",
+    pillBg: "bg-emerald-100",
+    pillBorder: "border-emerald-400",
+    textColor: "text-emerald-950",
+    dotColor: "bg-emerald-600",
+    countBadge: "bg-emerald-200 text-emerald-950",
+    valueBadge: "text-emerald-900",
+  },
+  FRUIT_NUT: {
+    rowBg: "bg-orange-50/80 hover:bg-orange-50",
+    border: "border-orange-200",
+    pillBg: "bg-orange-100",
+    pillBorder: "border-orange-400",
+    textColor: "text-orange-950",
+    dotColor: "bg-orange-600",
+    countBadge: "bg-orange-200 text-orange-950",
+    valueBadge: "text-orange-900",
+  },
+  SEASONING: {
+    rowBg: "bg-stone-100/90 hover:bg-stone-100",
+    border: "border-stone-300",
+    pillBg: "bg-stone-200/90",
+    pillBorder: "border-stone-400",
+    textColor: "text-stone-900",
+    dotColor: "bg-stone-600",
+    countBadge: "bg-stone-300 text-stone-950",
+    valueBadge: "text-stone-900",
+  },
+  AROMATIC: {
+    rowBg: "bg-violet-50/80 hover:bg-violet-50",
+    border: "border-violet-200",
+    pillBg: "bg-violet-100",
+    pillBorder: "border-violet-400",
+    textColor: "text-violet-950",
+    dotColor: "bg-violet-600",
+    countBadge: "bg-violet-200 text-violet-950",
+    valueBadge: "text-violet-900",
+  },
+};
+
 const QUICK_GUESTS = [1, 4, 10, 42];
 
 type WarehouseScope = "ALL" | "STANDARD" | "CUSTOM";
@@ -126,8 +213,10 @@ function buildDishVariants(
 
 export function AdminFoodCost({
   onNavigateTab,
+  hideTitleHeader = false,
 }: {
   onNavigateTab?: (tab: string) => void;
+  hideTitleHeader?: boolean;
 } = {}) {
   const [guests, setGuests] = useState(1);
   const [guestsInput, setGuestsInput] = useState("1");
@@ -271,13 +360,27 @@ export function AdminFoodCost({
     });
   }, [report.warehouseItems, warehouseScope, warehouseGroup, warehouseSearch]);
 
+  // Phân trang danh mục giá vốn (giới hạn 20 dòng / trang)
+  const [costPage, setCostPage] = useState(1);
+  const COST_PAGE_SIZE = 20;
+
+  useEffect(() => {
+    setCostPage(1);
+  }, [warehouseScope, warehouseGroup, warehouseSearch]);
+
+  const costTotalPages = Math.max(1, Math.ceil(filteredWarehouse.length / COST_PAGE_SIZE));
+  const paginatedWarehouse = useMemo(() => {
+    const start = (costPage - 1) * COST_PAGE_SIZE;
+    return filteredWarehouse.slice(start, start + COST_PAGE_SIZE);
+  }, [filteredWarehouse, costPage]);
+
   const warehouseByGroup = useMemo(
     () =>
       INGREDIENT_GROUP_ORDER.map((group) => ({
         group,
-        items: filteredWarehouse.filter((i) => i.group === group),
+        items: paginatedWarehouse.filter((i) => i.group === group),
       })).filter((g) => g.items.length > 0),
-    [filteredWarehouse],
+    [paginatedWarehouse],
   );
 
   const filteredTotals = useMemo(() => {
@@ -294,17 +397,19 @@ export function AdminFoodCost({
   const barFillPct = Math.min(100, Math.max(0, report.foodCostPct));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-heading">
       {/* ==================== 1. TIÊU ĐỀ & QUY ĐỔI SỐ KHÁCH ==================== */}
-      <div className="flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between">
-        <div className="min-w-0">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-            Bếp &amp; kho
-          </span>
-          <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
-            Giá vốn nguyên liệu &amp; Đối chiếu giá menu
-          </h2>
-        </div>
+      <div className={cn("flex flex-col gap-4 border-b border-border/80 pb-5 xl:flex-row xl:items-center xl:justify-between", hideTitleHeader && "border-b-0 pb-0")}>
+        {!hideTitleHeader && (
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
+              Bếp &amp; kho
+            </span>
+            <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
+              Giá vốn nguyên liệu &amp; Đối chiếu giá menu
+            </h2>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-border/80 bg-card p-3 shadow-xs">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-stone-600">
@@ -631,7 +736,7 @@ export function AdminFoodCost({
                 <div className="mt-2 flex items-baseline justify-between gap-2">
                   <span className="font-heading text-lg font-bold tabular-nums text-[#292524]">
                     {formatVND(pkg.price)}
-                    <span className="font-sans text-[11px] font-normal text-muted-foreground">/khách</span>
+                    <span className="font-heading text-[11px] font-normal text-muted-foreground">/khách</span>
                   </span>
                   <span className="text-xs font-semibold tabular-nums text-[#92400e]">
                     Giá vốn món: {formatPercent(pkg.pct, 1)}
@@ -902,7 +1007,7 @@ export function AdminFoodCost({
                   </TableHeader>
                   <TableBody>
                     {dishView.activeDetail.lines.map((line, idx) => (
-                      <TableRow key={line.ingredientId} className="hover:bg-muted/40">
+                      <TableRow key={line.ingredientId} className="hover:bg-[#fdf0d5]/25 transition-colors">
                         <TableCell className="pl-4 text-center text-xs tabular-nums text-muted-foreground sm:pl-5">
                           {idx + 1}
                         </TableCell>
@@ -1163,6 +1268,68 @@ export function AdminFoodCost({
               </TableFooter>
             </Table>
           )}
+
+          {/* Phân trang giới hạn 20 dòng / trang */}
+          {filteredWarehouse.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border/80 px-4 py-3 bg-muted/20 text-xs text-muted-foreground">
+              <div>
+                Hiển thị{" "}
+                <strong className="text-stone-800">
+                  {filteredWarehouse.length === 0 ? 0 : (costPage - 1) * COST_PAGE_SIZE + 1}
+                </strong>{" "}
+                –{" "}
+                <strong className="text-stone-800">
+                  {Math.min(costPage * COST_PAGE_SIZE, filteredWarehouse.length)}
+                </strong>{" "}
+                trong tổng số{" "}
+                <strong className="text-stone-800">{filteredWarehouse.length}</strong> nguyên liệu (tối đa 20 dòng / trang)
+              </div>
+
+              {costTotalPages > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={costPage <= 1}
+                    onClick={() => setCostPage((p) => Math.max(1, p - 1))}
+                    className="h-7 px-2.5 text-xs text-stone-700"
+                  >
+                    <ChevronLeft className="mr-1 h-3.5 w-3.5" /> Trước
+                  </Button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: costTotalPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setCostPage(p)}
+                        className={cn(
+                          "h-7 w-7 rounded-md text-xs font-semibold transition-colors",
+                          costPage === p
+                            ? "bg-[#b45309] text-white"
+                            : "text-stone-600 hover:bg-muted"
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={costPage >= costTotalPages}
+                    onClick={() => setCostPage((p) => Math.min(costTotalPages, p + 1))}
+                    className="h-7 px-2.5 text-xs text-stone-700"
+                  >
+                    Sau <ChevronRight className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -1189,7 +1356,7 @@ function WarehouseGroupSection({
   const groupSubtotal = items.reduce((s, i) => s + i.costPerGuestStandard, 0);
   return (
     <>
-      <TableRow className="bg-muted/40 hover:bg-muted/40">
+      <TableRow className="bg-muted/40 hover:bg-[#fdf0d5]/25 transition-colors">
         <TableCell colSpan={colSpan} className="py-1.5 pl-4 sm:pl-5">
           <div className="flex items-center justify-between pr-3">
             <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-stone-600">

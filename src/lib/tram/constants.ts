@@ -36,7 +36,8 @@ export const PAIRING_LABELS: Record<string, string> = {
 export const STATUS_LABELS: Record<string, string> = {
   PENDING: "Chờ cọc",
   CONFIRMED: "Đã đặt",
-  SEATED: "Đã đến",
+  SEATED: "Đang phục vụ",
+  COMPLETED: "Đã hoàn tất",
   NO_SHOW: "Không đến",
   CANCELLED: "Đã hủy",
 };

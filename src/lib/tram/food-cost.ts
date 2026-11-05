@@ -156,11 +156,14 @@ export function getIngredientPriceSpec(ingredientId: string): IngredientPriceSpe
 export function getEffectiveImportPrice(
   ingredientId: string,
   overrides: Record<string, number> = {},
+  fallbackPrice = 100_000,
+  fallbackUnit: ImportUnit = "kg",
 ): { importPrice: number; defaultImportPrice: number; importUnit: ImportUnit; isCustom: boolean; costPerBaseUnit: number; origin?: string } {
-  const spec = getIngredientPriceSpec(ingredientId);
-  if (!spec) {
-    throw new Error(`Thiếu đơn giá nhập kho cho nguyên liệu "${ingredientId}".`);
-  }
+  const spec = getIngredientPriceSpec(ingredientId) ?? {
+    ingredientId,
+    defaultImportPrice: fallbackPrice,
+    importUnit: fallbackUnit,
+  };
   const custom = overrides[ingredientId];
   const hasValidCustom =
     typeof custom === "number" &&

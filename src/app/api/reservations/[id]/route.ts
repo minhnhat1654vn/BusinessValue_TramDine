@@ -7,6 +7,8 @@ import {
   serializeReservation,
 } from "@/lib/tram/server";
 import { LOYALTY_TIERS } from "@/lib/tram/loyalty";
+import { adjustInventoryByDish } from "@/lib/tram/inventory-server";
+import { MENU_ITEMS } from "@/lib/tram/constants";
 import type { LoyaltyTier, Pairing, ReservationStatus, Slot } from "@/lib/tram/types";
 
 // Helper tính điểm hóa đơn an toàn (FR-20 & FR-21: 1.000 đ = 1 điểm, thưởng 5% và 8%)
@@ -76,14 +78,19 @@ function getTierName(tier: LoyaltyTier): string {
 
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   checkin: ["CONFIRMED", "PENDING"],
+  checkout: ["SEATED"],
+  serve_dish: ["SEATED"],
+  unserve_dish: ["SEATED"],
+  serve_all_dishes: ["SEATED"],
   noshow: ["CONFIRMED", "PENDING"],
   cancel: ["PENDING", "CONFIRMED"],
-  soft_delete: ["PENDING", "CONFIRMED", "SEATED", "NO_SHOW"],
+  soft_delete: ["PENDING", "CONFIRMED", "SEATED", "COMPLETED", "NO_SHOW"],
   restore: ["CANCELLED"],
 };
 
 const NEXT_STATUS: Record<string, string> = {
   checkin: "SEATED",
+  checkout: "COMPLETED",
   noshow: "NO_SHOW",
   cancel: "CANCELLED",
   soft_delete: "CANCELLED",
@@ -92,6 +99,10 @@ const NEXT_STATUS: Record<string, string> = {
 
 const ACTION_LABELS: Record<string, string> = {
   checkin: "Check-in",
+  checkout: "Check-out hoàn tất bữa ăn",
+  serve_dish: "Xuất món cho bàn",
+  unserve_dish: "Hoàn lại món",
+  serve_all_dishes: "Xuất trọn bộ 7 món",
   noshow: "Đánh dấu không đến",
   cancel: "Hủy đặt bàn",
   soft_delete: "Xóa mềm đặt bàn",
@@ -245,6 +256,157 @@ export async function PATCH(
       return NextResponse.json({
         reservation: serializeReservation(updated),
         message: `Đã cập nhật thông tin đặt bàn ${reservation.code} thành công.`,
+      });
+    }
+
+    // --- ĐỐI SOÁT XUẤT MÓN CHO BÀN (SERVE DISH) ---
+    if (action === "serve_dish") {
+      if (reservation.status !== "SEATED") {
+        return NextResponse.json(
+          { error: "Chỉ có thể đối soát xuất món khi khách đã Check-in (SEATED)." },
+          { status: 400 },
+        );
+      }
+      const dishIndex = Number((body as any).dishIndex);
+      if (!Number.isInteger(dishIndex) || dishIndex < 1 || dishIndex > 7) {
+        return NextResponse.json({ error: "Số thứ tự món không hợp lệ (1-7)." }, { status: 400 });
+      }
+
+      let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
+      try {
+        if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
+          servedData = JSON.parse(reservation.selectedDishes);
+        }
+      } catch {}
+      if (!Array.isArray(servedData.served)) servedData.served = [];
+      if (!servedData.servedAt) servedData.servedAt = {};
+
+      if (!servedData.served.includes(dishIndex)) {
+        servedData.served.push(dishIndex);
+        servedData.served.sort((a, b) => a - b);
+        const timeStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+        servedData.servedAt[String(dishIndex)] = timeStr;
+
+        // Tự động trừ kho theo định lượng BOM cho số khách của bàn
+        adjustInventoryByDish(dishIndex, reservation.partySize);
+      }
+
+      const updated = await db.reservation.update({
+        where: { id },
+        data: {
+          selectedDishes: JSON.stringify(servedData),
+        },
+        include: { table: true, survey: true },
+      });
+
+      const dishName = MENU_ITEMS.find((m) => m.index === dishIndex)?.name || `Món ${dishIndex}`;
+      return NextResponse.json({
+        reservation: serializeReservation(updated),
+        message: `Đã xuất ${dishName} cho Bàn ${reservation.table.code} (${reservation.partySize} suất) — Tồn kho đã tự động trừ theo định lượng BOM.`,
+      });
+    }
+
+    if (action === "unserve_dish") {
+      const dishIndex = Number((body as any).dishIndex);
+      let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
+      try {
+        if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
+          servedData = JSON.parse(reservation.selectedDishes);
+        }
+      } catch {}
+      servedData.served = (servedData.served || []).filter((idx) => idx !== dishIndex);
+      if (servedData.servedAt) delete servedData.servedAt[String(dishIndex)];
+
+      const updated = await db.reservation.update({
+        where: { id },
+        data: {
+          selectedDishes: JSON.stringify(servedData),
+        },
+        include: { table: true, survey: true },
+      });
+
+      return NextResponse.json({
+        reservation: serializeReservation(updated),
+        message: `Đã hoàn lại trạng thái Món 0${dishIndex} cho Bàn ${reservation.table.code}.`,
+      });
+    }
+
+    if (action === "serve_all_dishes") {
+      if (reservation.status !== "SEATED") {
+        return NextResponse.json(
+          { error: "Chỉ có thể xuất món khi khách đã Check-in (SEATED)." },
+          { status: 400 },
+        );
+      }
+      let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
+      try {
+        if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
+          servedData = JSON.parse(reservation.selectedDishes);
+        }
+      } catch {}
+      if (!Array.isArray(servedData.served)) servedData.served = [];
+      if (!servedData.servedAt) servedData.servedAt = {};
+
+      const timeStr = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+      for (let idx = 1; idx <= 7; idx++) {
+        if (!servedData.served.includes(idx)) {
+          servedData.served.push(idx);
+          servedData.servedAt[String(idx)] = timeStr;
+          adjustInventoryByDish(idx, reservation.partySize);
+        }
+      }
+      servedData.served.sort((a, b) => a - b);
+
+      const updated = await db.reservation.update({
+        where: { id },
+        data: {
+          selectedDishes: JSON.stringify(servedData),
+        },
+        include: { table: true, survey: true },
+      });
+
+      return NextResponse.json({
+        reservation: serializeReservation(updated),
+        message: `Đã đối soát & xuất trọn bộ 7 món Tasting cho Bàn ${reservation.table.code} (${reservation.partySize} suất).`,
+      });
+    }
+
+    if (action === "checkout") {
+      if (reservation.status !== "SEATED") {
+        return NextResponse.json(
+          { error: "Chỉ có thể check-out khi bàn đang ở trạng thái Đang phục vụ (SEATED)." },
+          { status: 400 },
+        );
+      }
+
+      // RÀNG BUỘC NGHIỆP VỤ: Khi chưa ra hết món không được checkout
+      let servedData: { served: number[]; servedAt: Record<string, string> } = { served: [], servedAt: {} };
+      try {
+        if (reservation.selectedDishes && reservation.selectedDishes.startsWith("{")) {
+          servedData = JSON.parse(reservation.selectedDishes);
+        }
+      } catch {}
+      const servedList = Array.isArray(servedData.served) ? servedData.served : [];
+      if (servedList.length < 7) {
+        return NextResponse.json(
+          {
+            error: `Không thể Check-out: Bàn ${reservation.table.code} chưa ra hết 7 món Tasting (hiện mới đối soát ra ${servedList.length}/7 món). Vui lòng hoàn tất xuất đủ 7 món trước khi thanh toán & trả bàn!`,
+          },
+          { status: 400 },
+        );
+      }
+
+      const updated = await db.reservation.update({
+        where: { id },
+        data: {
+          status: "COMPLETED",
+        },
+        include: { table: true, survey: true },
+      });
+
+      return NextResponse.json({
+        reservation: serializeReservation(updated),
+        message: `Bàn ${reservation.table.code} đã check-out hoàn tất toàn bộ 7 món. Bàn đã sẵn sàng đón lượt khách tiếp theo!`,
       });
     }
 

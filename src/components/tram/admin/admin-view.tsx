@@ -21,6 +21,7 @@ import {
   ChevronDown,
   Calculator,
   Warehouse,
+  Sparkles,
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,8 +41,10 @@ import { AdminWaitlist } from "./waitlist-manager";
 import { AdminSurveys } from "./surveys-view";
 import { AdminBookingSettingsView } from "./booking-settings-view";
 import { AdminRecipes } from "./recipes-view";
+import { AdminConceptsView } from "./concepts-view";
 import { AdminFoodCost } from "./food-cost-view";
 import { AdminInventory } from "./inventory-view";
+import { AdminWarehouseCost } from "./warehouse-cost-view";
 import { LoadingBlock, useToday } from "./admin-shared";
 
 const SESSION_KEY = "tram_admin_ok";
@@ -106,27 +109,33 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     key: "bom-suite",
-    label: "Công thức (BOM)",
-    description: "BOM · Giá vốn · Kho",
-    icon: ChefHat,
+    label: "Kho & Công thức (BOM)",
+    description: "Nguyên liệu · Định lượng · Tồn kho",
+    icon: Warehouse,
     children: [
       {
+        key: "inventory",
+        label: "Tồn kho nguyên vật liệu",
+        description: "Nhập hàng · Kiểm kê · Cảnh báo tồn",
+        icon: Warehouse,
+      },
+      {
+        key: "concepts",
+        label: "Concept thực đơn",
+        description: "Quản lý Concept · Kế hoạch theo ngày",
+        icon: Sparkles,
+      },
+      {
         key: "recipes",
-        label: "Công thức (BOM)",
-        description: "Định lượng 7 món / khách",
+        label: "Công thức món (BOM)",
+        description: "Bảng định lượng · 7 món Tasting",
         icon: ChefHat,
       },
       {
         key: "food-cost",
-        label: "Giá vốn nguyên liệu",
-        description: "Đối chiếu giá menu & food cost",
+        label: "Phân tích Food Cost",
+        description: "Mục tiêu 33,5% · Cơ cấu chi phí",
         icon: Calculator,
-      },
-      {
-        key: "inventory",
-        label: "Quản lý tồn kho",
-        description: "Bếp & kho · Cảnh báo tồn",
-        icon: Warehouse,
       },
     ],
   },
@@ -229,7 +238,10 @@ export function AdminView() {
   const today = useToday();
 
   const isBomActive =
-    activeTab === "recipes" || activeTab === "food-cost" || activeTab === "inventory";
+    activeTab === "inventory" ||
+    activeTab === "concepts" ||
+    activeTab === "recipes" ||
+    activeTab === "food-cost";
   const [bomDropdownOpen, setBomDropdownOpen] = useState(true);
 
   // Tự động mở dropdown BOM khi tab tích cực là 1 trong 3 tab con
@@ -298,7 +310,7 @@ export function AdminView() {
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           if (!hasActiveChild) {
-                            setActiveTab("recipes");
+                            setActiveTab("inventory");
                             setBomDropdownOpen(true);
                           } else {
                             setBomDropdownOpen((prev) => !prev);
@@ -343,7 +355,7 @@ export function AdminView() {
                                 : "bg-muted text-muted-foreground",
                             )}
                           >
-                            3
+                            {item.children.length}
                           </span>
                           <ChevronDown
                             className={cn(
@@ -534,15 +546,18 @@ export function AdminView() {
                 <AdminWaitlist onNavigateToBooking={() => handleNavigateTab("booking")} />
               )}
 
-              {activeTab === "recipes" && (
-                <AdminRecipes onNavigateTab={handleNavigateTab} />
+              {activeTab === "concepts" && (
+                <AdminConceptsView onNavigateTab={handleNavigateTab} />
               )}
 
-              {activeTab === "food-cost" && (
-                <AdminFoodCost onNavigateTab={handleNavigateTab} />
+              {(activeTab === "recipes" || activeTab === "food-cost") && (
+                <AdminRecipes
+                  initialViewMode={activeTab === "food-cost" ? "food-cost" : "recipes"}
+                  onNavigateTab={handleNavigateTab}
+                />
               )}
 
-              {activeTab === "inventory" && (
+              {(activeTab === "inventory" || activeTab === "warehouse-cost") && (
                 <AdminInventory onNavigateTab={handleNavigateTab} today={today} />
               )}
 

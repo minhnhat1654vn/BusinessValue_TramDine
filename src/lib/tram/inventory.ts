@@ -120,6 +120,85 @@ const STOCK_SPEC_MAP: Record<string, InventoryStockSpec> = Object.fromEntries(
   INVENTORY_STOCK_SPECS.map((s) => [s.ingredientId, s]),
 );
 
+/** Thời hạn sử dụng / bảo quản chuẩn (số ngày) của 56 nguyên liệu tại bếp TRẦM */
+export const DEFAULT_SHELF_LIFE_DAYS: Record<string, number> = {
+  // 1 ngày (hàng tươi làm trong ngày, rất mau hỏng)
+  "bun-tuoi": 1,
+  "dau-phu": 1,
+  "hoa-chuoi": 1,
+  "kinh-gioi": 1,
+
+  // 2 ngày (đạm tươi sống & rau mọng nước ngắn ngày)
+  "ca-bop": 2,
+  "rau-dang": 2,
+  "rau-cang-cua": 2,
+  "nam-rom": 2,
+  "hanh-la": 2,
+  "rau-ram": 2,
+  "men-tuoi": 2,
+
+  // 3 ngày (cá tươi ủ lạnh, nấm, rau rừng, sữa thanh trùng)
+  "ca-loc": 3,
+  "ca-duoi": 3,
+  "sua-tuoi": 3,
+  "nam-huong": 3,
+  "rau-nhai": 3,
+  "dot-xoai": 3,
+  "la-coc": 3,
+  "bac-ha": 3,
+  "tia-to": 3,
+
+  // 4 ngày (thịt đỏ ủ mát, quả tươi)
+  "than-bo": 4,
+  "ca-chua": 4,
+  "thom": 4,
+  "nam-dui-ga": 4,
+  "la-lot": 4,
+  "la-moc-mat": 4,
+
+  // 5 ngày (quả mọng, chanh, hạt tươi)
+  "chanh": 5,
+  "nhan-xuong": 5,
+  "hat-sen": 5,
+  "ot-hiem": 5,
+
+  // 7 ngày (gia vị tươi củ rễ, bơ thủ công)
+  "bo-lat": 7,
+  "sa": 7,
+  "gung": 7,
+  "ot-chi-thien": 7,
+
+  // 14 ngày (củ tươi, sốt đặc chế)
+  "hanh-tim": 14,
+  "toi": 14,
+
+  // 30 ngày (me, đậu phộng)
+  "me-chin": 30,
+  "dau-phong": 30,
+
+  // 60-90 ngày (bột, atiso khô, rơm ủ)
+  "bot-mi": 90,
+  "bot-gao": 90,
+  "bot-nang": 90,
+  "atiso": 60,
+  "rom": 60,
+
+  // 180-365 ngày (dầu, gia vị ủ chum, rượu, muối, mắm, mật ong, trầm hương)
+  "dau-an": 180,
+  "muoi-bien": 365,
+  "muoi-ot-tn": 180,
+  "duong-trang": 365,
+  "duong-thot-not": 180,
+  "duong-phen": 365,
+  "mat-ong": 365,
+  "nuoc-mam": 365,
+  "nuoc-tuong": 365,
+  "tuong-bao-lac": 180,
+  "tieu-rung": 180,
+  "tieu-den": 180,
+  "tram-huong": 365,
+};
+
 export function getInventoryStockSpec(ingredientId: string): InventoryStockSpec | undefined {
   return STOCK_SPEC_MAP[ingredientId];
 }
@@ -131,14 +210,28 @@ export function clampStockQty(raw: number): number {
 }
 
 /** Lấy lượng tồn hiệu lực của một nguyên liệu (ưu tiên override hợp lệ kể cả khi bằng 0) */
+export interface ExtraInventoryIngredient {
+  id: string;
+  name: string;
+  group: string;
+  unit: string;
+  spec?: string | null;
+  defaultImportPrice?: number;
+  currentStock?: number;
+  minStock?: number;
+}
+
 export function getEffectiveStockQty(
   ingredientId: string,
   stockOverrides: Record<string, number> = {},
+  fallbackDefaultStock = 1_000,
 ): { stockQty: number; defaultStockQty: number; isCustomStock: boolean; storageZone: StorageZone } {
-  const spec = getInventoryStockSpec(ingredientId);
-  if (!spec) {
-    throw new Error(`Thiếu cấu hình tồn kho cho nguyên liệu "${ingredientId}".`);
-  }
+  const spec = getInventoryStockSpec(ingredientId) ?? {
+    ingredientId,
+    defaultStockQty: fallbackDefaultStock,
+    defaultReorderPoint: Math.round((fallbackDefaultStock * WARNING_THRESHOLD_PERCENT) / 100),
+    storageZone: "Kho mát 8–12°C" as StorageZone,
+  };
   const override = stockOverrides[ingredientId];
   const hasValidOverride =
     typeof override === "number" &&
@@ -159,11 +252,14 @@ export function getEffectiveStockQty(
 export function getEffectiveReorderPoint(
   ingredientId: string,
   reorderOverrides: Record<string, number> = {},
+  fallbackDefaultStock = 1_000,
 ): { reorderPoint: number; defaultReorderPoint: number; isCustomReorderPoint: boolean } {
-  const spec = getInventoryStockSpec(ingredientId);
-  if (!spec) {
-    throw new Error(`Thiếu cấu hình tồn kho cho nguyên liệu "${ingredientId}".`);
-  }
+  const spec = getInventoryStockSpec(ingredientId) ?? {
+    ingredientId,
+    defaultStockQty: fallbackDefaultStock,
+    defaultReorderPoint: Math.round((fallbackDefaultStock * WARNING_THRESHOLD_PERCENT) / 100),
+    storageZone: "Kho mát 8–12°C" as StorageZone,
+  };
   const defaultReorderPoint = Math.round(
     (spec.defaultStockQty * WARNING_THRESHOLD_PERCENT) / 100,
   );
@@ -239,6 +335,8 @@ export interface InventoryItem {
   isStandardIngredient: boolean;
   standardDishIndexes: number[];
   altDishIndexes: number[];
+  /** Số ngày còn sử dụng được / Thời hạn bảo quản còn lại (ngày) */
+  shelfLifeDays: number;
 }
 
 export interface InventoryGroupSummary {
@@ -293,6 +391,8 @@ export interface UsageMeta {
   qtyPerGuestMaxVariant: number;
   standardDishIndexes: number[];
   altDishIndexes: number[];
+  /** Số ngày còn sử dụng được / Thời hạn bảo quản còn lại (ngày) */
+  shelfLifeDays: number;
 }
 
 export function buildIngredientUsageMap(): Map<string, UsageMeta> {
@@ -303,6 +403,7 @@ export function buildIngredientUsageMap(): Map<string, UsageMeta> {
       qtyPerGuestMaxVariant: 0,
       standardDishIndexes: [],
       altDishIndexes: [],
+      shelfLifeDays: 7,
     });
   }
 
@@ -358,6 +459,7 @@ export function calculateInventoryReport(
   stockOverrides: Record<string, number> = {},
   priceOverrides: Record<string, number> = {},
   reorderOverrides: Record<string, number> = {},
+  extraIngredients: ExtraInventoryIngredient[] = [],
 ): InventoryReport {
   let totalValue = 0;
   let defaultTotalValue = 0;
@@ -369,10 +471,41 @@ export function calculateInventoryReport(
   let customizedStockCount = 0;
   let customizedReorderCount = 0;
 
-  const rawItems: Omit<InventoryItem, "shareOfValuePct">[] = INGREDIENTS.map((ing) => {
-    const stockInfo = getEffectiveStockQty(ing.id, stockOverrides);
-    const priceInfo = getEffectiveImportPrice(ing.id, priceOverrides);
-    const reorderInfo = getEffectiveReorderPoint(ing.id, reorderOverrides);
+  const staticIds = new Set(INGREDIENTS.map((i) => i.id));
+  const mergedIngredients: Array<{
+    id: string;
+    name: string;
+    group: IngredientGroup;
+    unit: IngredientUnit;
+    spec?: string;
+    fallbackStock?: number;
+    fallbackPrice?: number;
+  }> = [
+    ...INGREDIENTS.map((i) => ({ ...i })),
+    ...extraIngredients
+      .filter((e) => e && e.id && !staticIds.has(e.id))
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        group: (INGREDIENT_GROUP_ORDER.includes(e.group as IngredientGroup)
+          ? e.group
+          : "PROTEIN") as IngredientGroup,
+        unit: (e.unit === "ml" ? "ml" : "g") as IngredientUnit,
+        spec: e.spec ?? undefined,
+        fallbackStock: typeof e.currentStock === "number" && e.currentStock > 0 ? e.currentStock : 1_000,
+        fallbackPrice: typeof e.defaultImportPrice === "number" && e.defaultImportPrice > 0 ? e.defaultImportPrice : 100_000,
+      })),
+  ];
+
+  const rawItems: Omit<InventoryItem, "shareOfValuePct">[] = mergedIngredients.map((ing) => {
+    const stockInfo = getEffectiveStockQty(ing.id, stockOverrides, ing.fallbackStock ?? 1_000);
+    const priceInfo = getEffectiveImportPrice(
+      ing.id,
+      priceOverrides,
+      ing.fallbackPrice ?? 100_000,
+      ing.unit === "ml" ? "l" : "kg",
+    );
+    const reorderInfo = getEffectiveReorderPoint(ing.id, reorderOverrides, ing.fallbackStock ?? 1_000);
     const factor = getImportUnitFactor(priceInfo.importUnit);
     const usage = USAGE_MAP.get(ing.id) ?? {
       qtyPerGuestStandard: 0,
@@ -461,6 +594,7 @@ export function calculateInventoryReport(
       isStandardIngredient,
       standardDishIndexes: usage.standardDishIndexes,
       altDishIndexes: usage.altDishIndexes,
+      shelfLifeDays: DEFAULT_SHELF_LIFE_DAYS[ing.id] ?? 7,
     };
   });
 

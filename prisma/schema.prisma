@@ -83,3 +83,66 @@ model BookingSetting {
   notes            String?  @default("Chương trình thực đơn mùa đặc sắc của TRẦM")
   updatedAt        DateTime @updatedAt
 }
+
+
+// ---------- PHÂN HỆ CÔNG THỨC ĐỊNH LƯỢNG (BOM) & NGUYÊN LIỆU ----------
+
+// Danh mục nguyên liệu
+model Ingredient {
+  id                 String       @id // slug mã nguyên liệu, vd: caviar-lam-dong
+  name               String
+  unit               String       // "g" | "ml"
+  group              String       // "PROTEIN" | "STARCH" | "DAIRY_FAT" | "PRODUCE" | "FRUIT_NUT" | "SEASONING" | "AROMATIC"
+  spec               String?      // Quy cách sơ chế / đóng gói
+  defaultImportPrice Int          @default(0) // Đơn giá nhập VND (trên kg hoặc lít)
+  currentStock       Float        @default(1000) // Tồn kho thực tế (g hoặc ml)
+  minStock           Float        @default(200)  // Ngưỡng cảnh báo tồn kho tối thiểu
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  lines              RecipeLine[]
+}
+
+// Công thức món ăn (7 món Tasting)
+model DishRecipe {
+  id        String          @id @default(cuid())
+  dishIndex Int             @unique // 1..7
+  dishName  String
+  portion   String          @default("1 khách")
+  method    String          @default("Chế biến thủ công")
+  note      String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  variants  RecipeVariant[]
+}
+
+// Biến thể / Tùy chọn của món (vd: Tiêu chuẩn, Chiên giòn, Ít ngọt, ...)
+model RecipeVariant {
+  id         String       @id @default(cuid())
+  recipeId   String
+  optionId   String       // "std", "crispy_fried", "mild_wine", ...
+  optionName String
+  isDefault  Boolean      @default(true)
+  note       String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  recipe     DishRecipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  lines      RecipeLine[]
+
+  @@unique([recipeId, optionId])
+}
+
+// Dòng định lượng nguyên liệu cho từng biến thể
+model RecipeLine {
+  id           String        @id @default(cuid())
+  variantId    String
+  ingredientId String
+  qtyPerGuest  Float         // Định lượng cho 1 khách
+  unit         String        // "g" | "ml"
+  prepNote     String?       // Ghi chú chuẩn bị / sơ chế
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  variant      RecipeVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient    @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([variantId, ingredientId])
+}

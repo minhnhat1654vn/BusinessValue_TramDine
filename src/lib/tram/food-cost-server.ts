@@ -27,12 +27,11 @@ export function getIngredientPriceOverrides(): StoredIngredientPrices {
       for (const [id, val] of Object.entries(parsed.prices)) {
         const spec = getIngredientPriceSpec(id);
         if (
-          spec &&
           typeof val === "number" &&
           Number.isFinite(val) &&
           val >= MIN_IMPORT_PRICE &&
           val <= MAX_IMPORT_PRICE &&
-          Math.round(val) !== spec.defaultImportPrice
+          (!spec || Math.round(val) !== spec.defaultImportPrice)
         ) {
           clean[id] = Math.round(val);
         }
@@ -57,9 +56,6 @@ export function saveIngredientPriceOverrides(
 
   for (const [id, rawVal] of Object.entries(updates)) {
     const spec = getIngredientPriceSpec(id);
-    if (!spec) {
-      throw new Error(`Mã nguyên liệu không hợp lệ: "${id}".`);
-    }
     if (
       typeof rawVal !== "number" ||
       !Number.isFinite(rawVal) ||
@@ -71,7 +67,7 @@ export function saveIngredientPriceOverrides(
       );
     }
     const rounded = Math.round(rawVal);
-    if (rounded === spec.defaultImportPrice) {
+    if (spec && rounded === spec.defaultImportPrice) {
       delete next[id];
     } else {
       next[id] = rounded;

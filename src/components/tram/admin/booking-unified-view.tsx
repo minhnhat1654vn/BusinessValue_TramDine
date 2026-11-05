@@ -28,6 +28,9 @@ import {
   UserX,
   Users,
   UtensilsCrossed,
+  Flame,
+  LogOut,
+  Sparkles,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,6 +95,7 @@ import {
   SLOT_LABELS,
   SOURCE_LABELS,
   STATUS_LABELS,
+  MENU_ITEMS,
 } from "@/lib/tram/constants";
 import type {
   AvailabilityResponse,
@@ -110,6 +114,7 @@ import {
   type CheckinLoyaltyReward,
 } from "./checkin-reward-dialog";
 import { SurveyDialog } from "../survey/survey-dialog";
+import { TableCourseTracker } from "./table-course-tracker";
 
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
@@ -123,6 +128,7 @@ const STATUS_OPTIONS = [
   "CONFIRMED",
   "PENDING",
   "SEATED",
+  "COMPLETED",
   "NO_SHOW",
   "CANCELLED",
 ] as const;
@@ -152,10 +158,11 @@ const FLOORPLAN_COORDINATES: Record<
   B05: { x: 54.5, y: 64.5, w: 7.6, h: 7.6, shape: "circle" },
 };
 
-function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "NO_SHOW" {
+function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {
   if (!t.reservation) return "EMPTY";
   const s = t.reservation.status;
   if (s === "SEATED") return "SEATED";
+  if (s === "COMPLETED") return "COMPLETED";
   if (s === "NO_SHOW") return "NO_SHOW";
   return "BOOKED"; // PENDING / CONFIRMED
 }
@@ -173,8 +180,13 @@ const STATE_STYLES: Record<string, { box: string; label: string; badge: string }
   },
   SEATED: {
     box: "border-emerald-600 bg-emerald-100 text-emerald-800 hover:brightness-[0.98]",
-    label: "Đã đến",
+    label: "Đang phục vụ",
     badge: "border-emerald-600/40 bg-emerald-100 text-emerald-800",
+  },
+  COMPLETED: {
+    box: "border-sky-500 bg-sky-100 text-sky-800 hover:brightness-[0.98]",
+    label: "Đã hoàn tất",
+    badge: "border-sky-500/40 bg-sky-100 text-sky-800",
   },
   NO_SHOW: {
     box: "border-rose-500 bg-rose-100 text-rose-700 hover:brightness-[0.98]",
@@ -932,6 +944,24 @@ export function AdminBookingUnifiedView({
                               {res.customerName.split(" ").slice(-1)[0]}
                             </span>
                           )}
+                          {state === "SEATED" && (
+                            <span className="mt-0.5 rounded bg-emerald-950/80 px-1 py-0.2 text-[8px] font-bold text-emerald-200 leading-none">
+                              {(() => {
+                                try {
+                                  if (res?.selectedDishes?.startsWith("{")) {
+                                    const parsed = JSON.parse(res.selectedDishes);
+                                    return `${parsed.served?.length || 0}/7 món`;
+                                  }
+                                } catch {}
+                                return "0/7 món";
+                              })()}
+                            </span>
+                          )}
+                          {state === "COMPLETED" && (
+                            <span className="mt-0.5 rounded bg-sky-900/80 px-1 py-0.2 text-[8px] font-bold text-sky-200 leading-none">
+                              Hoàn tất
+                            </span>
+                          )}
                         </button>
                       );
                     })
@@ -1614,41 +1644,80 @@ export function AdminBookingUnifiedView({
 
                   {(selectedReservation.status === "CONFIRMED" ||
                     selectedReservation.status === "PENDING") && (
-                    <div className="flex flex-col gap-2 pt-2 sm:flex-row">
-                      <Button
-                        onClick={() => void handleCheckin(selectedReservation.id)}
-                        disabled={acting}
-                        className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800"
-                      >
-                        <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
-                        Check-in
-                      </Button>
-                      <Button
-                        onClick={() => setConfirmNoShow(true)}
-                        disabled={acting}
-                        variant="outline"
-                        className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
-                      >
-                        <UserX className="mr-1.5 h-4 w-4" aria-hidden />
-                        Đánh dấu không đến
-                      </Button>
+                    <div className="space-y-3 pt-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button
+                          onClick={() => void handleCheckin(selectedReservation.id)}
+                          disabled={acting}
+                          className="h-11 flex-1 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-bold"
+                        >
+                          <LogIn className="mr-1.5 h-4 w-4" aria-hidden />
+                          Khách đã đến &amp; Check-in
+                        </Button>
+                        <Button
+                          onClick={() => setConfirmNoShow(true)}
+                          disabled={acting}
+                          variant="outline"
+                          className="h-11 flex-1 rounded-full border-[#b3261e]/50 text-[#b3261e] hover:bg-[#b3261e]/10 hover:text-[#b3261e]"
+                        >
+                          <UserX className="mr-1.5 h-4 w-4" aria-hidden />
+                          Đánh dấu không đến
+                        </Button>
+                      </div>
+
+                      <TableCourseTracker
+                        reservation={selectedReservation}
+                        acting={acting}
+                        setActing={setActing}
+                        onUpdate={(updated) => {
+                          setSelectedTable((prev) => prev ? { ...prev, reservation: updated } : null);
+                          refreshTables();
+                          refreshList();
+                        }}
+                        onCheckin={() => void handleCheckin(selectedReservation.id)}
+                      />
                     </div>
                   )}
 
                   {selectedReservation.status === "SEATED" && (
                     <div className="pt-2">
+                      <TableCourseTracker
+                        reservation={selectedReservation}
+                        acting={acting}
+                        setActing={setActing}
+                        onUpdate={(updated) => {
+                          setSelectedTable((prev) => prev ? { ...prev, reservation: updated } : null);
+                          refreshTables();
+                          refreshList();
+                        }}
+                        onCheckoutSuccess={() => {
+                          setSelectedTable(null);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {selectedReservation.status === "COMPLETED" && (
+                    <div className="rounded-2xl border border-sky-300 bg-sky-50/80 p-3.5 space-y-2.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5 text-sky-900 font-bold text-xs">
+                        <CheckCircle2 className="h-4 w-4 text-sky-600" />
+                        Bàn đã Check-out &amp; Hoàn tất bữa ăn
+                      </div>
+                      <p className="text-[11px] text-sky-800">
+                        Đã đối soát trọn bộ 7 món tasting. Bàn sẵn sàng đón lượt khách tiếp theo!
+                      </p>
                       <Button
                         onClick={() => {
                           const res = selectedReservation;
                           setSelectedTable(null);
                           setSurveyTarget(res);
                         }}
-                        className="w-full h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
+                        className="w-full h-10 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs text-xs"
                       >
-                        <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
+                        <Star className="mr-1.5 h-3.5 w-3.5 fill-white text-white" />
                         {selectedReservation.survey
                           ? `Đã đánh giá: ${selectedReservation.survey.rating}/5 ⭐`
-                          : "Khảo sát sau bữa ăn"}
+                          : "Khảo sát trải nghiệm sau bữa ăn"}
                       </Button>
                     </div>
                   )}
@@ -1859,30 +1928,71 @@ export function AdminBookingUnifiedView({
 
                 {(detailReservation.status === "CONFIRMED" ||
                   detailReservation.status === "PENDING") && (
-                  <Button
-                    onClick={() => void handleCheckin(detailReservation.id)}
-                    disabled={acting}
-                    className="w-full mt-3 h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
-                  >
-                    <LogIn className="mr-1.5 h-4 w-4" />
-                    Check-in & Tích Điểm Thưởng (FR-20)
-                  </Button>
+                  <div className="space-y-3 mt-3">
+                    <Button
+                      onClick={() => void handleCheckin(detailReservation.id)}
+                      disabled={acting}
+                      className="w-full h-11 rounded-full bg-emerald-700 text-white hover:bg-emerald-800 font-semibold shadow-xs"
+                    >
+                      <LogIn className="mr-1.5 h-4 w-4" />
+                      Khách đã đến &amp; Check-in
+                    </Button>
+
+                    <TableCourseTracker
+                      reservation={detailReservation}
+                      acting={acting}
+                      setActing={setActing}
+                      onUpdate={(updated) => {
+                        setDetailReservation(updated);
+                        refreshTables();
+                        refreshList();
+                      }}
+                      onCheckin={() => void handleCheckin(detailReservation.id)}
+                    />
+                  </div>
                 )}
 
                 {detailReservation.status === "SEATED" && (
-                  <Button
-                    onClick={() => {
-                      const res = detailReservation;
-                      setDetailReservation(null);
-                      setSurveyTarget(res);
-                    }}
-                    className="w-full mt-3 h-11 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs"
-                  >
-                    <Star className="mr-1.5 h-4 w-4 fill-white text-white" />
-                    {detailReservation.survey
-                      ? `Xem đánh giá 5 sao (${detailReservation.survey.rating}/5 ⭐)`
-                      : "Khảo sát sau bữa ăn"}
-                  </Button>
+                  <div className="pt-2">
+                    <TableCourseTracker
+                      reservation={detailReservation}
+                      acting={acting}
+                      setActing={setActing}
+                      onUpdate={(updated) => {
+                        setDetailReservation(updated);
+                        refreshTables();
+                        refreshList();
+                      }}
+                      onCheckoutSuccess={() => {
+                        setDetailReservation(null);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {detailReservation.status === "COMPLETED" && (
+                  <div className="rounded-2xl border border-sky-300 bg-sky-50/80 p-3.5 space-y-2.5 text-center mt-3">
+                    <div className="flex items-center justify-center gap-1.5 text-sky-900 font-bold text-xs">
+                      <CheckCircle2 className="h-4 w-4 text-sky-600" />
+                      Bàn đã Check-out &amp; Hoàn tất bữa ăn
+                    </div>
+                    <p className="text-[11px] text-sky-800">
+                      Đã đối soát trọn bộ 7 món tasting. Bàn sẵn sàng đón lượt khách tiếp theo!
+                    </p>
+                    <Button
+                      onClick={() => {
+                        const res = detailReservation;
+                        setDetailReservation(null);
+                        setSurveyTarget(res);
+                      }}
+                      className="w-full h-10 rounded-full border border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold hover:from-amber-600 hover:to-amber-700 shadow-xs text-xs"
+                    >
+                      <Star className="mr-1.5 h-3.5 w-3.5 fill-white text-white" />
+                      {detailReservation.survey
+                        ? `Đã đánh giá: ${detailReservation.survey.rating}/5 ⭐`
+                        : "Khảo sát trải nghiệm sau bữa ăn"}
+                    </Button>
+                  </div>
                 )}
 
                 {/* Nút Sửa & Xóa mềm trong dialog chi tiết */}

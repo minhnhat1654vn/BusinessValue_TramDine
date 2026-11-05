@@ -1,0 +1,1067 @@
+{
+  "activeId": "concept-2",
+  "concepts": [
+    {
+      "id": "concept-2",
+      "code": "C2",
+      "name": "Concept 2: Hành trình vị Việt",
+      "description": "Thực đơn Tasting 7 món đang phục vụ tuần này tại TRẦM",
+      "status": "ACTIVE",
+      "weekLabel": "Tuần này (Đang phục vụ)",
+      "sellingPrice": 1190000,
+      "targetFoodCostPct": 33.5,
+      "dishes": [
+        {
+          "id": "cmw37mib30000voiczxp9p8py",
+          "index": 1,
+          "name": "Tuyết Cá Tầm",
+          "region": "Lâm Đồng",
+          "portion": "1 khách",
+          "method": "Ướp lạnh & Mở hộp tại bàn",
+          "note": "Khởi đầu tinh tế với caviar Lâm Đồng mở lọ trước mặt thực khách.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37mib40002voicgi28odjs",
+              "optionId": "std",
+              "optionName": "Mở hộp caviar tại bàn",
+              "isDefault": true,
+              "note": "Chuẩn vị fine dining",
+              "lines": [
+                {
+                  "id": "cmw37mib80008voic5vwyfsoz",
+                  "ingredientId": "banh-blini",
+                  "ingredientName": "Bánh blini kiều mạch",
+                  "group": "STARCH",
+                  "groupLabel": "Tinh bột",
+                  "spec": "Nướng nóng giòn tại bếp bánh",
+                  "unit": "g",
+                  "qtyPerGuest": 30,
+                  "qtyTotal": 30,
+                  "prepNote": "Nướng giòn nhẹ",
+                  "defaultImportPrice": 90000
+                },
+                {
+                  "id": "cmw37mib60004voic3ndp6kbg",
+                  "ingredientId": "caviar-lam-dong",
+                  "ingredientName": "Trứng cá tầm Caviar Lâm Đồng",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Lọ 20g ướp lạnh, mở tại bàn",
+                  "unit": "g",
+                  "qtyPerGuest": 20,
+                  "qtyTotal": 20,
+                  "prepNote": "Lọ 20g ướp đá thạch anh",
+                  "defaultImportPrice": 2500000
+                },
+                {
+                  "id": "cmw37miba000avoicmdbqtq6v",
+                  "ingredientId": "he-la-nho",
+                  "ingredientName": "Hẹ lá nhỏ hữu cơ",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Thái mịn rắc mặt",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Rắc mặt đĩa",
+                  "defaultImportPrice": 60000
+                },
+                {
+                  "id": "cmw37mib70006voicpv7i8o6b",
+                  "ingredientId": "kem-chua",
+                  "ingredientName": "Kem chua thảo mộc",
+                  "group": "DAIRY_FAT",
+                  "groupLabel": "Sữa & chất béo",
+                  "spec": "Đánh mịn, bảo quản lạnh",
+                  "unit": "g",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Đánh bông mịn",
+                  "defaultImportPrice": 180000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 70,
+                "ml": 0
+              },
+              "totalsForGuests": {
+                "g": 70,
+                "ml": 0
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mibb000bvoicrevt2f7p",
+          "index": 2,
+          "name": "Sá Sùng Muối Tiêu",
+          "region": "Vân Đồn",
+          "portion": "1 khách",
+          "method": "Nướng than thảo mộc",
+          "note": "Sản vật bãi triều Vân Đồn từng tiến vua.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37mibc000dvoicsvfm4w8f",
+              "optionId": "std",
+              "optionName": "Nướng giòn muối tiêu truyền thống",
+              "isDefault": true,
+              "note": "Vị ngọt hậu tự nhiên của sá sùng",
+              "lines": [
+                {
+                  "id": "cmw37mibh000lvoictlkykv0k",
+                  "ingredientId": "chanh-vang-da-lat",
+                  "ingredientName": "Nước cốt chanh vàng Đà Lạt",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Vắt tươi trong ngày",
+                  "unit": "ml",
+                  "qtyPerGuest": 10,
+                  "qtyTotal": 10,
+                  "prepNote": "Vắt tươi chấm kèm",
+                  "defaultImportPrice": 70000
+                },
+                {
+                  "id": "cmw37mibe000hvoicw6b4ikh0",
+                  "ingredientId": "muoi-ham-thao-duoc",
+                  "ingredientName": "Muối hầm thảo dược Hoàng Liên Sơn",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Rang khô thảo dược",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Rang cùng tiêu rừng",
+                  "defaultImportPrice": 80000
+                },
+                {
+                  "id": "cmw37mibi000nvoicc1od3yu6",
+                  "ingredientId": "rau-ram-rung",
+                  "ingredientName": "Rau răm rừng và lá chanh",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Nhặt búp non",
+                  "unit": "g",
+                  "qtyPerGuest": 10,
+                  "qtyTotal": 10,
+                  "prepNote": "Ăn kèm",
+                  "defaultImportPrice": 50000
+                },
+                {
+                  "id": "cmw37mibd000fvoicjnu7m6xc",
+                  "ingredientId": "sa-sung-van-don",
+                  "ingredientName": "Sá sùng đảo Vân Đồn",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Sấy khô thượng hạng, nướng giòn",
+                  "unit": "g",
+                  "qtyPerGuest": 35,
+                  "qtyTotal": 35,
+                  "prepNote": "Nướng chín vàng đều",
+                  "defaultImportPrice": 4200000
+                },
+                {
+                  "id": "cmw37mibf000jvoicilz78wzp",
+                  "ingredientId": "tieu-rung-phu-quoc",
+                  "ingredientName": "Tiêu rừng Phú Quốc",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Đập dập thơm cay",
+                  "unit": "g",
+                  "qtyPerGuest": 3,
+                  "qtyTotal": 3,
+                  "prepNote": "Đập dập thơm",
+                  "defaultImportPrice": 350000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 53,
+                "ml": 10
+              },
+              "totalsForGuests": {
+                "g": 53,
+                "ml": 10
+              }
+            },
+            {
+              "id": "cmw37mibj000pvoicbbs5km3k",
+              "optionId": "crispy_fried",
+              "optionName": "Chiên phồng giòn rụm",
+              "isDefault": false,
+              "note": "Vị bùi béo đậm đà hơn",
+              "lines": [
+                {
+                  "id": "cmw37mibl000tvoic0hq7wg0c",
+                  "ingredientId": "dau-thuc-vat",
+                  "ingredientName": "Dầu thực vật cao cấp",
+                  "group": "DAIRY_FAT",
+                  "groupLabel": "Sữa & chất béo",
+                  "spec": "Dầu hạt cải ép lạnh",
+                  "unit": "ml",
+                  "qtyPerGuest": 25,
+                  "qtyTotal": 25,
+                  "prepNote": "Dầu sôi 180°C",
+                  "defaultImportPrice": 65000
+                },
+                {
+                  "id": "cmw37mibm000vvoicmj6tp02q",
+                  "ingredientId": "muoi-ham-thao-duoc",
+                  "ingredientName": "Muối hầm thảo dược Hoàng Liên Sơn",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Rang khô thảo dược",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Lắc nhẹ sau chiên",
+                  "defaultImportPrice": 80000
+                },
+                {
+                  "id": "cmw37mibk000rvoics1g6ykbe",
+                  "ingredientId": "sa-sung-van-don",
+                  "ingredientName": "Sá sùng đảo Vân Đồn",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Sấy khô thượng hạng, nướng giòn",
+                  "unit": "g",
+                  "qtyPerGuest": 35,
+                  "qtyTotal": 35,
+                  "prepNote": "Chiên ngập dầu nhanh",
+                  "defaultImportPrice": 4200000
+                },
+                {
+                  "id": "cmw37mibo000xvoicki7kwx7p",
+                  "ingredientId": "tieu-rung-phu-quoc",
+                  "ingredientName": "Tiêu rừng Phú Quốc",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Đập dập thơm cay",
+                  "unit": "g",
+                  "qtyPerGuest": 3,
+                  "qtyTotal": 3,
+                  "prepNote": "Rắc thơm",
+                  "defaultImportPrice": 350000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 43,
+                "ml": 25
+              },
+              "totalsForGuests": {
+                "g": 43,
+                "ml": 25
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mibp000yvoicbolryvdq",
+          "index": 3,
+          "name": "Bào Ngư Om Rượu Nếp",
+          "region": "Nha Trang",
+          "portion": "1 khách",
+          "method": "Om chậm men rượu nếp cái hoa vàng",
+          "note": "Hòa quyện vị biển Nha Trang và men say đồng bằng.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37mibq0010voicswa2jxdn",
+              "optionId": "std",
+              "optionName": "Om rượu nếp sóng sánh chuẩn vị",
+              "isDefault": true,
+              "note": "Vị ngọt men nồng nàn",
+              "lines": [
+                {
+                  "id": "cmw37mibr0012voick142h3o2",
+                  "ingredientId": "bao-ngu-nha-trang",
+                  "ingredientName": "Bào ngư biển Nha Trang",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Bào ngư sống, khía hoa thị",
+                  "unit": "g",
+                  "qtyPerGuest": 80,
+                  "qtyTotal": 80,
+                  "prepNote": "Làm sạch, khía vảy rồng",
+                  "defaultImportPrice": 1200000
+                },
+                {
+                  "id": "cmw37mibu0016voicf56pbj12",
+                  "ingredientId": "gung-gia-son-la",
+                  "ingredientName": "Gừng già Sơn La",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Thái chỉ sao thơm",
+                  "unit": "g",
+                  "qtyPerGuest": 10,
+                  "qtyTotal": 10,
+                  "prepNote": "Phi thơm",
+                  "defaultImportPrice": 45000
+                },
+                {
+                  "id": "cmw37mibt0014voicqsqh4tjt",
+                  "ingredientId": "men-ruou-nep",
+                  "ingredientName": "Rượu nếp cái hoa vàng",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Rượu nếp ủ chum 6 tháng",
+                  "unit": "ml",
+                  "qtyPerGuest": 30,
+                  "qtyTotal": 30,
+                  "prepNote": "Khử mùi tanh và om mềm",
+                  "defaultImportPrice": 120000
+                },
+                {
+                  "id": "cmw37mibx001avoic4hzoyoc5",
+                  "ingredientId": "nuoc-dung-nam",
+                  "ingredientName": "Nước dùng nấm đông cô ninh cô đặc",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Ninh ngọt thanh tự nhiên",
+                  "unit": "ml",
+                  "qtyPerGuest": 60,
+                  "qtyTotal": 60,
+                  "prepNote": "Tạo độ sánh ngọt",
+                  "defaultImportPrice": 90000
+                },
+                {
+                  "id": "cmw37mibw0018voicu7izczd5",
+                  "ingredientId": "tao-do-tan-cuong",
+                  "ingredientName": "Táo đỏ và kỷ tử hữu cơ",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Ngâm nở mềm, bỏ hạt",
+                  "unit": "g",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Nấu cùng nước om",
+                  "defaultImportPrice": 280000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 105,
+                "ml": 90
+              },
+              "totalsForGuests": {
+                "g": 105,
+                "ml": 90
+              }
+            },
+            {
+              "id": "cmw37miby001cvoicptrqkwta",
+              "optionId": "mild_wine",
+              "optionName": "Giảm độ nồng rượu (Thanh nhẹ)",
+              "isDefault": false,
+              "note": "Tôn vị tự nhiên của bào ngư",
+              "lines": [
+                {
+                  "id": "cmw37mic0001evoic0xqxxryw",
+                  "ingredientId": "bao-ngu-nha-trang",
+                  "ingredientName": "Bào ngư biển Nha Trang",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Bào ngư sống, khía hoa thị",
+                  "unit": "g",
+                  "qtyPerGuest": 80,
+                  "qtyTotal": 80,
+                  "prepNote": "Khía hoa thị đẹp mắt",
+                  "defaultImportPrice": 1200000
+                },
+                {
+                  "id": "cmw37mic2001ivoicv0rnc1q8",
+                  "ingredientId": "gung-gia-son-la",
+                  "ingredientName": "Gừng già Sơn La",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Thái chỉ sao thơm",
+                  "unit": "g",
+                  "qtyPerGuest": 8,
+                  "qtyTotal": 8,
+                  "prepNote": "Hương nhẹ",
+                  "defaultImportPrice": 45000
+                },
+                {
+                  "id": "cmw37mic1001gvoickx6sgzsi",
+                  "ingredientId": "men-ruou-nep",
+                  "ingredientName": "Rượu nếp cái hoa vàng",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Rượu nếp ủ chum 6 tháng",
+                  "unit": "ml",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Giảm lượng rượu",
+                  "defaultImportPrice": 120000
+                },
+                {
+                  "id": "cmw37mic3001kvoici704exjv",
+                  "ingredientId": "nuoc-dung-nam",
+                  "ingredientName": "Nước dùng nấm đông cô ninh cô đặc",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Ninh ngọt thanh tự nhiên",
+                  "unit": "ml",
+                  "qtyPerGuest": 75,
+                  "qtyTotal": 75,
+                  "prepNote": "Bù thêm nước dùng",
+                  "defaultImportPrice": 90000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 88,
+                "ml": 90
+              },
+              "totalsForGuests": {
+                "g": 88,
+                "ml": 90
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mic5001lvoicrfbw7kph",
+          "index": 4,
+          "name": "Canh Ngọc Yến",
+          "region": "Khánh Hòa · Hà Nội",
+          "portion": "1 khách",
+          "method": "Tiềm thanh nhã & Rót tại bàn",
+          "note": "Sự kết tinh của yến sào Khánh Hòa và sen Cổ Ngự Hồ Tây.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37mic6001nvoicwczen8ny",
+              "optionId": "std",
+              "optionName": "Nghi thức rót nước dùng nóng tại bàn",
+              "isDefault": true,
+              "note": "Nước dùng trong vắt, bốc khói nghi ngút",
+              "lines": [
+                {
+                  "id": "cmw37mica001vvoic3xtu9ece",
+                  "ingredientId": "nam-dong-trung",
+                  "ingredientName": "Đông trùng hạ thảo tươi",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Ngọn nấm tươi vàng ươm",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Đặt điểm xuyết",
+                  "defaultImportPrice": 800000
+                },
+                {
+                  "id": "cmw37mic9001tvoice8g5dwg1",
+                  "ingredientId": "nuoc-dung-bo-cau",
+                  "ingredientName": "Nước dùng bồ câu tiềm sâm",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nước dùng trong vắt, rót nóng tại bàn",
+                  "unit": "ml",
+                  "qtyPerGuest": 120,
+                  "qtyTotal": 120,
+                  "prepNote": "Rót từ bình gốm ấm",
+                  "defaultImportPrice": 150000
+                },
+                {
+                  "id": "cmw37mic8001rvoicdtsdcaie",
+                  "ingredientId": "sen-co-ngu",
+                  "ingredientName": "Hạt sen Cổ Ngự Hồ Tây",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Sen tươi hấp chín bùi",
+                  "unit": "g",
+                  "qtyPerGuest": 30,
+                  "qtyTotal": 30,
+                  "prepNote": "Hấp bở tơi",
+                  "defaultImportPrice": 350000
+                },
+                {
+                  "id": "cmw37mic7001pvoicl04icidw",
+                  "ingredientId": "yen-sao-khanh-hoa",
+                  "ingredientName": "Yến sào thiên nhiên Khánh Hòa",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Tổ yến tinh chế hấp chín",
+                  "unit": "g",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Chưng cách thủy riêng",
+                  "defaultImportPrice": 38000000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 50,
+                "ml": 120
+              },
+              "totalsForGuests": {
+                "g": 50,
+                "ml": 120
+              }
+            },
+            {
+              "id": "cmw37micb001xvoicsbvoa7l1",
+              "optionId": "extra_lotus",
+              "optionName": "Thêm hạt sen Cổ Ngự bùi béo",
+              "isDefault": false,
+              "note": "Tăng độ thơm mát của sen Thăng Long",
+              "lines": [
+                {
+                  "id": "cmw37micg0023voic9hdmgd0w",
+                  "ingredientId": "nuoc-dung-bo-cau",
+                  "ingredientName": "Nước dùng bồ câu tiềm sâm",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nước dùng trong vắt, rót nóng tại bàn",
+                  "unit": "ml",
+                  "qtyPerGuest": 120,
+                  "qtyTotal": 120,
+                  "prepNote": "Rót tại bàn",
+                  "defaultImportPrice": 150000
+                },
+                {
+                  "id": "cmw37micf0021voic5eagxws8",
+                  "ingredientId": "sen-co-ngu",
+                  "ingredientName": "Hạt sen Cổ Ngự Hồ Tây",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Sen tươi hấp chín bùi",
+                  "unit": "g",
+                  "qtyPerGuest": 50,
+                  "qtyTotal": 50,
+                  "prepNote": "Tăng lượng hạt sen",
+                  "defaultImportPrice": 350000
+                },
+                {
+                  "id": "cmw37micd001zvoicrx7mme1t",
+                  "ingredientId": "yen-sao-khanh-hoa",
+                  "ingredientName": "Yến sào thiên nhiên Khánh Hòa",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Tổ yến tinh chế hấp chín",
+                  "unit": "g",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Chưng cách thủy riêng",
+                  "defaultImportPrice": 38000000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 65,
+                "ml": 120
+              },
+              "totalsForGuests": {
+                "g": 65,
+                "ml": 120
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mici0024voic8c5014k4",
+          "index": 5,
+          "name": "Thịt Ngọc Áp Chảo",
+          "region": "Đà Lạt",
+          "portion": "1 khách",
+          "method": "Áp chảo chảo gang bơ thảo mộc",
+          "note": "Cùng một chú cá tầm với món số 1, triết lý sử dụng trọn vẹn nguyên liệu.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37micj0026voicxrgja8y3",
+              "optionId": "std",
+              "optionName": "Áp chảo da giòn thịt mọng",
+              "isDefault": true,
+              "note": "Thăn cá mọng nước, da giòn rụm",
+              "lines": [
+                {
+                  "id": "cmw37micl002avoic1b97ul9s",
+                  "ingredientId": "bo-thao-moc",
+                  "ingredientName": "Bơ thảo mộc núi rừng Đà Lạt",
+                  "group": "DAIRY_FAT",
+                  "groupLabel": "Sữa & chất béo",
+                  "spec": "Bơ lạt ngâm xạ hương, hương thảo",
+                  "unit": "g",
+                  "qtyPerGuest": 20,
+                  "qtyTotal": 20,
+                  "prepNote": "Tưới bơ liên tục trên chảo",
+                  "defaultImportPrice": 260000
+                },
+                {
+                  "id": "cmw37mick0028voicj3e47cyx",
+                  "ingredientId": "ca-tam-da-lat",
+                  "ingredientName": "Thăn cá tầm Đà Lạt",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Phi lê rút xương, da khía mỏng",
+                  "unit": "g",
+                  "qtyPerGuest": 120,
+                  "qtyTotal": 120,
+                  "prepNote": "Áp chảo da trước",
+                  "defaultImportPrice": 320000
+                },
+                {
+                  "id": "cmw37micn002evoicfd74sh1m",
+                  "ingredientId": "mang-tay-da-lat",
+                  "ingredientName": "Măng tây xanh Đà Lạt",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Áp chảo giòn ngọt",
+                  "unit": "g",
+                  "qtyPerGuest": 40,
+                  "qtyTotal": 40,
+                  "prepNote": "Áp chảo kèm",
+                  "defaultImportPrice": 95000
+                },
+                {
+                  "id": "cmw37micm002cvoic5zx7vw2k",
+                  "ingredientId": "sot-saffron",
+                  "ingredientName": "Sốt nhụy hoa nghệ tây và chanh vàng",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nấu sánh vàng óng",
+                  "unit": "ml",
+                  "qtyPerGuest": 25,
+                  "qtyTotal": 25,
+                  "prepNote": "Vẽ sốt viền đĩa",
+                  "defaultImportPrice": 650000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 180,
+                "ml": 25
+              },
+              "totalsForGuests": {
+                "g": 180,
+                "ml": 25
+              }
+            },
+            {
+              "id": "cmw37micp002gvoiczz4qcbjz",
+              "optionId": "herb_steamed",
+              "optionName": "Hấp thảo mộc thanh vị",
+              "isDefault": false,
+              "note": "Dành cho khách chuộng vị thanh đạm",
+              "lines": [
+                {
+                  "id": "cmw37micq002ivoiclr7lwcr4",
+                  "ingredientId": "ca-tam-da-lat",
+                  "ingredientName": "Thăn cá tầm Đà Lạt",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Phi lê rút xương, da khía mỏng",
+                  "unit": "g",
+                  "qtyPerGuest": 120,
+                  "qtyTotal": 120,
+                  "prepNote": "Hấp chín tới",
+                  "defaultImportPrice": 320000
+                },
+                {
+                  "id": "cmw37mics002mvoiclb43bec3",
+                  "ingredientId": "mang-tay-da-lat",
+                  "ingredientName": "Măng tây xanh Đà Lạt",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Áp chảo giòn ngọt",
+                  "unit": "g",
+                  "qtyPerGuest": 40,
+                  "qtyTotal": 40,
+                  "prepNote": "Hấp giòn",
+                  "defaultImportPrice": 95000
+                },
+                {
+                  "id": "cmw37micr002kvoictul78i3l",
+                  "ingredientId": "sot-saffron",
+                  "ingredientName": "Sốt nhụy hoa nghệ tây và chanh vàng",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nấu sánh vàng óng",
+                  "unit": "ml",
+                  "qtyPerGuest": 25,
+                  "qtyTotal": 25,
+                  "prepNote": "Rưới nhẹ",
+                  "defaultImportPrice": 650000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 160,
+                "ml": 25
+              },
+              "totalsForGuests": {
+                "g": 160,
+                "ml": 25
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mict002nvoicab36y3qj",
+          "index": 6,
+          "name": "Đông Tảo Quay Mắc Khén",
+          "region": "Hưng Yên · Tây Bắc",
+          "portion": "1 khách",
+          "method": "Quay giòn da đượm hương rừng Tây Bắc",
+          "note": "Đặc sản gà tiến vua Hưng Yên kết hợp gia vị đại ngàn và gạo ST25.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37micu002pvoicgfng31vg",
+              "optionId": "std",
+              "optionName": "Quay da giòn kèm cơm cháy ST25",
+              "isDefault": true,
+              "note": "Da gà giòn sần sật, cơm cháy vàng ruộm",
+              "lines": [
+                {
+                  "id": "cmw37micy002vvoic7cdrya9o",
+                  "ingredientId": "com-chay-st25",
+                  "ingredientName": "Cơm cháy gạo ST25",
+                  "group": "STARCH",
+                  "groupLabel": "Tinh bột",
+                  "spec": "Ép mỏng chiên phồng giòn ruộm",
+                  "unit": "g",
+                  "qtyPerGuest": 50,
+                  "qtyTotal": 50,
+                  "prepNote": "Chiên giòn ăn kèm",
+                  "defaultImportPrice": 80000
+                },
+                {
+                  "id": "cmw37micv002rvoichi69rhu1",
+                  "ingredientId": "ga-dong-tao",
+                  "ingredientName": "Gà tiến vua Đông Tảo Hưng Yên",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Thịt giòn sần sật, ướp mắc khén",
+                  "unit": "g",
+                  "qtyPerGuest": 140,
+                  "qtyTotal": 140,
+                  "prepNote": "Tẩm ướp mắc khén 4 giờ",
+                  "defaultImportPrice": 450000
+                },
+                {
+                  "id": "cmw37micw002tvoic2m448hcp",
+                  "ingredientId": "mac-khen-doi",
+                  "ingredientName": "Hạt mắc khén và hạt dổi rừng",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Nướng than giã nhỏ",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Rang thơm xát da",
+                  "defaultImportPrice": 480000
+                },
+                {
+                  "id": "cmw37micz002xvoicfm2u66ln",
+                  "ingredientId": "nuoc-cham-tieu-rung",
+                  "ingredientName": "Nước chấm sốt tiêu rừng và lá chanh",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Chua ngọt cay nồng",
+                  "unit": "ml",
+                  "qtyPerGuest": 20,
+                  "qtyTotal": 20,
+                  "prepNote": "Chấm thịt gà",
+                  "defaultImportPrice": 60000
+                },
+                {
+                  "id": "cmw37mid0002zvoicgpx7k9j4",
+                  "ingredientId": "rau-rung-tay-bac",
+                  "ingredientName": "Rau thơm và hoa chuối rừng",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Thái sợi ngâm chanh giòn",
+                  "unit": "g",
+                  "qtyPerGuest": 30,
+                  "qtyTotal": 30,
+                  "prepNote": "Trộn gỏi thanh mát",
+                  "defaultImportPrice": 40000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 225,
+                "ml": 20
+              },
+              "totalsForGuests": {
+                "g": 225,
+                "ml": 20
+              }
+            },
+            {
+              "id": "cmw37mid10031voicsclizw4m",
+              "optionId": "mild_spice",
+              "optionName": "Giảm độ nồng mắc khén",
+              "isDefault": false,
+              "note": "Vị cay dịu nhẹ cho thực khách nhạy cảm",
+              "lines": [
+                {
+                  "id": "cmw37mid60037voicvysypsla",
+                  "ingredientId": "com-chay-st25",
+                  "ingredientName": "Cơm cháy gạo ST25",
+                  "group": "STARCH",
+                  "groupLabel": "Tinh bột",
+                  "spec": "Ép mỏng chiên phồng giòn ruộm",
+                  "unit": "g",
+                  "qtyPerGuest": 50,
+                  "qtyTotal": 50,
+                  "prepNote": "Chiên giòn",
+                  "defaultImportPrice": 80000
+                },
+                {
+                  "id": "cmw37mid30033voicvpqhixc0",
+                  "ingredientId": "ga-dong-tao",
+                  "ingredientName": "Gà tiến vua Đông Tảo Hưng Yên",
+                  "group": "PROTEIN",
+                  "groupLabel": "Đạm (cá, thịt, đậu)",
+                  "spec": "Thịt giòn sần sật, ướp mắc khén",
+                  "unit": "g",
+                  "qtyPerGuest": 140,
+                  "qtyTotal": 140,
+                  "prepNote": "Ướp nhẹ",
+                  "defaultImportPrice": 450000
+                },
+                {
+                  "id": "cmw37mid40035voick7n7cj79",
+                  "ingredientId": "mac-khen-doi",
+                  "ingredientName": "Hạt mắc khén và hạt dổi rừng",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Nướng than giã nhỏ",
+                  "unit": "g",
+                  "qtyPerGuest": 2,
+                  "qtyTotal": 2,
+                  "prepNote": "Giảm lượng mắc khén",
+                  "defaultImportPrice": 480000
+                },
+                {
+                  "id": "cmw37mid80039voicwsanlli8",
+                  "ingredientId": "nuoc-cham-tieu-rung",
+                  "ingredientName": "Nước chấm sốt tiêu rừng và lá chanh",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Chua ngọt cay nồng",
+                  "unit": "ml",
+                  "qtyPerGuest": 20,
+                  "qtyTotal": 20,
+                  "prepNote": "Nước chấm thanh",
+                  "defaultImportPrice": 60000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 192,
+                "ml": 20
+              },
+              "totalsForGuests": {
+                "g": 192,
+                "ml": 20
+              }
+            }
+          ]
+        },
+        {
+          "id": "cmw37mid9003avoicn1w6mgr8",
+          "index": 7,
+          "name": "Trầm và Sen — Nhãn lồng hạt sen cung đình",
+          "region": "Cung Đình Huế",
+          "portion": "1 khách",
+          "method": "Nấu nước đường phèn thanh tao & Nghi thức trà 3 lần rót",
+          "note": "Chương kết trọn vẹn: hương trầm bảng lảng quện vị ngọt sen nhãn và trà cổ thụ.",
+          "defaultOptionId": "std",
+          "variants": [
+            {
+              "id": "cmw37midb003cvoict1sekfn0",
+              "optionId": "std",
+              "optionName": "Ngọt thanh vương hương Trầm",
+              "isDefault": true,
+              "note": "Hương vị cung đình tao nhã",
+              "lines": [
+                {
+                  "id": "cmw37midj003ovoic7rxnak3p",
+                  "ingredientId": "canh-sen-hong",
+                  "ingredientName": "Cánh sen hồng và hoa nhài tươi",
+                  "group": "PRODUCE",
+                  "groupLabel": "Rau, nấm & thảo mộc",
+                  "spec": "Trang trí và ướp hương chè",
+                  "unit": "g",
+                  "qtyPerGuest": 5,
+                  "qtyTotal": 5,
+                  "prepNote": "Rắc điểm xuyết",
+                  "defaultImportPrice": 150000
+                },
+                {
+                  "id": "cmw37midf003ivoico676sjp1",
+                  "ingredientId": "duong-phen-quang-ngai",
+                  "ingredientName": "Đường phèn kết tinh tự nhiên",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nấu nước đường trong vắt",
+                  "unit": "g",
+                  "qtyPerGuest": 15,
+                  "qtyTotal": 15,
+                  "prepNote": "Nấu nước đường trong",
+                  "defaultImportPrice": 55000
+                },
+                {
+                  "id": "cmw37mide003gvoic539omzzo",
+                  "ingredientId": "hat-sen-cung-dinh",
+                  "ingredientName": "Hạt sen cung đình Huế",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Ninh nhừ lồng trong cùi nhãn",
+                  "unit": "g",
+                  "qtyPerGuest": 40,
+                  "qtyTotal": 40,
+                  "prepNote": "Ninh mềm thơm ngọt",
+                  "defaultImportPrice": 240000
+                },
+                {
+                  "id": "cmw37midd003evoic3olyb9qs",
+                  "ingredientId": "nhan-long-hung-yen",
+                  "ingredientName": "Nhãn lồng Hưng Yên mọng nước",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Bóc vỏ khéo léo, tách hạt",
+                  "unit": "g",
+                  "qtyPerGuest": 60,
+                  "qtyTotal": 60,
+                  "prepNote": "Tách hạt, lồng hạt sen",
+                  "defaultImportPrice": 120000
+                },
+                {
+                  "id": "cmw37midg003kvoicxpc6qic3",
+                  "ingredientId": "tra-shan-tuyet",
+                  "ingredientName": "Trà Shan tuyết cổ thụ Tây Côn Lĩnh",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Búp trà 1 tôm 2 lá cổ thụ 300 năm",
+                  "unit": "g",
+                  "qtyPerGuest": 8,
+                  "qtyTotal": 8,
+                  "prepNote": "Hãm ấm đất nung, rót 3 lần",
+                  "defaultImportPrice": 3800000
+                },
+                {
+                  "id": "cmw37midi003mvoiclw7muik4",
+                  "ingredientId": "tram-huong-quang-nam",
+                  "ingredientName": "Trầm hương tự nhiên xông phòng",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Mẩu trầm đốt lư đồng tạo hương",
+                  "unit": "g",
+                  "qtyPerGuest": 2,
+                  "qtyTotal": 2,
+                  "prepNote": "Đốt lư xông khói ấm",
+                  "defaultImportPrice": 15000000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 130,
+                "ml": 0
+              },
+              "totalsForGuests": {
+                "g": 130,
+                "ml": 0
+              }
+            },
+            {
+              "id": "cmw37midl003qvoicqhtvsjn2",
+              "optionId": "low_sweet",
+              "optionName": "Ít ngọt thanh tao",
+              "isDefault": false,
+              "note": "Tôn vị trà Shan tuyết nổi bật",
+              "lines": [
+                {
+                  "id": "cmw37midp003wvoicfaaxln34",
+                  "ingredientId": "duong-phen-quang-ngai",
+                  "ingredientName": "Đường phèn kết tinh tự nhiên",
+                  "group": "SEASONING",
+                  "groupLabel": "Gia vị & nước chấm",
+                  "spec": "Nấu nước đường trong vắt",
+                  "unit": "g",
+                  "qtyPerGuest": 7,
+                  "qtyTotal": 7,
+                  "prepNote": "Giảm 50% đường",
+                  "defaultImportPrice": 55000
+                },
+                {
+                  "id": "cmw37mido003uvoicdjoanh5p",
+                  "ingredientId": "hat-sen-cung-dinh",
+                  "ingredientName": "Hạt sen cung đình Huế",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Ninh nhừ lồng trong cùi nhãn",
+                  "unit": "g",
+                  "qtyPerGuest": 40,
+                  "qtyTotal": 40,
+                  "prepNote": "Hạt sen bùi tự nhiên",
+                  "defaultImportPrice": 240000
+                },
+                {
+                  "id": "cmw37midm003svoicekrm6ak4",
+                  "ingredientId": "nhan-long-hung-yen",
+                  "ingredientName": "Nhãn lồng Hưng Yên mọng nước",
+                  "group": "FRUIT_NUT",
+                  "groupLabel": "Trái cây & hạt",
+                  "spec": "Bóc vỏ khéo léo, tách hạt",
+                  "unit": "g",
+                  "qtyPerGuest": 60,
+                  "qtyTotal": 60,
+                  "prepNote": "Tách hạt cẩn thận",
+                  "defaultImportPrice": 120000
+                },
+                {
+                  "id": "cmw37midr003yvoicegcjy3e0",
+                  "ingredientId": "tra-shan-tuyet",
+                  "ingredientName": "Trà Shan tuyết cổ thụ Tây Côn Lĩnh",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Búp trà 1 tôm 2 lá cổ thụ 300 năm",
+                  "unit": "g",
+                  "qtyPerGuest": 8,
+                  "qtyTotal": 8,
+                  "prepNote": "Nghi thức trà Shan tuyết",
+                  "defaultImportPrice": 3800000
+                },
+                {
+                  "id": "cmw37mids0040voicpzfmsojq",
+                  "ingredientId": "tram-huong-quang-nam",
+                  "ingredientName": "Trầm hương tự nhiên xông phòng",
+                  "group": "AROMATIC",
+                  "groupLabel": "Hương liệu & phụ liệu",
+                  "spec": "Mẩu trầm đốt lư đồng tạo hương",
+                  "unit": "g",
+                  "qtyPerGuest": 2,
+                  "qtyTotal": 2,
+                  "prepNote": "Xông trầm",
+                  "defaultImportPrice": 15000000
+                }
+              ],
+              "totalsPerGuest": {
+                "g": 117,
+                "ml": 0
+              },
+              "totalsForGuests": {
+                "g": 117,
+                "ml": 0
+              }
+            }
+          ]
+        }
+      ],
+      "createdAt": "2026-11-04T17:28:37.141Z",
+      "updatedAt": "2026-11-05T07:49:39.035Z"
+    },
+    {
+      "id": "concept-3",
+      "code": "C3",
+      "name": "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
+      "description": "Thực đơn Tasting chuẩn bị áp dụng (09/11 - 15/11/2026)",
+      "status": "UPCOMING",
+      "weekLabel": "09/11/2026 - 15/11/2026",
+      "sellingPrice": 1190000,
+      "targetFoodCostPct": 33.5,
+      "dishes": [],
+      "createdAt": "2026-11-04T17:28:37.142Z",
+      "updatedAt": "2026-11-04T17:28:37.142Z",
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-15"
+    }
+  ]
+}

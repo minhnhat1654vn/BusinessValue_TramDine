@@ -12,6 +12,7 @@
 // Kèm ghi chú tương ứng với từng kênh nguồn và khảo sát đánh giá 5 sao.
 
 import { PrismaClient } from "@prisma/client";
+import { seedBomDatabase } from "./seed-bom";
 import fs from "fs";
 import path from "path";
 
@@ -815,6 +816,7 @@ async function main() {
   console.log(`- Tổng số khảo sát đánh giá: ${surveyCount}`);
   console.log(`- Khách VIP Nam Trầm: ${NAM_TRAM_CUSTOMER.name} (0909999999) - Có mã test TRM-HDVF và TRM-HQ7Q`);
   console.log("────────────────────────────────────────────────────────");
+  await seedBomDatabase();
   console.log("Seed hoàn tất thành công ✔");
 }
 
