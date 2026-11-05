@@ -327,7 +327,7 @@ export function AdminTableMap({ today }: TableMapProps) {
 
                       <TableCourseTracker
                         reservation={selectedReservation}
-                        onUpdate={() => void loadData()}
+                        onUpdate={() => void refresh()}
                         acting={acting}
                         setActing={setActing}
                         onCheckin={() => void doAction("checkin")}
@@ -339,12 +339,12 @@ export function AdminTableMap({ today }: TableMapProps) {
                     <div className="space-y-3 pt-2">
                       <TableCourseTracker
                         reservation={selectedReservation}
-                        onUpdate={() => void loadData()}
+                        onUpdate={() => void refresh()}
                         acting={acting}
                         setActing={setActing}
                         onCheckoutSuccess={() => {
                           setSelected(null);
-                          void loadData();
+                          void refresh();
                         }}
                       />
 

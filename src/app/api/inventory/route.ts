@@ -105,16 +105,44 @@ export async function PUT(request: Request) {
     let stockStored = getInventoryStockOverrides();
     if (body.stock && typeof body.stock === "object") {
       stockStored = saveInventoryStockOverrides(body.stock, Boolean(body.fullReplace));
+      // Đồng bộ tồn kho tức thì vào CSDL SQLite
+      try {
+        await Promise.all(
+          Object.entries(body.stock).map(([id, qty]) =>
+            db.ingredient.updateMany({
+              where: { id },
+              data: { currentStock: Number(qty) },
+            })
+          )
+        );
+      } catch (e) {
+        console.warn("Lỗi đồng bộ tồn kho vào CSDL:", e);
+      }
     }
     if (body.reorderPoints && typeof body.reorderPoints === "object") {
       stockStored = saveInventoryReorderOverrides(body.reorderPoints, Boolean(body.fullReplace));
+      // Đồng bộ mức đặt lại tức thì vào CSDL SQLite
+      try {
+        await Promise.all(
+          Object.entries(body.reorderPoints).map(([id, rPoint]) =>
+            db.ingredient.updateMany({
+              where: { id },
+              data: { minStock: Number(rPoint) },
+            })
+          )
+        );
+      } catch (e) {
+        console.warn("Lỗi đồng bộ mức đặt lại vào CSDL:", e);
+      }
     }
 
     const priceStored = getIngredientPriceOverrides();
+    const extraIngredients = await db.ingredient.findMany({ orderBy: { name: "asc" } });
     const report = calculateInventoryReport(
       stockStored.stock,
       priceStored.prices,
       stockStored.reorderPoints,
+      extraIngredients,
     );
 
     return NextResponse.json({
@@ -122,6 +150,7 @@ export async function PUT(request: Request) {
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
       reorderOverrides: stockStored.reorderPoints,
+      extraIngredients,
       updatedAt: stockStored.updatedAt,
     });
   } catch (error) {
@@ -187,14 +216,17 @@ export async function POST(request: Request) {
     }
 
     const priceStored = getIngredientPriceOverrides();
+    const extraIngredients = await db.ingredient.findMany({ orderBy: { name: "asc" } });
     const report = calculateInventoryReport(
       stockStored.stock,
       priceStored.prices,
       stockStored.reorderPoints,
+      extraIngredients,
     );
 
     return NextResponse.json({
       ...report,
+      extraIngredients,
       movementSummary,
       stockOverrides: stockStored.stock,
       priceOverrides: priceStored.prices,
@@ -211,10 +243,12 @@ export async function DELETE() {
   try {
     const stockStored = resetInventoryStockOverrides();
     const priceStored = getIngredientPriceOverrides();
+    const extraIngredients = await db.ingredient.findMany({ orderBy: { name: "asc" } });
     const report = calculateInventoryReport(
       stockStored.stock,
       priceStored.prices,
       stockStored.reorderPoints,
+      extraIngredients,
     );
 
     return NextResponse.json({

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
 import { MAX_SCALE_GUESTS } from "@/lib/tram/recipes";
 import {
   calculateDishCost,
@@ -85,6 +86,19 @@ export async function PUT(request: Request) {
         : 1;
 
     const stored = saveIngredientPriceOverrides(body.prices);
+    // Đồng bộ đơn giá mới vào CSDL SQLite db.ingredient
+    try {
+      await Promise.all(
+        Object.entries(body.prices).map(([id, price]) =>
+          db.ingredient.updateMany({
+            where: { id },
+            data: { defaultImportPrice: Math.round(Number(price)) },
+          })
+        )
+      );
+    } catch (e) {
+      console.warn("Lỗi đồng bộ đơn giá vào CSDL:", e);
+    }
     const report = calculateMenuFoodCost(guests, stored.prices);
 
     return NextResponse.json({

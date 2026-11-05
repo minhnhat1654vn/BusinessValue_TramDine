@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       ? "Mau_Nhap_Cong_Thuc_BOM_TRAM.xlsx"
       : `Cong_Thuc_Dinh_Luong_BOM_TRAM_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

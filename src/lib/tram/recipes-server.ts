@@ -672,12 +672,12 @@ export async function importBomFromExcelBuffer(buffer: Buffer): Promise<{
  * Tạo một món ăn mới vào CSDL DishRecipe kèm variant mặc định (std)
  */
 export async function createDishRecipe(dishName: string, method?: string, note?: string) {
-  const lastDish = await prisma.dishRecipe.findFirst({
+  const lastDish = await db.dishRecipe.findFirst({
     orderBy: { dishIndex: "desc" },
   });
   const nextIndex = (lastDish?.dishIndex ?? 0) + 1;
 
-  const dish = await prisma.dishRecipe.create({
+  const dish = await db.dishRecipe.create({
     data: {
       dishIndex: nextIndex,
       dishName: dishName.trim(),
@@ -705,19 +705,19 @@ export async function createDishRecipe(dishName: string, method?: string, note?:
  * Xóa một món ăn khỏi CSDL (kèm các dòng định lượng và variant)
  */
 export async function deleteDishRecipe(dishId: string) {
-  const variants = await prisma.recipeVariant.findMany({
+  const variants = await db.recipeVariant.findMany({
     where: { recipeId: dishId },
     select: { id: true },
   });
   const variantIds = variants.map((v) => v.id);
 
-  await prisma.recipeLine.deleteMany({
+  await db.recipeLine.deleteMany({
     where: { variantId: { in: variantIds } },
   });
-  await prisma.recipeVariant.deleteMany({
+  await db.recipeVariant.deleteMany({
     where: { recipeId: dishId },
   });
-  return prisma.dishRecipe.delete({
+  return db.dishRecipe.delete({
     where: { id: dishId },
   });
 }

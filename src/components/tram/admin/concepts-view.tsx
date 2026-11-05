@@ -142,35 +142,8 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
   const [linePrepNote, setLinePrepNote] = useState("");
   const [submittingLine, setSubmittingLine] = useState(false);
 
-  // Load all concepts from server
-  const loadConcepts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/recipes/concepts");
-      if (res.ok) {
-        const data = await res.json();
-        setConcepts(data.concepts || []);
-        setActiveConceptId(data.activeId || "concept-2");
-      }
-    } catch (e) {
-      toast.error("Không thể tải danh sách Concept.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void loadConcepts();
-  }, [loadConcepts]);
-
-  // Concept currently selected
-  const selectedConcept = useMemo(
-    () => concepts.find((c) => c.id === selectedConceptId) || concepts[0] || null,
-    [concepts, selectedConceptId],
-  );
-
-  // Danh mục 56 nguyên liệu đã có sẵn trong kho
-  const warehouseIngredients = useMemo(() => {
+  // Danh mục nguyên liệu đã có sẵn trong kho (tự động đồng bộ với kho và CSDL)
+  const [warehouseIngredients, setWarehouseIngredients] = useState<any[]>(() => {
     return INGREDIENTS.map((ing) => {
       const priceInfo = safeGetPrice(ing.id, 100000);
       return {
@@ -189,7 +162,67 @@ export function AdminConceptsView({ onNavigateTab }: ConceptsViewProps) {
       const gB = INGREDIENT_GROUP_ORDER.indexOf(b.group);
       return gA - gB || a.name.localeCompare(b.name, "vi");
     });
+  });
+
+  const loadWarehouseIngredients = useCallback(async () => {
+    try {
+      const res = await fetch("/api/inventory");
+      if (res.ok) {
+        const inv = await res.json();
+        if (inv?.items && Array.isArray(inv.items)) {
+          const list = inv.items.map((i: any) => ({
+            id: i.ingredientId,
+            name: i.name,
+            group: i.group,
+            groupLabel: INGREDIENT_GROUP_LABELS[i.group as IngredientGroup] || i.group,
+            unit: i.unit,
+            spec: i.spec,
+            importPrice: i.importPrice,
+            importUnit: i.importUnit,
+            origin: i.origin,
+            currentStock: i.stockQty,
+          })).sort((a: any, b: any) => {
+            const gA = INGREDIENT_GROUP_ORDER.indexOf(a.group);
+            const gB = INGREDIENT_GROUP_ORDER.indexOf(b.group);
+            return gA - gB || a.name.localeCompare(b.name, "vi");
+          });
+          setWarehouseIngredients(list);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load warehouse ingredients:", e);
+    }
   }, []);
+
+  // Load all concepts from server
+  const loadConcepts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [res] = await Promise.all([
+        fetch("/api/recipes/concepts"),
+        loadWarehouseIngredients(),
+      ]);
+      if (res.ok) {
+        const data = await res.json();
+        setConcepts(data.concepts || []);
+        setActiveConceptId(data.activeId || "concept-2");
+      }
+    } catch (e) {
+      toast.error("Không thể tải danh sách Concept.");
+    } finally {
+      setLoading(false);
+    }
+  }, [loadWarehouseIngredients]);
+
+  useEffect(() => {
+    void loadConcepts();
+  }, [loadConcepts]);
+
+  // Concept currently selected
+  const selectedConcept = useMemo(
+    () => concepts.find((c) => c.id === selectedConceptId) || concepts[0] || null,
+    [concepts, selectedConceptId],
+  );
 
   // Tính toán Food Cost cho concept đang chọn
   const conceptCostStats = useMemo(() => {
