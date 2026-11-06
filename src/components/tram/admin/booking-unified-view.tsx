@@ -1357,7 +1357,7 @@ export function AdminBookingUnifiedView({
             </div>
           ) : (
             <div className="tram-scroll overflow-x-auto">
-              <Table className="min-w-[950px]">
+              <Table className="min-w-[1050px]">
                 <TableHeader>
                   <TableRow className="bg-[#f5efe4] hover:bg-[#f5efe4]">
                     <TableHead className="pl-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
@@ -1387,18 +1387,21 @@ export function AdminBookingUnifiedView({
                     <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
                       Nguồn
                     </TableHead>
-                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600 whitespace-nowrap min-w-[120px]">
                       Trạng thái
                     </TableHead>
-                    <TableHead className="pr-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
-                      Ghi chú / Thao tác
+                    <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600 min-w-[200px] max-w-[280px]">
+                      Ghi chú
+                    </TableHead>
+                    <TableHead className="pr-4 text-xs font-semibold uppercase tracking-wider text-stone-600 text-right whitespace-nowrap min-w-[180px]">
+                      Thao tác
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredReservations.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="py-12 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={12} className="py-12 text-center text-sm text-muted-foreground">
                         Không có đơn đặt bàn nào khớp với bộ lọc đã chọn.
                       </TableCell>
                     </TableRow>
@@ -1448,9 +1451,9 @@ export function AdminBookingUnifiedView({
                         <TableCell className="text-xs text-muted-foreground">
                           {SOURCE_LABELS[r.source]}
                         </TableCell>
-                        <TableCell className="text-xs">
+                        <TableCell className="text-xs whitespace-nowrap">
                           <div className="flex flex-col gap-1 items-start">
-                            <StatusBadge status={r.status} />
+                            <StatusBadge status={r.status} className="min-w-[96px] justify-center text-center" />
                             {r.survey && (
                               <span className="inline-flex items-center gap-1 rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
                                 <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
@@ -1459,14 +1462,20 @@ export function AdminBookingUnifiedView({
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="pr-4">
-                          <div className="flex flex-wrap items-center gap-1.5">
+                        <TableCell className="text-xs">
+                          <div className="flex items-center gap-1.5 min-w-[180px] max-w-[280px]">
                             {r.allergy && <AllergyBadge allergy={r.allergy} />}
-                            {r.notes && (
-                              <span className="max-w-28 truncate text-xs text-muted-foreground" title={r.notes}>
+                            {r.notes ? (
+                              <span className="truncate text-xs text-muted-foreground" title={r.notes}>
                                 {r.notes}
                               </span>
+                            ) : (
+                              !r.allergy && <span className="text-stone-300 text-xs">—</span>
                             )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="pr-4 whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1">
                             {(r.status === "CONFIRMED" || r.status === "PENDING") && (
                               <Button
                                 variant="outline"

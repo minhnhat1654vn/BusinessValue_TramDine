@@ -270,7 +270,13 @@ export function SlotToggle({
 }
 
 // ---------- Huy trạng thái đặt bàn ----------
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({
+  status,
+  className,
+}: {
+  status: string;
+  className?: string;
+}) {
   const label = STATUS_LABELS[status] ?? status;
   const styles: Record<string, string> = {
     PENDING: "border-[#b45309]/40 bg-[#fdf0d5] text-[#92400e]",
@@ -283,7 +289,7 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge
       variant="outline"
-      className={cn("whitespace-nowrap font-medium", styles[status])}
+      className={cn("whitespace-nowrap font-medium", styles[status], className)}
     >
       {label}
     </Badge>
@@ -291,9 +297,20 @@ export function StatusBadge({ status }: { status: string }) {
 }
 
 // ---------- Huy dị ứng (đỏ nổi bật) ----------
-export function AllergyBadge({ allergy }: { allergy: string }) {
+export function AllergyBadge({
+  allergy,
+  className,
+}: {
+  allergy: string;
+  className?: string;
+}) {
   return (
-    <Badge className="whitespace-nowrap border-[#b3261e] bg-[#b3261e] font-medium text-white hover:bg-[#b3261e]">
+    <Badge
+      className={cn(
+        "whitespace-nowrap border-[#b3261e] bg-[#b3261e] font-medium text-white hover:bg-[#b3261e]",
+        className
+      )}
+    >
       Dị ứng: {allergy}
     </Badge>
   );

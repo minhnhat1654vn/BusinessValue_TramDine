@@ -183,7 +183,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
         <ErrorBlock message={error} onRetry={refresh} />
       ) : (
         <div className="tram-scroll overflow-x-auto rounded-xl border border-border bg-card shadow-sm">
-          <Table className="min-w-[900px]">
+          <Table className="min-w-[1000px]">
             <TableHeader>
               <TableRow className="bg-[#f5efe4] hover:bg-[#f5efe4]">
                 <TableHead className="pl-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
@@ -210,11 +210,14 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                 <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
                   Nguồn
                 </TableHead>
-                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600">
+                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600 min-w-[100px]">
                   Trạng thái
                 </TableHead>
-                <TableHead className="pr-4 text-xs font-semibold uppercase tracking-wider text-stone-600">
+                <TableHead className="text-xs font-semibold uppercase tracking-wider text-stone-600 min-w-[160px]">
                   Ghi chú
+                </TableHead>
+                <TableHead className="pr-4 text-xs font-semibold uppercase tracking-wider text-stone-600 text-right min-w-[120px]">
+                  Thao tác
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -222,7 +225,7 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={11}
                     className="py-10 text-center text-sm text-muted-foreground"
                   >
                     Không có lượt đặt nào khớp bộ lọc ở ngày này.
@@ -264,9 +267,9 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                       {SOURCE_LABELS[r.source]}
                     </Badge>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="whitespace-nowrap">
                     <div className="flex flex-col gap-1 items-start">
-                      <StatusBadge status={r.status} />
+                      <StatusBadge status={r.status} className="min-w-[88px] justify-center" />
                       {r.survey && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900">
                           <Star className="h-3 w-3 fill-amber-500 text-amber-500" />
@@ -275,19 +278,25 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="pr-4">
-                    <div className="flex flex-wrap items-center gap-1.5">
+                  <TableCell>
+                    <div className="flex items-center gap-1.5 max-w-[200px]">
                       {r.allergy && <AllergyBadge allergy={r.allergy} />}
-                      {r.notes && (
-                        <span className="max-w-40 truncate text-xs text-muted-foreground">
+                      {r.notes ? (
+                        <span className="truncate text-xs text-muted-foreground" title={r.notes}>
                           {r.notes}
                         </span>
+                      ) : (
+                        !r.allergy && <span className="text-stone-300 text-xs">—</span>
                       )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="pr-4 whitespace-nowrap text-right">
+                    <div className="flex items-center justify-end gap-1">
                       {(r.status === "CONFIRMED" || r.status === "PENDING") && (
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-7.5 gap-1 rounded-full border-emerald-600/40 bg-emerald-50 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
+                          className="h-7 gap-1 rounded-full border-emerald-600/40 bg-emerald-50 px-2 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
                           onClick={(e) => {
                             e.stopPropagation();
                             void handleCheckin(r.id);
@@ -301,14 +310,14 @@ export function AdminReservationsList({ today }: ReservationsListProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 rounded-full text-[#b45309] hover:bg-[#fdf0d5]"
+                        className="h-7 w-7 rounded-full text-[#b45309] hover:bg-[#fdf0d5]"
                         aria-label={`Xem chi tiết đặt bàn ${r.code}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setDetail(r);
                         }}
                       >
-                        <Eye className="h-4 w-4" aria-hidden />
+                        <Eye className="h-3.5 w-3.5" aria-hidden />
                       </Button>
                     </div>
                   </TableCell>
