@@ -671,9 +671,10 @@ function HeroScreen({
           variants={revealUp}
           className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base"
         >
-          Menu tasting bảy món đưa Quý khách đi qua những vùng vị Việt Nam: từ sông
-          Cửu Long, cao nguyên Bảo Lạc đến nắng gió Quảng Nam — trong không gian
-          trầm lặng giữa lòng thành phố.
+          Thực đơn tasting bảy món tôn vinh những sản vật quý của Việt Nam: từ trứng
+          cá tầm cao nguyên Lâm Đồng, sá sùng Vân Đồn, bào ngư Nha Trang đến yến sào
+          Khánh Hòa, gà Đông Tảo Hưng Yên và trà sen Hồ Tây — một hành trình kết nối
+          tinh hoa nguyên liệu Việt trong không gian ẩm thực đương đại.
         </motion.p>
 
         <motion.div
@@ -711,7 +712,7 @@ function HeroScreen({
           </span>
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
           <span className="inline-flex items-center gap-2">
-            <span className="font-heading text-lg font-semibold text-[#b45309]">42</span>
+            <span className="font-heading text-lg font-semibold text-[#b45309]">40</span>
             chỗ ngồi · 12 bàn
           </span>
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
@@ -778,7 +779,7 @@ function StoryScreen({ active }: { active: boolean }) {
               trọn vẹn của Việt Nam.
             </motion.p>
             <motion.p variants={revealUp}>
-              Với 42 chỗ ngồi và hai khung phục vụ mỗi tối, chúng tôi dành hết sự chú
+              Với 40 chỗ ngồi và hai khung phục vụ mỗi tối, chúng tôi dành hết sự chú
               tâm cho từng khách mời — từ ly rượu đầu tiên đến giọt trà atiso cuối
               cùng của buổi tối.
             </motion.p>
@@ -1114,7 +1115,7 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                   </h3>
                   <ul className="mt-3 space-y-1.5 text-sm text-stone-600">
                     <li className="flex justify-between gap-2">
-                      <span>Thứ Ba → Chủ Nhật</span>
+                      <span>Thứ Tư → Chủ Nhật</span>
                     </li>
                     <li className="flex justify-between gap-2">
                       <span>Khung sớm</span>
@@ -1124,7 +1125,7 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                       <span>Khung trễ</span>
                       <span className="font-medium text-[#92400e]">19:45</span>
                     </li>
-                    <li className="pt-1 text-muted-foreground">Nghỉ thứ Hai hàng tuần</li>
+                    <li className="pt-1 text-muted-foreground">Nghỉ thứ Hai và thứ Ba hàng tuần</li>
                   </ul>
                 </CardContent>
               </Card>

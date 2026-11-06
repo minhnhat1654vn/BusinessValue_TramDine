@@ -43,9 +43,10 @@ export function weekdayOf(iso: string): number {
   return parseISODate(iso).getUTCDay();
 }
 
-/** Nhà hàng nghỉ thứ Hai */
+/** Nhà hàng nghỉ thứ Hai và thứ Ba (mở cửa Thứ Tư → Chủ Nhật theo mô hình 5 tối/tuần) */
 export function isClosedMonday(iso: string): boolean {
-  return weekdayOf(iso) === 1;
+  const wd = weekdayOf(iso);
+  return wd === 1 || wd === 2;
 }
 
 /** Nhãn ngắn: "T6 24/10" */
@@ -78,7 +79,7 @@ export function relativeDayLabel(iso: string, todayISO: string): string {
   return `${Math.abs(diff)} ngày trước`;
 }
 
-/** Định dạng tiền VND: 1.190.000 đ */
+/** Định dạng tiền VND: 1.440.000 đ */
 export function formatVND(amount: number): string {
   const parts = Math.round(amount).toString().split("");
   let out = "";

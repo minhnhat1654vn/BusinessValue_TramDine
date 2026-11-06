@@ -354,7 +354,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           icon={Percent}
           label="Tỷ lệ lấp chỗ TB"
           value={formatPercent(data.occupancyRate)}
-          sub="Các khung giờ có khách · 42 chỗ/khung"
+          sub="Các khung giờ có khách · 40 chỗ/khung"
         />
         <KpiCard
           icon={UserX}
@@ -542,14 +542,14 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                           tickLine={false}
                         />
                         <YAxis domain={[0, 48]} hide />
-                        {/* Đường mục tiêu 36 chỗ (85% của 42 chỗ) */}
+                        {/* Đường mục tiêu 34 chỗ (85% của 40 chỗ) */}
                         <ReferenceLine
-                          y={36}
+                          y={34}
                           stroke="#dc2626"
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: "36 chỗ (85%)",
+                            value: "34 chỗ (85%)",
                             position: "right",
                             fill: "#dc2626",
                             fontSize: 10,
@@ -593,7 +593,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 17:30:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1730Occupied}/42 khách ({p.bar1730}%)
+                                        {p.slot1730Occupied}/40 khách ({p.bar1730}%)
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -602,11 +602,11 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 19:45:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1945Occupied}/42 khách ({p.bar1945}%)
+                                        {p.slot1945Occupied}/40 khách ({p.bar1945}%)
                                       </span>
                                     </div>
                                     <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
-                                      <span className="text-stone-500">Mục tiêu 36 chỗ:</span>
+                                      <span className="text-stone-500">Mục tiêu 34 chỗ:</span>
                                       <span
                                         className={`font-bold ${p.slot1730Occupied >= 36 || p.slot1945Occupied >= 36
                                             ? "text-emerald-700"
@@ -938,7 +938,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               </div>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.190.000 đ) kèm Wine / Tea Pairing của các đơn đặt bàn có hiệu lực.
+              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.440.000 đ) kèm Wine / Tea Pairing của các đơn đặt bàn có hiệu lực.
             </p>
           </CardContent>
         </Card>

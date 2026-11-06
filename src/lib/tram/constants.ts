@@ -6,12 +6,12 @@ export const RESTAURANT = {
   address: "Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh",
   hotline: "0901 234 567",
   email: "hello@tramreserve.vn",
-  totalSeats: 42,
+  totalSeats: 40,
   totalTables: 12,
 } as const;
 
 export const PRICES = {
-  menu: 1_290_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (Bảng B)
+  menu: 1_440_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (1.440.000 đ)
   winePairing: 650_000, // đ/khách
   teaPairing: 350_000, // đ/khách
   deposit: 300_000, // đ/khách

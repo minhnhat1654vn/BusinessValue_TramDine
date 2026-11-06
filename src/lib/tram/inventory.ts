@@ -40,8 +40,8 @@ export interface InventoryStockSpec {
   storageZone: StorageZone;
 }
 
-// Định mức tồn kho chuẩn cho toàn bộ 56 nguyên liệu tại bếp TRẦM (quy mô 42 ghế / ca):
-// - Đạm tươi & bún thủ công: dự trữ cho 75–90 suất; ngưỡng đặt lại là 42 suất (1 ca đầy)
+// Định mức tồn kho chuẩn cho toàn bộ 56 nguyên liệu tại bếp TRẦM (quy mô 40 ghế / ca):
+// - Đạm tươi & bún thủ công: dự trữ cho 75–90 suất; ngưỡng đặt lại là 40 suất (1 ca đầy)
 // - Rau rừng, thảo mộc & trái cây tươi: dự trữ 80–150 suất trong kho mát; ngưỡng đặt lại 35–45 suất
 // - Đồ khô, gia vị ủ chum & tinh chất trầm hương: dự trữ 120–400 suất; ngưỡng an toàn 30–40% tồn chuẩn
 export const INVENTORY_STOCK_SPECS: InventoryStockSpec[] = [

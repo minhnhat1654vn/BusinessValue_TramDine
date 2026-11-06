@@ -1,7 +1,7 @@
 "use client";
 
 // FR-28 — Giá vốn nguyên liệu: tự tính giá vốn mỗi khách từ đơn giá nhập kho,
-// giao diện bếp & đối chiếu trực tiếp với giá menu tasting (1.190.000 đ/khách, mục tiêu 33,5%).
+// giao diện bếp & đối chiếu trực tiếp với giá menu tasting (1.440.000 đ/khách, mục tiêu 34,7%).
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -160,7 +160,7 @@ const GROUP_SECTION_STYLES: Record<
   },
 };
 
-const QUICK_GUESTS = [1, 4, 10, 42];
+const QUICK_GUESTS = [1, 4, 10, 40];
 
 type WarehouseScope = "ALL" | "STANDARD" | "CUSTOM";
 
@@ -463,7 +463,7 @@ export function AdminFoodCost({
                       : "border-border bg-background text-stone-600 hover:border-[#b45309]/50 hover:text-[#92400e]",
                   )}
                 >
-                  {n === 42 ? "42 · đủ ca" : `${n} khách`}
+                  {n === 40 ? "40 · đủ ca" : `${n} khách`}
                 </button>
               ))}
             </div>

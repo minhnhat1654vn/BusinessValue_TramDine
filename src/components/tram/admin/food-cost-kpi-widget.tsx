@@ -166,7 +166,7 @@ export function FoodCostKpiWidget({
   const deltaCost = simulatedCostPerGuest - baselineCostPerGuest;
   const deltaGrossProfit = simulatedGrossProfit - baselineGrossProfit;
   const deltaFoodCostPct = Number((simulatedFoodCostPct - baselineFoodCostPct).toFixed(1));
-  const shiftImpact = deltaGrossProfit * 42; // Tác động 1 ca 42 khách chuẩn
+  const shiftImpact = deltaGrossProfit * 40; // Tác động 1 ca 40 khách chuẩn
 
   const bufferPct = Number((TARGET_FOOD_COST_CEILING_PCT - simulatedFoodCostPct).toFixed(1));
   const bufferVND = Math.round(simMenuPrice * 0.5 - simulatedCostPerGuest);
@@ -174,20 +174,20 @@ export function FoodCostKpiWidget({
   // Dữ liệu cho Biểu đồ Cột Chồng What-if (Recharts BarChart)
   // Luôn đảm bảo có 4 cột so sánh trực quan, trong đó 1 cột luôn đại diện cho simMenuPrice đang kéo
   const scenarioChartData = useMemo(() => {
-    const basePillars = [1_000_000, 1_190_000, 1_350_000, 1_600_000];
+    const basePillars = [1_000_000, 1_200_000, 1_440_000, 1_700_000];
     let chartPrices: number[];
     if (basePillars.includes(simMenuPrice)) {
       chartPrices = basePillars;
     } else {
-      // Thay thế cột đối chiếu tương ứng để bảo toàn mốc gốc 1.190k và giữ đúng 4 cột đều đẹp
-      if (simMenuPrice < 1_190_000) {
-        chartPrices = [simMenuPrice, 1_190_000, 1_350_000, 1_600_000];
-      } else if (simMenuPrice < 1_350_000) {
-        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_500_000];
-      } else if (simMenuPrice < 1_600_000) {
-        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_800_000];
+      // Thay thế cột đối chiếu tương ứng để bảo toàn mốc gốc 1.440k và giữ đúng 4 cột đều đẹp
+      if (simMenuPrice < 1_200_000) {
+        chartPrices = [simMenuPrice, 1_200_000, 1_440_000, 1_700_000];
+      } else if (simMenuPrice < 1_440_000) {
+        chartPrices = [1_000_000, simMenuPrice, 1_440_000, 1_700_000];
+      } else if (simMenuPrice < 1_700_000) {
+        chartPrices = [1_000_000, 1_200_000, 1_440_000, simMenuPrice];
       } else {
-        chartPrices = [1_000_000, 1_190_000, 1_400_000, simMenuPrice];
+        chartPrices = [1_000_000, 1_200_000, 1_440_000, simMenuPrice];
       }
     }
 
@@ -637,7 +637,7 @@ export function FoodCostKpiWidget({
                     />
                     <div className="flex justify-between text-[10px] text-stone-500 font-medium pt-1">
                       <span>800.000 đ</span>
-                      <span className="text-[#92400e] font-semibold">1.190.000 đ (Gốc)</span>
+                      <span className="text-[#92400e] font-semibold">1.440.000 đ (Gốc)</span>
                       <span>2.000.000 đ</span>
                     </div>
                   </div>
@@ -966,7 +966,7 @@ export function FoodCostKpiWidget({
                         </strong>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-amber-200">
-                        <span className="text-stone-600">Δ 1 ca (42 khách):</span>
+                        <span className="text-stone-600">Δ 1 ca (40 khách):</span>
                         <strong
                           className={cn(
                             "font-bold",

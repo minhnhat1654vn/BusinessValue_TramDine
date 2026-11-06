@@ -458,7 +458,7 @@ export function AdminGoldenHourView({ today, onNavigateTab }: GoldenHourViewProp
                         >
                           {formatPercent(slot.occupancyPct, 1)}{" "}
                           <span className="text-[11px] font-normal text-muted-foreground">
-                            ({slot.bookedSeats}/42 chỗ)
+                            ({slot.bookedSeats}/{slot.capacity} chỗ)
                           </span>
                         </span>
                       </div>
@@ -580,7 +580,7 @@ export function AdminGoldenHourView({ today, onNavigateTab }: GoldenHourViewProp
                         {camp.discountSummary}
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono font-semibold tabular-nums text-amber-700">
-                        {formatPercent(camp.occupancyAtLaunch, 1)} ({camp.bookedSeatsAtLaunch}/42)
+                        {formatPercent(camp.occupancyAtLaunch, 1)} ({camp.bookedSeatsAtLaunch}/40)
                       </td>
                       <td className="py-2.5 px-3 text-right font-bold tabular-nums text-[#0068ff]">
                         {camp.sentCount} tin

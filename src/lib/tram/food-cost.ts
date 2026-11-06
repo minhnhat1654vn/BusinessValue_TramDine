@@ -1,6 +1,6 @@
 // FR-28 — Giá vốn nguyên liệu: tự tính giá vốn mỗi khách từ đơn giá nhập kho
-// và đối chiếu với giá bán menu tasting "Hành trình vị Việt" (1.190.000 đ/khách)
-// cùng ngưỡng mục tiêu food cost 33,5%.
+// và đối chiếu với giá bán menu tasting "Hành trình vị Việt" (1.440.000 đ/khách)
+// cùng ngưỡng mục tiêu food cost 34,7%.
 
 import { MENU_ITEMS, PRICES } from "./constants";
 import { formatVND } from "./format";
@@ -20,22 +20,22 @@ import {
 
 // ---------- Hằng số nghiệp vụ đối chiếu ----------
 
-export const MENU_PRICE_PER_GUEST = PRICES.menu; // 1.190.000 đ/khách
+export const MENU_PRICE_PER_GUEST = PRICES.menu; // 1.440.000 đ/khách
 export const WINE_PAIRING_PRICE = PRICES.winePairing; // 650.000 đ/khách
 export const TEA_PAIRING_PRICE = PRICES.teaPairing; // 350.000 đ/khách
 
-/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục Bảng B: 36,7% trên giá menu 1.290.000 đ) */
-export const TARGET_FOOD_COST_PCT = 36.7;
+/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục tiêu P&L thực tế: 34,7% trên giá menu 1.440.000 đ) */
+export const TARGET_FOOD_COST_PCT = 34.7;
 
 /** Trần mục tiêu KPI food cost theo FR-33 (ngưỡng an toàn tối đa 50% doanh thu menu) */
 export const TARGET_FOOD_COST_CEILING_PCT = 50;
 
-/** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.290.000 × 36,7% = 472.975 đ */
+/** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.440.000 × 34,7% = 499.680 đ */
 export const TARGET_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_PCT) / 100,
 );
 
-/** Trần giá vốn tối đa theo ngưỡng mục tiêu 50%: 1.190.000 × 50% = 595.000 đ */
+/** Trần giá vốn tối đa theo ngưỡng mục tiêu 50%: 1.440.000 × 50% = 720.000 đ */
 export const CEILING_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_CEILING_PCT) / 100,
 );
@@ -598,13 +598,13 @@ export function isValidDishIndex(index: number): boolean {
 export interface FoodCostKpiSummary {
   /** Giá vốn nguyên liệu 1 khách (Tầng 1): Tổng định lượng × đơn giá trên 7 món */
   costPerGuest: number;
-  /** Giá bán 1 suất menu (mặc định 1.190.000 đ) */
+  /** Giá bán 1 suất menu (mặc định 1.440.000 đ) */
   menuPricePerGuest: number;
   /** Tỷ lệ Food Cost % (Tầng 2): Giá vốn ÷ Giá menu × 100 */
   foodCostPct: number;
   /** Trần mục tiêu theo FR-33 (50%) */
   targetCeilingPct: number;
-  /** Mục tiêu lý tưởng chuẩn (33,5%) */
+  /** Mục tiêu lý tưởng chuẩn (34,7%) */
   targetStandardPct: number;
   /** Đạt mục tiêu nếu foodCostPct <= 50% */
   isWithinTarget: boolean;

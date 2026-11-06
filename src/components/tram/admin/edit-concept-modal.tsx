@@ -57,8 +57,8 @@ export function EditConceptModal({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [weekLabel, setWeekLabel] = useState("");
-  const [sellingPrice, setSellingPrice] = useState("1190000");
-  const [targetFoodCostPct, setTargetFoodCostPct] = useState("33.5");
+  const [sellingPrice, setSellingPrice] = useState("1440000");
+  const [targetFoodCostPct, setTargetFoodCostPct] = useState("34.7");
   const [submitting, setSubmitting] = useState(false);
 
   const toVnDate = (iso: string) => {
@@ -74,8 +74,8 @@ export function EditConceptModal({
       setStartDate(concept.startDate || "");
       setEndDate(concept.endDate || "");
       setWeekLabel(concept.weekLabel || "");
-      setSellingPrice(String(concept.sellingPrice || 1190000));
-      setTargetFoodCostPct(String(concept.targetFoodCostPct || 33.5));
+      setSellingPrice(String(concept.sellingPrice || 1440000));
+      setTargetFoodCostPct(String(concept.targetFoodCostPct || 34.7));
     }
   }, [concept, open]);
 
@@ -111,8 +111,8 @@ export function EditConceptModal({
           startDate: startDate || undefined,
           endDate: endDate || undefined,
           weekLabel: weekLabel.trim(),
-          sellingPrice: Number(sellingPrice) || 1190000,
-          targetFoodCostPct: Number(targetFoodCostPct) || 33.5,
+          sellingPrice: Number(sellingPrice) || 1440000,
+          targetFoodCostPct: Number(targetFoodCostPct) || 34.7,
         }),
       });
 
@@ -229,7 +229,7 @@ export function EditConceptModal({
                   type="number"
                   value={sellingPrice}
                   onChange={(e) => setSellingPrice(e.target.value)}
-                  placeholder="1190000"
+                  placeholder="1440000"
                   className="h-9 text-xs"
                 />
               </div>

@@ -6,6 +6,7 @@ import { ACTIVE_STATUSES, serializeReservation } from "@/lib/tram/server";
 import { getActiveHold } from "@/lib/tram/hold-manager";
 import { checkDateBookingAllowed } from "@/lib/tram/booking-settings";
 import { getBookingSettings } from "@/lib/tram/booking-settings-server";
+import { RESTAURANT } from "@/lib/tram/constants";
 import type {
   AvailabilityResponse,
   SlotSummary,
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
         closeMessage: dateCheck.message,
         slots: (["SLOT_1730", "SLOT_1945"] as Slot[]).map((s) => ({
           slot: s,
-          capacity: 42,
+          capacity: RESTAURANT.totalSeats,
           bookedSeats: 0,
           remainingSeats: 0,
         })),

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { MAX_SCALE_GUESTS } from "@/lib/tram/recipes";
+import { RESTAURANT } from "@/lib/tram/constants";
 import { getIngredientPriceOverrides } from "@/lib/tram/food-cost-server";
 import { getInventoryStockOverrides } from "@/lib/tram/inventory-server";
 import { calculateShiftPurchaseReport } from "@/lib/tram/purchase";
@@ -50,8 +51,8 @@ export async function GET(request: Request) {
       });
 
       const actualGuests = reservations.reduce((sum, r) => sum + r.partySize, 0);
-      // Nếu ca chưa có khách đặt thì mặc định kiểm tra định mức cho 1 ca đầy (42 khách)
-      guests = actualGuests > 0 ? actualGuests : 42;
+      // Nếu ca chưa có khách đặt thì mặc định kiểm tra định mức cho 1 ca đầy (40 khách)
+      guests = actualGuests > 0 ? actualGuests : RESTAURANT.totalSeats;
     }
 
     const stockStored = getInventoryStockOverrides();

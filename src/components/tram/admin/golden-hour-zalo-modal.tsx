@@ -178,7 +178,7 @@ export function GoldenHourZaloModal({
                       slot.occupancyPct <= 50 ? "text-amber-700" : "text-emerald-700",
                     )}
                   >
-                    {formatPercent(slot.occupancyPct, 1)} ({slot.bookedSeats}/42 chỗ)
+                    {formatPercent(slot.occupancyPct, 1)} ({slot.bookedSeats}/{slot.capacity} chỗ)
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-rose-700 font-semibold">
@@ -391,7 +391,7 @@ export function GoldenHourZaloModal({
                       Ca chiều <strong>17:30 {slot.weekdayLabel}</strong> (ngày{" "}
                       {slot.date.split("-").reverse().join("/")}) hiện mới có{" "}
                       <strong>{slot.bookedSeats} khách</strong> — còn lại{" "}
-                      <strong className="text-rose-700">{slot.availableSeats} chỗ trống</strong> / 42 chỗ tiêu chuẩn.
+                      <strong className="text-rose-700">{slot.availableSeats} chỗ trống</strong> / {slot.capacity} chỗ tiêu chuẩn.
                     </p>
                     <div className="h-1.5 w-full rounded-full bg-stone-200 overflow-hidden">
                       <div

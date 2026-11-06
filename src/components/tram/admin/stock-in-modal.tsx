@@ -664,7 +664,7 @@ export function StockInModal({
                     </div>
                     <p className="text-stone-700 leading-relaxed text-[10.5px]">
                       Lượng tồn sau nhập ({formatQty(newStock, unit as any)}) vượt quá định mức dự trữ tối ưu ({formatQty(defaultStock, unit as any)}).
-                      {estimatedServings ? ` Lượng này đủ phục vụ tới ${estimatedServings} suất ăn tasting (${(estimatedServings / 42).toFixed(1)} ca tối).` : ""}
+                      {estimatedServings ? ` Lượng này đủ phục vụ tới ${estimatedServings} suất ăn tasting (${(estimatedServings / 40).toFixed(1)} ca tối).` : ""}
                       {" "}Giá trị hàng dư thừa ước tính <strong>{formatVND(surplusCost)}</strong>, có nguy cơ tồn đọng vốn và giảm độ tươi mới của nguyên liệu.
                     </p>
                     {recommendedOptimalQty > 0 && recommendedOptimalQty < quantity && (

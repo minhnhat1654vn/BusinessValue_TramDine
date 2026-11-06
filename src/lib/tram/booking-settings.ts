@@ -74,12 +74,12 @@ export function checkDateBookingAllowed(
     };
   }
 
-  // 4. Nghỉ Thứ Hai định kỳ
+  // 4. Nghỉ Thứ Hai và Thứ Ba định kỳ (mở cửa Thứ Tư → Chủ Nhật)
   if (!settings.allowMonday && isClosedMonday(iso)) {
     return {
       allowed: false,
       reason: "CLOSED_MONDAY",
-      message: "TRẦM mở cửa Thứ Ba → Chủ Nhật (nghỉ Thứ Hai).",
+      message: "TRẦM mở cửa Thứ Tư → Chủ Nhật (nghỉ Thứ Hai và Thứ Ba).",
     };
   }
 

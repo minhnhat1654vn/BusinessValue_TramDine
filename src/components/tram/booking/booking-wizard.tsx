@@ -57,6 +57,7 @@ import { cn } from "@/lib/utils";
 import {
   MENU_ITEMS,
   PRICES,
+  RESTAURANT,
   SLOT_TIMES,
   PAIRING_LABELS,
 } from "@/lib/tram/constants";
@@ -814,7 +815,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   1. Ngày &amp; khung giờ
                 </h2>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  TRẦM mở cửa tối Thứ Ba → Chủ Nhật (nghỉ thứ Hai), mỗi tối 2
+                  TRẦM mở cửa tối Thứ Tư → Chủ Nhật (nghỉ thứ Hai, thứ Ba), mỗi tối 2
                   khung.
                 </p>
 
@@ -926,7 +927,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">
-                            42 chỗ
+                            {RESTAURANT.totalSeats} chỗ
                           </span>
                         )}
                       </button>

@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | TRẦM Reserve",
   },
   description:
-    "TRẦM Reserve — Hệ thống đặt bàn trực tuyến & quản trị vận hành nhà hàng Fine Dining Việt Nam tại Quận 3, TP. Hồ Chí Minh. Menu tasting 7 món 'Hành trình vị Việt' (1.190.000 đ/khách), đặt cọc và nhắc lịch tự động.",
+    "TRẦM Reserve — Hệ thống đặt bàn trực tuyến & quản trị vận hành nhà hàng Fine Dining Việt Nam tại Quận 3, TP. Hồ Chí Minh. Menu tasting 7 món 'Hành trình vị Việt' (1.440.000 đ/khách), đặt cọc và nhắc lịch tự động.",
   keywords: [
     "TRẦM",
     "TRẦM Reserve",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TRẦM Reserve — Hành trình vị Việt | Fine Dining Quận 3",
     description:
-      "Menu tasting 7 món 1.190.000 đ/khách · Đặt bàn trực tuyến & Quản trị công suất nhà hàng.",
+      "Menu tasting 7 món 1.440.000 đ/khách · Đặt bàn trực tuyến & Quản trị công suất nhà hàng.",
   },
   robots: {
     index: true,

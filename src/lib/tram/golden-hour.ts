@@ -61,7 +61,7 @@ export interface GoldenHourShiftSlot {
   shortWeekdayLabel: string; // "T4", "T5", "T6"
   slot: "SLOT_1730";
   slotLabel: string; // "17:30"
-  capacity: number; // 42 chỗ
+  capacity: number; // 40 chỗ
   bookedSeats: number;
   availableSeats: number;
   occupancyPct: number; // % lấp đầy hiện thời
@@ -138,7 +138,7 @@ export function buildGoldenHourZaloMessage(params: {
 
 Kính gửi ${customerName},
 
-TRẦM trân trọng thông báo: Ca chiều 17:30 ${slot.weekdayLabel} (ngày ${slot.date.split("-").reverse().join("/")}) hiện đang đạt tỷ lệ lấp đầy ${formatPercent(slot.occupancyPct, 1)} (chỉ còn lại ${slot.availableSeats} chỗ trống / 42 chỗ).
+TRẦM trân trọng thông báo: Ca chiều 17:30 ${slot.weekdayLabel} (ngày ${slot.date.split("-").reverse().join("/")}) hiện đang đạt tỷ lệ lấp đầy ${formatPercent(slot.occupancyPct, 1)} (chỉ còn lại ${slot.availableSeats} chỗ trống / ${slot.capacity} chỗ).
 
 Nhằm tối ưu trải nghiệm ẩm thực thư thái vào đầu buổi tối, TRẦM dành tặng Thượng khách mã Voucher Khung Giờ Vàng độc quyền:
 
@@ -206,7 +206,7 @@ export function evaluateGoldenHourShifts(params: {
     if (!config.applicableDays.includes(wd)) continue;
 
     const booked = bookedByDate.get(isoDate) ?? 0;
-    const capacity = 42; // Cố định 12 bàn 42 chỗ
+    const capacity = RESTAURANT.totalSeats; // Cố định 12 bàn 40 chỗ
     const available = Math.max(0, capacity - booked);
     const occupancyPct = Number(((booked / capacity) * 100).toFixed(1));
 

@@ -261,7 +261,7 @@ export const CONCEPT2_INGREDIENTS = [
     unit: "g",
     group: "PRODUCE",
     spec: "Nội địa · Vừng rang, cánh hoa, bánh kẹp giòn",
-    defaultImportPrice: 1000000, // 1.000 đ/phần
+    defaultImportPrice: 1005000, // 1.005 đ/phần
     currentStock: 1000,
     minStock: 200,
   },
@@ -361,7 +361,7 @@ export const CONCEPT2_INGREDIENTS = [
   },
 ];
 
-// Bảng B: Menu Tiến Vua · Bảy Báu Vật Việt (1.290.000 đ/khách) — Đúng 35 dòng định lượng
+// Bảng B: Menu Tiến Vua · Bảy Báu Vật Việt (1.440.000 đ/khách) — Đúng 35 dòng định lượng
 export const CONCEPT2_DISHES = [
   {
     dishIndex: 1,
@@ -376,7 +376,7 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Chuẩn vị fine dining",
         lines: [
-          { ingredientId: "caviar-lam-dong", qtyPerGuest: 4, unit: "g", prepNote: "Hũ caviar Lâm Đồng trung cấp lai ướp lạnh" },
+          { ingredientId: "caviar-lam-dong", qtyPerGuest: 4.5, unit: "g", prepNote: "Hũ caviar Lâm Đồng trung cấp lai ướp lạnh" },
           { ingredientId: "banh-da-nem", qtyPerGuest: 30, unit: "g", prepNote: "Đế bánh đa nem nướng giòn" },
           { ingredientId: "kem-chua", qtyPerGuest: 15, unit: "g", prepNote: "Kem chua Tatua đánh bông mịn" },
           { ingredientId: "tra-shan-tuyet", qtyPerGuest: 5, unit: "g", prepNote: "Nghi thức trà chào mừng dùng chung cả menu" },
@@ -422,7 +422,7 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Vị ngọt men nồng nàn",
         lines: [
-          { ingredientId: "bao-ngu-nha-trang", qtyPerGuest: 65, unit: "g", prepNote: "Bào ngư biển lạnh Nha Trang nguyên con ~65g làm sạch" },
+          { ingredientId: "bao-ngu-nha-trang", qtyPerGuest: 75, unit: "g", prepNote: "Bào ngư biển lạnh Nha Trang nguyên con ~75g làm sạch" },
           { ingredientId: "ruou-nep-cai", qtyPerGuest: 30, unit: "ml", prepNote: "Rượu nếp cái hoa vàng nướng ấm khử tanh" },
           { ingredientId: "nuoc-cot-ga-ta", qtyPerGuest: 20, unit: "ml", prepNote: "Nước cốt gà thả vườn chưng cô đặc phân bổ" },
           { ingredientId: "gia-vi-mon-3", qtyPerGuest: 1, unit: "g", prepNote: "Hành boa rô 10g" },
@@ -444,7 +444,7 @@ export const CONCEPT2_DISHES = [
         note: "Nước dùng trong vắt, bốc khói nghi ngút",
         lines: [
           { ingredientId: "yen-sao-khanh-hoa", qtyPerGuest: 2.5, unit: "g", prepNote: "Yến sào tinh chế Khánh Hòa chưng cách thủy" },
-          { ingredientId: "sen-co-ngu", qtyPerGuest: 8, unit: "g", prepNote: "Hạt sen Cổ Ngự Hồ Tây tuyển chọn hấp bở" },
+          { ingredientId: "sen-co-ngu", qtyPerGuest: 15, unit: "g", prepNote: "Hạt sen Cổ Ngự Hồ Tây tuyển chọn hấp bở" },
           { ingredientId: "ga-ta-nuoc-dung", qtyPerGuest: 75, unit: "g", prepNote: "Nước dùng gà ta thả vườn chưng 6 giờ phân bổ" },
           { ingredientId: "gia-vi-mon-4", qtyPerGuest: 1, unit: "g", prepNote: "Hành khô nướng 4g, gừng 2g" },
         ],
@@ -464,7 +464,7 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Thăn cá mọng nước, da giòn rụm",
         lines: [
-          { ingredientId: "ca-tam-da-lat", qtyPerGuest: 100, unit: "g", prepNote: "Fillet cá tầm Lâm Đồng áp chảo da giòn" },
+          { ingredientId: "ca-tam-da-lat", qtyPerGuest: 110, unit: "g", prepNote: "Fillet cá tầm Lâm Đồng áp chảo da giòn" },
           { ingredientId: "bo-lat-president", qtyPerGuest: 15, unit: "g", prepNote: "Bơ lạt President Pháp áp chảo" },
           { ingredientId: "chanh-day-cot", qtyPerGuest: 15, unit: "g", prepNote: "Cốt chanh dây Đà Lạt tạo vị chua thanh" },
           { ingredientId: "hat-dieu-rang-muoi", qtyPerGuest: 10, unit: "g", prepNote: "Hạt điều rang muối Bình Phước rắc giòn" },
@@ -507,7 +507,7 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Hương vị cung đình tao nhã",
         lines: [
-          { ingredientId: "nhan-long-hung-yen", qtyPerGuest: 160, unit: "g", prepNote: "Nhãn lồng Hưng Yên sơ chế tách hạt" },
+          { ingredientId: "nhan-long-hung-yen", qtyPerGuest: 165, unit: "g", prepNote: "Nhãn lồng Hưng Yên sơ chế tách hạt" },
           { ingredientId: "kem-tuoi-whipping", qtyPerGuest: 20, unit: "g", prepNote: "Kem tươi whipping Anchor New Zealand làm kem trầm" },
           { ingredientId: "huong-tram-tam-uop", qtyPerGuest: 1, unit: "g", prepNote: "Hương trầm tẩm ướp phân bổ theo phần" },
           { ingredientId: "phu-trang-tri-trang-mieng", qtyPerGuest: 1, unit: "g", prepNote: "Phụ trang trí tráng miệng (vừng rang, hoa, bánh kẹp)" },

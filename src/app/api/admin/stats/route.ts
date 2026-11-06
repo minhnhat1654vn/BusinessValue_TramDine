@@ -14,7 +14,7 @@ import {
   toISODate,
   weekdayOf,
 } from "@/lib/tram/format";
-import { PRICES } from "@/lib/tram/constants";
+import { PRICES, RESTAURANT } from "@/lib/tram/constants";
 import { getFoodCostKpiSummary } from "@/lib/tram/food-cost";
 import { getIngredientPriceOverrides } from "@/lib/tram/food-cost-server";
 import type {
@@ -23,7 +23,7 @@ import type {
   SourceShare,
 } from "@/lib/tram/types";
 
-const SEATS_PER_SLOT = 42; // 5×2 + 5×4 + 2×6
+const SEATS_PER_SLOT = RESTAURANT.totalSeats; // 40 chỗ (12 bàn)
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

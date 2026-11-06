@@ -2,6 +2,7 @@
 // Hỗ trợ GET (quét ca T4-T6, tính occupancy), POST (tung voucher & bắn Zalo), PUT (cấu hình dải %)
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { RESTAURANT } from "@/lib/tram/constants";
 import {
   evaluateGoldenHourShifts,
   formatGoldenHourDiscount,
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
     });
 
     const bookedSeats = reservations.reduce((sum, r) => sum + r.partySize, 0);
-    const capacity = 42;
+    const capacity = RESTAURANT.totalSeats;
     const availableSeats = Math.max(0, capacity - bookedSeats);
     const occupancyPct = Number(((bookedSeats / capacity) * 100).toFixed(1));
 
