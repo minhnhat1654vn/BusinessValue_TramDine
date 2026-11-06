@@ -127,7 +127,7 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
       {
         key: "food-cost",
         label: "Phân tích Food Cost",
-        description: "Mục tiêu 33,5% · Cơ cấu chi phí",
+        description: "Mục tiêu 28% (P&L 28%–35%) · Cơ cấu chi phí",
         icon: Calculator,
       },
     ],

@@ -41,9 +41,14 @@ interface SelectedDishSummary {
 interface CompletionViewProps {
   reservation: ReservationDTO;
   onGoHome: () => void;
+  programName?: string;
 }
 
-export function CompletionView({ reservation, onGoHome }: CompletionViewProps) {
+export function CompletionView({
+  reservation,
+  onGoHome,
+  programName,
+}: CompletionViewProps) {
   const [preview, setPreview] = useState<"email" | "zalo">("email");
 
   const r = reservation;
@@ -53,6 +58,8 @@ export function CompletionView({ reservation, onGoHome }: CompletionViewProps) {
   const dateLabel = formatLongDate(r.date);
   const dayBefore48 = addDays(r.date, -2);
   const dayBefore24 = addDays(r.date, -1);
+
+  const conceptName = programName || "Hành trình vị Việt";
   const pairingPrice = pairingPriceOf(r.pairing);
   const total = r.partySize * (PRICES.menu + pairingPrice);
 
@@ -94,7 +101,7 @@ ${isDepositExempt ? "Đặc quyền VIP: Quý khách được miễn 100% tiền
 Quý khách vui lòng đến trước khung giờ 10 phút để được hướng dẫn chỗ ngồi.
 
 Trân trọng,
-TRẦM — Hành trình vị Việt
+TRẦM — ${conceptName}
 ${RESTAURANT.address} · Hotline ${RESTAURANT.hotline}`;
 
   // Nội dung tin nhắn Zalo nhắc lịch (mô phỏng)
@@ -105,7 +112,7 @@ Chào ${r.customerName}, TRẦM hẹn gặp Quý khách:
 ▪ ${weekday} · ${dateLabel.split(", ")[1]}
 ▪ Khung ${slotTime} · Bàn ${r.table.code}
 ▪ ${r.partySize} khách · Mã ${r.code}
-▪ Menu 7 món "Hành trình vị Việt" (đã lưu vào hệ thống bếp)
+▪ Menu 7 món "${conceptName}" (đã lưu vào hệ thống bếp)
 ▪ Cọc đã nhận: ${formatVND(r.depositAmount)}
 
 ${isDepositExempt ? "Quý khách được áp dụng đặc quyền Miễn cọc VIP Nam Trầm." : "Quý khách vui lòng đến trước 10 phút. Hủy/đổi lịch trước 48 giờ để được hoàn cọc."} Hotline ${RESTAURANT.hotline}.`;

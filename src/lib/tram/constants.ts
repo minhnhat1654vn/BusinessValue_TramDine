@@ -11,7 +11,7 @@ export const RESTAURANT = {
 } as const;
 
 export const PRICES = {
-  menu: 1_190_000, // đ/khách — menu tasting "Hành trình vị Việt"
+  menu: 1_290_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (Bảng B)
   winePairing: 650_000, // đ/khách
   teaPairing: 350_000, // đ/khách
   deposit: 300_000, // đ/khách

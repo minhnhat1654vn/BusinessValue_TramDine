@@ -419,7 +419,7 @@ export function FoodCostKpiWidget({
               </div>
               <div className="flex justify-between text-[10px] tabular-nums text-stone-500 font-medium">
                 <span>0%</span>
-                <span className="text-emerald-700">Lý tưởng ≤ 33,5%</span>
+                <span className="text-emerald-700">Mục tiêu ≤ {TARGET_FOOD_COST_PCT}%</span>
                 <span className="font-bold text-rose-700">Trần 50%</span>
                 <span>100%</span>
               </div>

@@ -477,6 +477,21 @@ export async function setActiveConcept(conceptId: string): Promise<MenuConcept> 
         },
       });
     });
+  } else {
+    // Nếu Concept chưa có danh sách món riêng, vẫn luôn đồng bộ tên chương trình vào CSDL BookingSetting
+    try {
+      await db.bookingSetting.upsert({
+        where: { id: "default" },
+        update: { programName: target.name },
+        create: {
+          id: "default",
+          programName: target.name,
+          programEnabled: true,
+        },
+      });
+    } catch (e) {
+      console.warn("Could not sync programName to BookingSetting:", e);
+    }
   }
 
   return target;

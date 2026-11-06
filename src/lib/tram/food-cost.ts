@@ -24,13 +24,13 @@ export const MENU_PRICE_PER_GUEST = PRICES.menu; // 1.190.000 đ/khách
 export const WINE_PAIRING_PRICE = PRICES.winePairing; // 650.000 đ/khách
 export const TEA_PAIRING_PRICE = PRICES.teaPairing; // 350.000 đ/khách
 
-/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục 5 & FR-33 tài liệu FR) */
-export const TARGET_FOOD_COST_PCT = 33.5;
+/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục Bảng B: 36,7% trên giá menu 1.290.000 đ) */
+export const TARGET_FOOD_COST_PCT = 36.7;
 
 /** Trần mục tiêu KPI food cost theo FR-33 (ngưỡng an toàn tối đa 50% doanh thu menu) */
 export const TARGET_FOOD_COST_CEILING_PCT = 50;
 
-/** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.190.000 × 33,5% = 398.650 đ */
+/** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.290.000 × 36,7% = 472.975 đ */
 export const TARGET_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_PCT) / 100,
 );

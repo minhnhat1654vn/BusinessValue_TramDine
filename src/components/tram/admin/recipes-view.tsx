@@ -403,9 +403,13 @@ export function AdminRecipes({
 
   // Món đang chọn
   // ---------- TÍNH TOÁN FOOD COST & GIÁ VỐN TRỰC TIẾP TRÊN BOM ----------
-  const MENU_SELLING_PRICE = 1190000;
-  const TARGET_FOOD_COST_PCT = 33.5;
-  const TARGET_FOOD_COST_VND = 398650;
+  const selectedConcept = useMemo(
+    () => concepts.find((c) => c.id === selectedConceptId),
+    [concepts, selectedConceptId]
+  );
+  const MENU_SELLING_PRICE = selectedConcept?.sellingPrice || 1190000;
+  const TARGET_FOOD_COST_PCT = selectedConcept?.targetFoodCostPct || 28.0;
+  const TARGET_FOOD_COST_VND = Math.round((MENU_SELLING_PRICE * TARGET_FOOD_COST_PCT) / 100);
 
   // 1. Giá vốn từng món theo định lượng BOM
   const dishCostMap = useMemo(() => {
@@ -909,7 +913,7 @@ export function AdminRecipes({
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {viewMode === "food-cost"
-              ? "Định mức chi phí thực phẩm mục tiêu 33,5% · Đối soát giá bán 1.190.000 đ/khách"
+              ? `Định mức chi phí thực phẩm mục tiêu ${TARGET_FOOD_COST_PCT}% · Đối soát giá bán ${formatVND(MENU_SELLING_PRICE)}/khách`
               : `Quản lý Concept thực đơn theo mùa · Thiết kế món ăn & định lượng nguyên liệu (${bomData?.dishes?.length ?? 0} món)`}
           </p>
         </div>
@@ -1142,8 +1146,8 @@ export function AdminRecipes({
                 id: "food-cost",
                 label: scaled ? `Giá vốn (${guests} khách)` : "Giá vốn / 1 suất",
                 value: formatVND(scaled ? totalFoodCost * guests : totalFoodCost),
-                sub: `${actualFoodCostPct}% giá bán 1.190.000 đ · Mục tiêu 33,5%`,
-                tone: actualFoodCostPct <= 34 ? "good" : "warn",
+                sub: `${actualFoodCostPct}% giá bán ${formatVND(MENU_SELLING_PRICE)} · Mục tiêu ${TARGET_FOOD_COST_PCT}%`,
+                tone: actualFoodCostPct <= 35 ? "good" : "warn",
                 icon: Calculator,
               },
               {
@@ -1601,24 +1605,28 @@ export function AdminRecipes({
                 <div>
                   <CardTitle className="flex items-center gap-2 font-heading text-lg font-bold tracking-wide text-[#292524]">
                     <Calculator className="h-4 w-4 text-[#7c2d12]" />
-                    Đối chiếu Food Cost thực tế &amp; Mục tiêu 33,5%
+                    Đối chiếu Food Cost thực tế &amp; Mục tiêu {TARGET_FOOD_COST_PCT}%
                   </CardTitle>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Giá bán menu Tasting: {formatVND(MENU_SELLING_PRICE)} · Trần chi phí chuẩn:{" "}
+                    Giá bán menu Tasting: {formatVND(MENU_SELLING_PRICE)} · Trần chi phí chuẩn ({TARGET_FOOD_COST_PCT}%):{" "}
                     {formatVND(TARGET_FOOD_COST_VND)} / khách
                   </p>
                 </div>
                 <span
                   className={cn(
                     "self-start rounded-sm border px-2.5 py-1 font-heading text-xs font-semibold sm:self-auto",
-                    actualFoodCostPct <= 33.5
+                    actualFoodCostPct <= TARGET_FOOD_COST_PCT
                       ? "border-emerald-700/30 bg-emerald-50 text-emerald-800"
-                      : "border-rose-700/30 bg-rose-50 text-rose-800",
+                      : actualFoodCostPct <= 35.0
+                        ? "border-amber-700/30 bg-amber-50 text-amber-800"
+                        : "border-rose-700/30 bg-rose-50 text-rose-800",
                   )}
                 >
-                  {actualFoodCostPct <= 33.5
-                    ? `Đạt chuẩn tối ưu (${actualFoodCostPct}% ≤ 33,5%)`
-                    : `Vượt ngưỡng mục tiêu (+${(actualFoodCostPct - 33.5).toFixed(1)}%)`}
+                  {actualFoodCostPct <= TARGET_FOOD_COST_PCT
+                    ? `Đạt chuẩn tối ưu (${actualFoodCostPct}% ≤ ${TARGET_FOOD_COST_PCT}%)`
+                    : actualFoodCostPct <= 35.0
+                      ? `Trong khung duyệt P&L 28%–35% (${actualFoodCostPct}%)`
+                      : `Vượt ngưỡng mục tiêu (+${(actualFoodCostPct - TARGET_FOOD_COST_PCT).toFixed(1)}%)`}
                 </span>
               </div>
             </CardHeader>
@@ -1631,7 +1639,7 @@ export function AdminRecipes({
                     Tỷ lệ giá vốn thực tế: <strong className="text-[#92400e]">{actualFoodCostPct}%</strong>
                   </span>
                   <span>
-                    Mục tiêu chuẩn: <strong className="text-emerald-800">33,5%</strong>
+                    Mục tiêu chuẩn: <strong className="text-emerald-800">{TARGET_FOOD_COST_PCT}%</strong> (khung duyệt P&L 28%–35%)
                   </span>
                 </div>
                 <div className="relative h-3 w-full overflow-hidden rounded-sm border border-stone-300 bg-[#f6efe0]">
@@ -1639,13 +1647,22 @@ export function AdminRecipes({
                     style={{ width: `${Math.min(100, (actualFoodCostPct / 50) * 100)}%` }}
                     className={cn(
                       "h-full transition-all duration-500",
-                      actualFoodCostPct <= 33.5 ? "bg-emerald-700" : "bg-[#7c2d12]",
+                      actualFoodCostPct <= TARGET_FOOD_COST_PCT
+                        ? "bg-emerald-700"
+                        : actualFoodCostPct <= 35.0
+                          ? "bg-amber-600"
+                          : "bg-[#7c2d12]",
                     )}
                   />
                   <div
-                    style={{ left: `${(33.5 / 50) * 100}%` }}
+                    style={{ left: `${(TARGET_FOOD_COST_PCT / 50) * 100}%` }}
+                    className="absolute bottom-0 top-0 z-10 w-0.5 bg-emerald-700"
+                    title={`Ngưỡng mục tiêu ${TARGET_FOOD_COST_PCT}%`}
+                  />
+                  <div
+                    style={{ left: `${(35 / 50) * 100}%` }}
                     className="absolute bottom-0 top-0 z-10 w-0.5 bg-rose-700"
-                    title="Ngưỡng mục tiêu 33,5%"
+                    title="Trần duyệt P&L 35%"
                   />
                 </div>
               </div>
@@ -2010,7 +2027,7 @@ export function AdminRecipes({
                     <span className="font-bold text-amber-900">Cảnh báo dư thừa định lượng &amp; chi phí:</span>
                     <p className="mt-0.5 text-stone-700 leading-relaxed text-[11px]">
                       {estimatedLineCost > 160000
-                        ? `Chi phí ${formatVND(estimatedLineCost)}/suất chiếm tỷ trọng cao trong ngân sách món ăn, có thể đẩy thực đơn vượt trần Food Cost 33,5%.`
+                        ? `Chi phí ${formatVND(estimatedLineCost)}/suất chiếm tỷ trọng cao trong ngân sách món ăn, có thể đẩy thực đơn vượt trần Food Cost mục tiêu.`
                         : `Định lượng ${editingLine.qtyPerGuest} ${editingLine.unit}/khách là khá lớn cho một món trong thực đơn tasting 7 món. Vui lòng kiểm tra lại để tránh dư thừa lãng phí.`}
                     </p>
                   </div>

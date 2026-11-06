@@ -2,362 +2,366 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// Bảng E: Đơn giá nguyên liệu đặc biệt & gia vị (chuẩn theo Bảng B & E tài liệu Bếp & Kho)
 export const CONCEPT2_INGREDIENTS = [
-  // Đạm
+  // 1. Đạm
   {
     id: "caviar-lam-dong",
-    name: "Trứng cá tầm Caviar Lâm Đồng",
+    name: "Trứng cá tầm muối Lâm Đồng (caviar) — trung cấp lai",
     unit: "g",
     group: "PROTEIN",
-    spec: "Lọ 20g ướp lạnh, mở tại bàn",
-    defaultImportPrice: 2500000,
+    spec: "Cao nguyên Lâm Đồng · Hũ 30–50g giữ chuỗi lạnh",
+    defaultImportPrice: 20000000, // 20.000 đ/g (20 tr/kg)
     currentStock: 1200,
     minStock: 300,
   },
   {
     id: "sa-sung-van-don",
-    name: "Sá sùng đảo Vân Đồn",
+    name: "Sá sùng khô đảo Vân Đồn — loại đặc biệt",
     unit: "g",
     group: "PROTEIN",
-    spec: "Sấy khô thượng hạng, nướng giòn",
-    defaultImportPrice: 4200000,
+    spec: "Vân Đồn, Quảng Ninh · Túi zip 500g",
+    defaultImportPrice: 6000000, // 6.000 đ/g (6 tr/kg)
     currentStock: 800,
     minStock: 200,
   },
   {
     id: "bao-ngu-nha-trang",
-    name: "Bào ngư biển Nha Trang",
+    name: "Bào ngư biển lạnh Nha Trang (nguyên con ~65 g)",
     unit: "g",
     group: "PROTEIN",
-    spec: "Bào ngư sống, khía hoa thị",
-    defaultImportPrice: 1200000,
+    spec: "Nha Trang, Khánh Hòa · Size ~15 con/kg tươi sống",
+    defaultImportPrice: 800000, // 800 đ/g (800k/kg)
     currentStock: 2500,
     minStock: 500,
   },
   {
     id: "yen-sao-khanh-hoa",
-    name: "Yến sào thiên nhiên Khánh Hòa",
+    name: "Yến sào tinh chế Khánh Hòa (yến nhà loại 1)",
     unit: "g",
     group: "PROTEIN",
-    spec: "Tổ yến tinh chế hấp chín",
-    defaultImportPrice: 38000000,
+    spec: "Khánh Hòa · Yến tinh chế hộp 100g",
+    defaultImportPrice: 32000000, // 32.000 đ/g (32 tr/kg)
     currentStock: 350,
     minStock: 100,
   },
   {
-    id: "ca-tam-da-lat",
-    name: "Thăn cá tầm Đà Lạt",
+    id: "ga-ta-nuoc-dung",
+    name: "Gà ta thả vườn (nước dùng chưng 6 giờ)",
     unit: "g",
     group: "PROTEIN",
-    spec: "Phi lê rút xương, da khía mỏng",
-    defaultImportPrice: 320000,
+    spec: "Nội địa · Gà ta chưng cô 6 giờ lấy nước dùng",
+    defaultImportPrice: 150000, // 150 đ/g (150k/kg)
+    currentStock: 4000,
+    minStock: 1000,
+  },
+  {
+    id: "ca-tam-da-lat",
+    name: "Fillet cá tầm Lâm Đồng",
+    unit: "g",
+    group: "PROTEIN",
+    spec: "Cao nguyên Lâm Đồng · Fillet cá tầm tươi sống",
+    defaultImportPrice: 320000, // 320 đ/g (320k/kg)
     currentStock: 5000,
     minStock: 1500,
   },
   {
     id: "ga-dong-tao",
-    name: "Gà tiến vua Đông Tảo Hưng Yên",
+    name: "Đùi gà Đông Tảo Hưng Yên (thuần chủng, tuyển)",
     unit: "g",
     group: "PROTEIN",
-    spec: "Thịt giòn sần sật, ướp mắc khén",
-    defaultImportPrice: 450000,
+    spec: "Hưng Yên · Đùi gà thuần chủng đặt lô 5kg",
+    defaultImportPrice: 1000000, // 1.000 đ/g (1 tr/kg)
     currentStock: 6000,
     minStock: 2000,
   },
 
-  // Tinh bột
+  // 2. Tinh bột
   {
-    id: "banh-blini",
-    name: "Bánh blini kiều mạch",
+    id: "banh-da-nem",
+    name: "Đế bánh đa nem nướng",
     unit: "g",
     group: "STARCH",
-    spec: "Nướng nóng giòn tại bếp bánh",
-    defaultImportPrice: 90000,
+    spec: "Hải Dương / Hải Phòng · Bánh đa khô nướng giòn",
+    defaultImportPrice: 90000, // 90 đ/g (90k/kg)
     currentStock: 2000,
     minStock: 500,
   },
   {
-    id: "com-chay-st25",
-    name: "Cơm cháy gạo ST25",
+    id: "banh-mi-men-tuoi",
+    name: "Bánh mì men tươi artisan — bánh chào mừng",
     unit: "g",
     group: "STARCH",
-    spec: "Ép mỏng chiên phồng giòn ruộm",
-    defaultImportPrice: 80000,
+    spec: "Nội địa · Bếp TRẦM tự làm thủ công",
+    defaultImportPrice: 100000, // 100 đ/g (100k/kg)
+    currentStock: 3000,
+    minStock: 600,
+  },
+  {
+    id: "com-chay-st25",
+    name: "Gạo ST25 (làm cơm cháy)",
+    unit: "g",
+    group: "STARCH",
+    spec: "Sóc Trăng · Gạo ST25 chuẩn xuất khẩu chiên giòn",
+    defaultImportPrice: 40000, // 40 đ/g (40k/kg)
     currentStock: 3500,
     minStock: 800,
   },
 
-  // Sữa & chất béo
+  // 3. Sữa & chất béo
   {
     id: "kem-chua",
-    name: "Kem chua thảo mộc",
+    name: "Kem chua (sour cream) Tatua đánh bông",
     unit: "g",
     group: "DAIRY_FAT",
-    spec: "Đánh mịn, bảo quản lạnh",
-    defaultImportPrice: 180000,
+    spec: "Nội địa — Hộp 1 kg đánh bông mịn",
+    defaultImportPrice: 200000, // 200 đ/g (200k/kg)
     currentStock: 1500,
     minStock: 400,
   },
   {
-    id: "bo-thao-moc",
-    name: "Bơ thảo mộc núi rừng Đà Lạt",
+    id: "bo-lat-president",
+    name: "Bơ lạt President (Pháp)",
     unit: "g",
     group: "DAIRY_FAT",
-    spec: "Bơ lạt ngâm xạ hương, hương thảo",
-    defaultImportPrice: 260000,
+    spec: "Nhập khẩu Pháp · Bơ lạt sỉ làm bánh & áp chảo",
+    defaultImportPrice: 350000, // 350 đ/g (350k/kg)
     currentStock: 1800,
     minStock: 500,
   },
   {
-    id: "dau-thuc-vat",
-    name: "Dầu thực vật cao cấp",
-    unit: "ml",
+    id: "kem-tuoi-whipping",
+    name: "Kem tươi whipping Anchor (làm kem trầm hương)",
+    unit: "g",
     group: "DAIRY_FAT",
-    spec: "Dầu hạt cải ép lạnh",
-    defaultImportPrice: 65000,
-    currentStock: 8000,
-    minStock: 2000,
+    spec: "New Zealand · Whipping Cream Anchor hộp 1 lít",
+    defaultImportPrice: 160000, // 160 đ/g (160k/kg)
+    currentStock: 2000,
+    minStock: 500,
   },
 
-  // Rau củ & nấm
+  // 4. Trái cây & hạt
   {
-    id: "he-la-nho",
-    name: "Hẹ lá nhỏ hữu cơ",
+    id: "sen-co-ngu",
+    name: "Hạt sen Cổ Ngự Hồ Tây (tuyển)",
     unit: "g",
-    group: "PRODUCE",
-    spec: "Thái mịn rắc mặt",
-    defaultImportPrice: 60000,
-    currentStock: 800,
-    minStock: 200,
+    group: "FRUIT_NUT",
+    spec: "Hồ Tây, Hà Nội · Sen tươi Cổ Ngự tuyển đặc sản",
+    defaultImportPrice: 700000, // 700 đ/g (700k/kg)
+    currentStock: 2000,
+    minStock: 500,
   },
   {
-    id: "rau-ram-rung",
-    name: "Rau răm rừng và lá chanh",
+    id: "hat-dieu-rang-muoi",
+    name: "Hạt điều rang muối (hạt rừng)",
     unit: "g",
-    group: "PRODUCE",
-    spec: "Nhặt búp non",
-    defaultImportPrice: 50000,
-    currentStock: 1000,
-    minStock: 300,
-  },
-  {
-    id: "nam-dong-trung",
-    name: "Đông trùng hạ thảo tươi",
-    unit: "g",
-    group: "PRODUCE",
-    spec: "Ngọn nấm tươi vàng ươm",
-    defaultImportPrice: 800000,
-    currentStock: 400,
-    minStock: 100,
-  },
-  {
-    id: "mang-tay-da-lat",
-    name: "Măng tây xanh Đà Lạt",
-    unit: "g",
-    group: "PRODUCE",
-    spec: "Áp chảo giòn ngọt",
-    defaultImportPrice: 95000,
-    currentStock: 2500,
-    minStock: 600,
-  },
-  {
-    id: "rau-rung-tay-bac",
-    name: "Rau thơm và hoa chuối rừng",
-    unit: "g",
-    group: "PRODUCE",
-    spec: "Thái sợi ngâm chanh giòn",
-    defaultImportPrice: 40000,
+    group: "FRUIT_NUT",
+    spec: "Bình Phước · Nguyên hạt còn vỏ lụa",
+    defaultImportPrice: 300000, // 300 đ/g (300k/kg)
     currentStock: 1500,
     minStock: 400,
   },
   {
-    id: "canh-sen-hong",
-    name: "Cánh sen hồng và hoa nhài tươi",
-    unit: "g",
-    group: "PRODUCE",
-    spec: "Trang trí và ướp hương chè",
-    defaultImportPrice: 150000,
-    currentStock: 500,
-    minStock: 150,
-  },
-
-  // Trái cây & hạt
-  {
-    id: "tao-do-tan-cuong",
-    name: "Táo đỏ và kỷ tử hữu cơ",
-    unit: "g",
-    group: "FRUIT_NUT",
-    spec: "Ngâm nở mềm, bỏ hạt",
-    defaultImportPrice: 280000,
-    currentStock: 1200,
-    minStock: 300,
-  },
-  {
-    id: "sen-co-ngu",
-    name: "Hạt sen Cổ Ngự Hồ Tây",
-    unit: "g",
-    group: "FRUIT_NUT",
-    spec: "Sen tươi hấp chín bùi",
-    defaultImportPrice: 350000,
-    currentStock: 2000,
-    minStock: 500,
-  },
-  {
     id: "nhan-long-hung-yen",
-    name: "Nhãn lồng Hưng Yên mọng nước",
+    name: "Nhãn lồng Hưng Yên (sơ chế tách hạt)",
     unit: "g",
     group: "FRUIT_NUT",
-    spec: "Bóc vỏ khéo léo, tách hạt",
-    defaultImportPrice: 120000,
+    spec: "Hưng Yên · Nhãn mọng nước cùi dày",
+    defaultImportPrice: 120000, // 120 đ/g (120k/kg)
     currentStock: 3500,
     minStock: 800,
   },
-  {
-    id: "hat-sen-cung-dinh",
-    name: "Hạt sen cung đình Huế",
-    unit: "g",
-    group: "FRUIT_NUT",
-    spec: "Ninh nhừ lồng trong cùi nhãn",
-    defaultImportPrice: 240000,
-    currentStock: 2500,
-    minStock: 600,
-  },
 
-  // Gia vị & nước dùng
+  // 5. Gia vị & nước dùng đặc biệt
   {
-    id: "muoi-ham-thao-duoc",
-    name: "Muối hầm thảo dược Hoàng Liên Sơn",
+    id: "hoa-tieu-rung",
+    name: "Hoa tiêu rừng Tuyên Quang",
     unit: "g",
     group: "SEASONING",
-    spec: "Rang khô thảo dược",
-    defaultImportPrice: 80000,
-    currentStock: 2000,
-    minStock: 500,
-  },
-  {
-    id: "tieu-rung-phu-quoc",
-    name: "Tiêu rừng Phú Quốc",
-    unit: "g",
-    group: "SEASONING",
-    spec: "Đập dập thơm cay",
-    defaultImportPrice: 350000,
+    spec: "Tuyên Quang · Tiêu rừng Măng Đen / Tuyên Quang",
+    defaultImportPrice: 400000, // 400 đ/g (400k/kg)
     currentStock: 1000,
     minStock: 300,
   },
   {
-    id: "chanh-vang-da-lat",
-    name: "Nước cốt chanh vàng Đà Lạt",
+    id: "ruou-nep-cai",
+    name: "Rượu nếp cái hoa vàng — nướng ấm",
     unit: "ml",
     group: "SEASONING",
-    spec: "Vắt tươi trong ngày",
-    defaultImportPrice: 70000,
-    currentStock: 2000,
-    minStock: 500,
-  },
-  {
-    id: "men-ruou-nep",
-    name: "Rượu nếp cái hoa vàng",
-    unit: "ml",
-    group: "SEASONING",
-    spec: "Rượu nếp ủ chum 6 tháng",
-    defaultImportPrice: 120000,
+    spec: "Nội địa · Can 5 lít ủ chum thơm",
+    defaultImportPrice: 100000, // 100 đ/ml (100k/lít)
     currentStock: 4000,
     minStock: 1000,
   },
   {
-    id: "nuoc-dung-nam",
-    name: "Nước dùng nấm đông cô ninh cô đặc",
+    id: "nuoc-cot-ga-ta",
+    name: "Nước cốt gà thả vườn — chưng cô (phân bổ)",
     unit: "ml",
     group: "SEASONING",
-    spec: "Ninh ngọt thanh tự nhiên",
-    defaultImportPrice: 90000,
-    currentStock: 5000,
-    minStock: 1500,
+    spec: "Nội địa · Nước cốt gà ta nguyên chất",
+    defaultImportPrice: 190000, // 190 đ/ml (190k/lít)
+    currentStock: 3000,
+    minStock: 800,
   },
   {
-    id: "nuoc-dung-bo-cau",
-    name: "Nước dùng bồ câu tiềm sâm",
-    unit: "ml",
+    id: "chanh-day-cot",
+    name: "Chanh dây — cốt (Đà Lạt)",
+    unit: "g",
     group: "SEASONING",
-    spec: "Nước dùng trong vắt, rót nóng tại bàn",
-    defaultImportPrice: 150000,
-    currentStock: 6000,
-    minStock: 2000,
+    spec: "Đà Lạt · Cốt chiết xuất 40% khối lượng",
+    defaultImportPrice: 120000, // 120 đ/g (120k/kg)
+    currentStock: 2000,
+    minStock: 500,
   },
   {
-    id: "sot-saffron",
-    name: "Sốt nhụy hoa nghệ tây và chanh vàng",
-    unit: "ml",
+    id: "mat-ong-rung",
+    name: "Mật ong rừng Tây Bắc",
+    unit: "g",
     group: "SEASONING",
-    spec: "Nấu sánh vàng óng",
-    defaultImportPrice: 650000,
-    currentStock: 1800,
-    minStock: 400,
-  },
-  {
-    id: "nuoc-cham-tieu-rung",
-    name: "Nước chấm sốt tiêu rừng và lá chanh",
-    unit: "ml",
-    group: "SEASONING",
-    spec: "Chua ngọt cay nồng",
-    defaultImportPrice: 60000,
+    spec: "Tây Bắc · Mật ong khoái rừng nguyên chất",
+    defaultImportPrice: 250000, // 250 đ/g (250k/kg)
     currentStock: 2500,
     minStock: 600,
   },
   {
-    id: "duong-phen-quang-ngai",
-    name: "Đường phèn kết tinh tự nhiên",
+    id: "muoi-ot-hoa-trang-tri",
+    name: "Muối ớt & hoa trang trí — chào mừng",
     unit: "g",
     group: "SEASONING",
-    spec: "Nấu nước đường trong vắt",
-    defaultImportPrice: 55000,
-    currentStock: 5000,
-    minStock: 1000,
+    spec: "Nội địa · Muối ớt Tây Ninh, hoa & phụ theo phần",
+    defaultImportPrice: 500000, // 500 đ/phần
+    currentStock: 1000,
+    minStock: 200,
   },
 
-  // Hương liệu
+  // 6. Hương liệu & trà
   {
-    id: "gung-gia-son-la",
-    name: "Gừng già Sơn La",
+    id: "mac-khen-tay-bac",
+    name: "Mắc khén Tây Bắc (rang, giã)",
     unit: "g",
     group: "AROMATIC",
-    spec: "Thái chỉ sao thơm",
-    defaultImportPrice: 45000,
-    currentStock: 1500,
-    minStock: 400,
-  },
-  {
-    id: "mac-khen-doi",
-    name: "Hạt mắc khén và hạt dổi rừng",
-    unit: "g",
-    group: "AROMATIC",
-    spec: "Nướng than giã nhỏ",
-    defaultImportPrice: 480000,
+    spec: "Tây Bắc · Hạt mắc khén rang thơm",
+    defaultImportPrice: 350000, // 350 đ/g (350k/kg)
     currentStock: 800,
     minStock: 200,
   },
   {
-    id: "tra-shan-tuyet",
-    name: "Trà Shan tuyết cổ thụ Tây Côn Lĩnh",
+    id: "huong-tram-tam-uop",
+    name: "Hương trầm — tẩm ướp (phân bổ)",
     unit: "g",
     group: "AROMATIC",
-    spec: "Búp trà 1 tôm 2 lá cổ thụ 300 năm",
-    defaultImportPrice: 3800000,
+    spec: "Nội địa · Trầm hương tự nhiên phân bổ theo phần",
+    defaultImportPrice: 1200000, // 1.200 đ/phần
     currentStock: 1000,
-    minStock: 250,
+    minStock: 200,
   },
   {
-    id: "tram-huong-quang-nam",
-    name: "Trầm hương tự nhiên xông phòng",
+    id: "phu-trang-tri-trang-mieng",
+    name: "Phụ trang trí tráng miệng (vừng rang, hoa, bánh kẹp)",
+    unit: "g",
+    group: "PRODUCE",
+    spec: "Nội địa · Vừng rang, cánh hoa, bánh kẹp giòn",
+    defaultImportPrice: 1000000, // 1.000 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "tra-shan-tuyet",
+    name: "Trà Shan tuyết cổ thụ Tà Xùa",
     unit: "g",
     group: "AROMATIC",
-    spec: "Mẩu trầm đốt lư đồng tạo hương",
-    defaultImportPrice: 15000000,
-    currentStock: 200,
-    minStock: 50,
+    spec: "Tà Xùa, Tây Bắc · Búp trà cổ thụ >100 tuổi",
+    defaultImportPrice: 1200000, // 1.200 đ/g (1.200k/kg)
+    currentStock: 1500,
+    minStock: 400,
+  },
+
+  // 7. Các dòng gia vị gộp theo phần (E2)
+  {
+    id: "gia-vi-mon-1",
+    name: "Gia vị cơ bản & phụ liệu Món 1 (chanh vàng, tía tô non)",
+    unit: "g",
+    group: "PRODUCE",
+    spec: "Chanh vàng vỏ 25g x 50đ + tía tô non 8g x 60đ",
+    defaultImportPrice: 1730000, // 1.730 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "gia-vi-mon-2",
+    name: "Gia vị cơ bản & phụ liệu Món 2 (muối hạt, gừng, sả)",
+    unit: "g",
+    group: "SEASONING",
+    spec: "Muối hạt 6g x 25đ + gừng 7g x 50đ + sả 5g x 40đ",
+    defaultImportPrice: 700000, // 700 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "gia-vi-mon-3",
+    name: "Gia vị cơ bản & phụ liệu Món 3 (hành boa rô)",
+    unit: "g",
+    group: "PRODUCE",
+    spec: "Hành boa rô 10g x 50đ",
+    defaultImportPrice: 500000, // 500 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "gia-vi-mon-4",
+    name: "Gia vị cơ bản & phụ liệu Món 4 (hành khô, gừng)",
+    unit: "g",
+    group: "SEASONING",
+    spec: "Hành khô nướng 4g x 60đ + gừng 2g x 50đ",
+    defaultImportPrice: 340000, // 340 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "gia-vi-mon-6",
+    name: "Gia vị cơ bản & phụ liệu Món 6 (dầu ăn, mắm, tỏi, đường cát)",
+    unit: "g",
+    group: "SEASONING",
+    spec: "Dầu 15ml x 35đ + mắm 8g x 30đ + tỏi 5g x 40đ + đường 3g x 20đ",
+    defaultImportPrice: 1025000, // 1.025 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+  {
+    id: "gia-vi-mon-7",
+    name: "Gia vị cơ bản & phụ liệu Món 7 (đường phèn, sữa tươi, đường cát)",
+    unit: "g",
+    group: "SEASONING",
+    spec: "Đường phèn 40g x 45đ + sữa tươi 10g x 28đ + đường 5g x 20đ",
+    defaultImportPrice: 2180000, // 2.180 đ/phần
+    currentStock: 1000,
+    minStock: 200,
+  },
+
+  // 8. Khoản phân bổ vận hành ngoài 7 món (Bảng E)
+  {
+    id: "than-hoa-hong",
+    name: "Than hoa hồng (than trắng, nướng)",
+    unit: "g",
+    group: "SEASONING",
+    spec: "Nhập khẩu / nội địa · Kỹ thuật nướng (phân bổ)",
+    defaultImportPrice: 40000, // 40.000 đ/kg
+    currentStock: 20000,
+    minStock: 5000,
+  },
+  {
+    id: "rau-thom-hoa-trang-tri",
+    name: "Rau thơm & hoa trang trí đĩa",
+    unit: "g",
+    group: "PRODUCE",
+    spec: "Đà Lạt · Trình bày món (phân bổ)",
+    defaultImportPrice: 150000, // 150.000 đ/kg
+    currentStock: 5000,
+    minStock: 1000,
   },
 ];
 
+// Bảng B: Menu Tiến Vua · Bảy Báu Vật Việt (1.290.000 đ/khách) — Đúng 35 dòng định lượng
 export const CONCEPT2_DISHES = [
   {
     dishIndex: 1,
@@ -372,10 +376,15 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Chuẩn vị fine dining",
         lines: [
-          { ingredientId: "caviar-lam-dong", qtyPerGuest: 20, unit: "g", prepNote: "Lọ 20g ướp đá thạch anh" },
-          { ingredientId: "kem-chua", qtyPerGuest: 15, unit: "g", prepNote: "Đánh bông mịn" },
-          { ingredientId: "banh-blini", qtyPerGuest: 30, unit: "g", prepNote: "Nướng giòn nhẹ" },
-          { ingredientId: "he-la-nho", qtyPerGuest: 5, unit: "g", prepNote: "Rắc mặt đĩa" },
+          { ingredientId: "caviar-lam-dong", qtyPerGuest: 4, unit: "g", prepNote: "Hũ caviar Lâm Đồng trung cấp lai ướp lạnh" },
+          { ingredientId: "banh-da-nem", qtyPerGuest: 30, unit: "g", prepNote: "Đế bánh đa nem nướng giòn" },
+          { ingredientId: "kem-chua", qtyPerGuest: 15, unit: "g", prepNote: "Kem chua Tatua đánh bông mịn" },
+          { ingredientId: "tra-shan-tuyet", qtyPerGuest: 5, unit: "g", prepNote: "Nghi thức trà chào mừng dùng chung cả menu" },
+          { ingredientId: "banh-mi-men-tuoi", qtyPerGuest: 60, unit: "g", prepNote: "Bánh mì men tươi artisan chào mừng" },
+          { ingredientId: "bo-lat-president", qtyPerGuest: 10, unit: "g", prepNote: "Bơ lạt President ăn kèm bánh chào mừng" },
+          { ingredientId: "mat-ong-rung", qtyPerGuest: 5, unit: "g", prepNote: "Mật ong rừng Tây Bắc ăn kèm bánh" },
+          { ingredientId: "muoi-ot-hoa-trang-tri", qtyPerGuest: 1, unit: "g", prepNote: "Muối ớt Tây Ninh & hoa trang trí theo phần" },
+          { ingredientId: "gia-vi-mon-1", qtyPerGuest: 1, unit: "g", prepNote: "Chanh vàng vỏ bào 25g, tía tô non 8g" },
         ],
       },
     ],
@@ -393,23 +402,9 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Vị ngọt hậu tự nhiên của sá sùng",
         lines: [
-          { ingredientId: "sa-sung-van-don", qtyPerGuest: 35, unit: "g", prepNote: "Nướng chín vàng đều" },
-          { ingredientId: "muoi-ham-thao-duoc", qtyPerGuest: 5, unit: "g", prepNote: "Rang cùng tiêu rừng" },
-          { ingredientId: "tieu-rung-phu-quoc", qtyPerGuest: 3, unit: "g", prepNote: "Đập dập thơm" },
-          { ingredientId: "chanh-vang-da-lat", qtyPerGuest: 10, unit: "ml", prepNote: "Vắt tươi chấm kèm" },
-          { ingredientId: "rau-ram-rung", qtyPerGuest: 10, unit: "g", prepNote: "Ăn kèm" },
-        ],
-      },
-      {
-        optionId: "crispy_fried",
-        optionName: "Chiên phồng giòn rụm",
-        isDefault: false,
-        note: "Vị bùi béo đậm đà hơn",
-        lines: [
-          { ingredientId: "sa-sung-van-don", qtyPerGuest: 35, unit: "g", prepNote: "Chiên ngập dầu nhanh" },
-          { ingredientId: "dau-thuc-vat", qtyPerGuest: 25, unit: "ml", prepNote: "Dầu sôi 180°C" },
-          { ingredientId: "muoi-ham-thao-duoc", qtyPerGuest: 5, unit: "g", prepNote: "Lắc nhẹ sau chiên" },
-          { ingredientId: "tieu-rung-phu-quoc", qtyPerGuest: 3, unit: "g", prepNote: "Rắc thơm" },
+          { ingredientId: "sa-sung-van-don", qtyPerGuest: 3, unit: "g", prepNote: "Sá sùng khô Vân Đồn loại đặc biệt nướng than hoa" },
+          { ingredientId: "hoa-tieu-rung", qtyPerGuest: 2, unit: "g", prepNote: "Hoa tiêu rừng Tuyên Quang rang giã thơm" },
+          { ingredientId: "gia-vi-mon-2", qtyPerGuest: 1, unit: "g", prepNote: "Muối hạt 6g, gừng tươi 7g, sả tươi 5g" },
         ],
       },
     ],
@@ -427,23 +422,10 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Vị ngọt men nồng nàn",
         lines: [
-          { ingredientId: "bao-ngu-nha-trang", qtyPerGuest: 80, unit: "g", prepNote: "Làm sạch, khía vảy rồng" },
-          { ingredientId: "men-ruou-nep", qtyPerGuest: 30, unit: "ml", prepNote: "Khử mùi tanh và om mềm" },
-          { ingredientId: "gung-gia-son-la", qtyPerGuest: 10, unit: "g", prepNote: "Phi thơm" },
-          { ingredientId: "tao-do-tan-cuong", qtyPerGuest: 15, unit: "g", prepNote: "Nấu cùng nước om" },
-          { ingredientId: "nuoc-dung-nam", qtyPerGuest: 60, unit: "ml", prepNote: "Tạo độ sánh ngọt" },
-        ],
-      },
-      {
-        optionId: "mild_wine",
-        optionName: "Giảm độ nồng rượu (Thanh nhẹ)",
-        isDefault: false,
-        note: "Tôn vị tự nhiên của bào ngư",
-        lines: [
-          { ingredientId: "bao-ngu-nha-trang", qtyPerGuest: 80, unit: "g", prepNote: "Khía hoa thị đẹp mắt" },
-          { ingredientId: "men-ruou-nep", qtyPerGuest: 15, unit: "ml", prepNote: "Giảm lượng rượu" },
-          { ingredientId: "gung-gia-son-la", qtyPerGuest: 8, unit: "g", prepNote: "Hương nhẹ" },
-          { ingredientId: "nuoc-dung-nam", qtyPerGuest: 75, unit: "ml", prepNote: "Bù thêm nước dùng" },
+          { ingredientId: "bao-ngu-nha-trang", qtyPerGuest: 65, unit: "g", prepNote: "Bào ngư biển lạnh Nha Trang nguyên con ~65g làm sạch" },
+          { ingredientId: "ruou-nep-cai", qtyPerGuest: 30, unit: "ml", prepNote: "Rượu nếp cái hoa vàng nướng ấm khử tanh" },
+          { ingredientId: "nuoc-cot-ga-ta", qtyPerGuest: 20, unit: "ml", prepNote: "Nước cốt gà thả vườn chưng cô đặc phân bổ" },
+          { ingredientId: "gia-vi-mon-3", qtyPerGuest: 1, unit: "g", prepNote: "Hành boa rô 10g" },
         ],
       },
     ],
@@ -461,21 +443,10 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Nước dùng trong vắt, bốc khói nghi ngút",
         lines: [
-          { ingredientId: "yen-sao-khanh-hoa", qtyPerGuest: 15, unit: "g", prepNote: "Chưng cách thủy riêng" },
-          { ingredientId: "sen-co-ngu", qtyPerGuest: 30, unit: "g", prepNote: "Hấp bở tơi" },
-          { ingredientId: "nuoc-dung-bo-cau", qtyPerGuest: 120, unit: "ml", prepNote: "Rót từ bình gốm ấm" },
-          { ingredientId: "nam-dong-trung", qtyPerGuest: 5, unit: "g", prepNote: "Đặt điểm xuyết" },
-        ],
-      },
-      {
-        optionId: "extra_lotus",
-        optionName: "Thêm hạt sen Cổ Ngự bùi béo",
-        isDefault: false,
-        note: "Tăng độ thơm mát của sen Thăng Long",
-        lines: [
-          { ingredientId: "yen-sao-khanh-hoa", qtyPerGuest: 15, unit: "g", prepNote: "Chưng cách thủy riêng" },
-          { ingredientId: "sen-co-ngu", qtyPerGuest: 50, unit: "g", prepNote: "Tăng lượng hạt sen" },
-          { ingredientId: "nuoc-dung-bo-cau", qtyPerGuest: 120, unit: "ml", prepNote: "Rót tại bàn" },
+          { ingredientId: "yen-sao-khanh-hoa", qtyPerGuest: 2.5, unit: "g", prepNote: "Yến sào tinh chế Khánh Hòa chưng cách thủy" },
+          { ingredientId: "sen-co-ngu", qtyPerGuest: 8, unit: "g", prepNote: "Hạt sen Cổ Ngự Hồ Tây tuyển chọn hấp bở" },
+          { ingredientId: "ga-ta-nuoc-dung", qtyPerGuest: 75, unit: "g", prepNote: "Nước dùng gà ta thả vườn chưng 6 giờ phân bổ" },
+          { ingredientId: "gia-vi-mon-4", qtyPerGuest: 1, unit: "g", prepNote: "Hành khô nướng 4g, gừng 2g" },
         ],
       },
     ],
@@ -493,21 +464,10 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Thăn cá mọng nước, da giòn rụm",
         lines: [
-          { ingredientId: "ca-tam-da-lat", qtyPerGuest: 120, unit: "g", prepNote: "Áp chảo da trước" },
-          { ingredientId: "bo-thao-moc", qtyPerGuest: 20, unit: "g", prepNote: "Tưới bơ liên tục trên chảo" },
-          { ingredientId: "sot-saffron", qtyPerGuest: 25, unit: "ml", prepNote: "Vẽ sốt viền đĩa" },
-          { ingredientId: "mang-tay-da-lat", qtyPerGuest: 40, unit: "g", prepNote: "Áp chảo kèm" },
-        ],
-      },
-      {
-        optionId: "herb_steamed",
-        optionName: "Hấp thảo mộc thanh vị",
-        isDefault: false,
-        note: "Dành cho khách chuộng vị thanh đạm",
-        lines: [
-          { ingredientId: "ca-tam-da-lat", qtyPerGuest: 120, unit: "g", prepNote: "Hấp chín tới" },
-          { ingredientId: "sot-saffron", qtyPerGuest: 25, unit: "ml", prepNote: "Rưới nhẹ" },
-          { ingredientId: "mang-tay-da-lat", qtyPerGuest: 40, unit: "g", prepNote: "Hấp giòn" },
+          { ingredientId: "ca-tam-da-lat", qtyPerGuest: 100, unit: "g", prepNote: "Fillet cá tầm Lâm Đồng áp chảo da giòn" },
+          { ingredientId: "bo-lat-president", qtyPerGuest: 15, unit: "g", prepNote: "Bơ lạt President Pháp áp chảo" },
+          { ingredientId: "chanh-day-cot", qtyPerGuest: 15, unit: "g", prepNote: "Cốt chanh dây Đà Lạt tạo vị chua thanh" },
+          { ingredientId: "hat-dieu-rang-muoi", qtyPerGuest: 10, unit: "g", prepNote: "Hạt điều rang muối Bình Phước rắc giòn" },
         ],
       },
     ],
@@ -525,30 +485,18 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Da gà giòn sần sật, cơm cháy vàng ruộm",
         lines: [
-          { ingredientId: "ga-dong-tao", qtyPerGuest: 140, unit: "g", prepNote: "Tẩm ướp mắc khén 4 giờ" },
-          { ingredientId: "mac-khen-doi", qtyPerGuest: 5, unit: "g", prepNote: "Rang thơm xát da" },
-          { ingredientId: "com-chay-st25", qtyPerGuest: 50, unit: "g", prepNote: "Chiên giòn ăn kèm" },
-          { ingredientId: "nuoc-cham-tieu-rung", qtyPerGuest: 20, unit: "ml", prepNote: "Chấm thịt gà" },
-          { ingredientId: "rau-rung-tay-bac", qtyPerGuest: 30, unit: "g", prepNote: "Trộn gỏi thanh mát" },
-        ],
-      },
-      {
-        optionId: "mild_spice",
-        optionName: "Giảm độ nồng mắc khén",
-        isDefault: false,
-        note: "Vị cay dịu nhẹ cho thực khách nhạy cảm",
-        lines: [
-          { ingredientId: "ga-dong-tao", qtyPerGuest: 140, unit: "g", prepNote: "Ướp nhẹ" },
-          { ingredientId: "mac-khen-doi", qtyPerGuest: 2, unit: "g", prepNote: "Giảm lượng mắc khén" },
-          { ingredientId: "com-chay-st25", qtyPerGuest: 50, unit: "g", prepNote: "Chiên giòn" },
-          { ingredientId: "nuoc-cham-tieu-rung", qtyPerGuest: 20, unit: "ml", prepNote: "Nước chấm thanh" },
+          { ingredientId: "ga-dong-tao", qtyPerGuest: 110, unit: "g", prepNote: "Đùi gà Đông Tảo Hưng Yên thuần chủng tuyển" },
+          { ingredientId: "com-chay-st25", qtyPerGuest: 50, unit: "g", prepNote: "Cơm cháy gạo ST25 chiên giòn ăn kèm" },
+          { ingredientId: "mat-ong-rung", qtyPerGuest: 15, unit: "g", prepNote: "Mật ong rừng glaze da gà óng ả" },
+          { ingredientId: "mac-khen-tay-bac", qtyPerGuest: 2, unit: "g", prepNote: "Mắc khén Tây Bắc rang giã xát da gà" },
+          { ingredientId: "gia-vi-mon-6", qtyPerGuest: 1, unit: "g", prepNote: "Dầu ăn 15ml, nước mắm 8g, tỏi 5g, đường 3g" },
         ],
       },
     ],
   },
   {
     dishIndex: 7,
-    dishName: "Trầm và Sen — Nhãn lồng hạt sen cung đình",
+    dishName: "Trầm và Sen — Chè sen Cổ Ngự, nhãn lồng, kem trầm hương",
     portion: "1 khách",
     method: "Nấu nước đường phèn thanh tao & Nghi thức trà 3 lần rót",
     note: "Chương kết trọn vẹn: hương trầm bảng lảng quện vị ngọt sen nhãn và trà cổ thụ.",
@@ -559,25 +507,12 @@ export const CONCEPT2_DISHES = [
         isDefault: true,
         note: "Hương vị cung đình tao nhã",
         lines: [
-          { ingredientId: "nhan-long-hung-yen", qtyPerGuest: 60, unit: "g", prepNote: "Tách hạt, lồng hạt sen" },
-          { ingredientId: "hat-sen-cung-dinh", qtyPerGuest: 40, unit: "g", prepNote: "Ninh mềm thơm ngọt" },
-          { ingredientId: "duong-phen-quang-ngai", qtyPerGuest: 15, unit: "g", prepNote: "Nấu nước đường trong" },
-          { ingredientId: "tra-shan-tuyet", qtyPerGuest: 8, unit: "g", prepNote: "Hãm ấm đất nung, rót 3 lần" },
-          { ingredientId: "tram-huong-quang-nam", qtyPerGuest: 2, unit: "g", prepNote: "Đốt lư xông khói ấm" },
-          { ingredientId: "canh-sen-hong", qtyPerGuest: 5, unit: "g", prepNote: "Rắc điểm xuyết" },
-        ],
-      },
-      {
-        optionId: "low_sweet",
-        optionName: "Ít ngọt thanh tao",
-        isDefault: false,
-        note: "Tôn vị trà Shan tuyết nổi bật",
-        lines: [
-          { ingredientId: "nhan-long-hung-yen", qtyPerGuest: 60, unit: "g", prepNote: "Tách hạt cẩn thận" },
-          { ingredientId: "hat-sen-cung-dinh", qtyPerGuest: 40, unit: "g", prepNote: "Hạt sen bùi tự nhiên" },
-          { ingredientId: "duong-phen-quang-ngai", qtyPerGuest: 7, unit: "g", prepNote: "Giảm 50% đường" },
-          { ingredientId: "tra-shan-tuyet", qtyPerGuest: 8, unit: "g", prepNote: "Nghi thức trà Shan tuyết" },
-          { ingredientId: "tram-huong-quang-nam", qtyPerGuest: 2, unit: "g", prepNote: "Xông trầm" },
+          { ingredientId: "nhan-long-hung-yen", qtyPerGuest: 160, unit: "g", prepNote: "Nhãn lồng Hưng Yên sơ chế tách hạt" },
+          { ingredientId: "kem-tuoi-whipping", qtyPerGuest: 20, unit: "g", prepNote: "Kem tươi whipping Anchor New Zealand làm kem trầm" },
+          { ingredientId: "huong-tram-tam-uop", qtyPerGuest: 1, unit: "g", prepNote: "Hương trầm tẩm ướp phân bổ theo phần" },
+          { ingredientId: "phu-trang-tri-trang-mieng", qtyPerGuest: 1, unit: "g", prepNote: "Phụ trang trí tráng miệng (vừng rang, hoa, bánh kẹp)" },
+          { ingredientId: "tra-shan-tuyet", qtyPerGuest: 5, unit: "g", prepNote: "Trà Shan tuyết cổ thụ Tà Xùa pha kèm món" },
+          { ingredientId: "gia-vi-mon-7", qtyPerGuest: 1, unit: "g", prepNote: "Đường phèn 40g, sữa tươi 10g, đường cát 5g" },
         ],
       },
     ],
@@ -585,7 +520,7 @@ export const CONCEPT2_DISHES = [
 ];
 
 export async function seedBomDatabase() {
-  console.log("🌱 Bắt đầu seed phân hệ Công thức BOM Concept 2...");
+  console.log("🌱 Bắt đầu seed phân hệ Công thức BOM Bảng B & Bảng E...");
 
   // 1. Seed Ingredients
   for (const ing of CONCEPT2_INGREDIENTS) {
@@ -621,6 +556,15 @@ export async function seedBomDatabase() {
         portion: dish.portion,
         method: dish.method,
         note: dish.note,
+      },
+    });
+
+    // Xóa các biến thể cũ không còn dùng trong cấu hình mới của món
+    const currentOptionIds = dish.variants.map((v) => v.optionId);
+    await prisma.recipeVariant.deleteMany({
+      where: {
+        recipeId: dishRecord.id,
+        optionId: { notIn: currentOptionIds },
       },
     });
 
@@ -665,7 +609,7 @@ export async function seedBomDatabase() {
     }
   }
 
-  console.log(`✅ Đã seed 7 món công thức BOM Concept 2 thành công!`);
+  console.log(`✅ Đã seed 7 món công thức BOM Bảng B (35 dòng) thành công!`);
 }
 
 // Chạy trực tiếp nếu file được gọi từ CLI (tsx / node)
@@ -684,4 +628,3 @@ if (isDirectRun) {
       await prisma.$disconnect();
     });
 }
-

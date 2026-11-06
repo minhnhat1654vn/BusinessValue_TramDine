@@ -758,7 +758,11 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
   if (step === 6 && created) {
     return (
       <main className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-        <CompletionView reservation={created} onGoHome={onGoHome} />
+        <CompletionView
+          reservation={created}
+          onGoHome={onGoHome}
+          programName={bookingSettings?.programName}
+        />
       </main>
     );
   }
@@ -1161,7 +1165,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     3. Chọn thực đơn &amp; tùy biến 7 món
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    Menu Tasting “Hành trình vị Việt” ({formatVND(PRICES.menu)}/khách) — Tùy biến từng món cho {partySize} khách
+                    Menu Tasting “{bookingSettings?.programName || "Hành trình vị Việt"}” ({formatVND(PRICES.menu)}/khách) — Tùy biến từng món cho {partySize} khách
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
