@@ -46,8 +46,6 @@ const TABLES = [
   { code: "B03", seats: 4, zone: "Khu trung tâm (Khu B)" },
   { code: "B04", seats: 4, zone: "Khu trung tâm (Khu B)" },
   { code: "B05", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B11", seats: 6, zone: "Khu sân sau" },
-  { code: "B12", seats: 6, zone: "Khu sân sau" },
 ];
 
 // ---------- Khách hàng giả lập ----------
@@ -305,7 +303,7 @@ interface EveningTarget {
   date: Date;
   slot: "SLOT_1730" | "SLOT_1945";
   seats: number;
-  full?: boolean; // kín 100% (42/42 chỗ)
+  full?: boolean; // kín 100% (30/30 chỗ)
 }
 
 const targets: EveningTarget[] = [];
@@ -315,8 +313,8 @@ for (let offset = -21; offset <= 14; offset++) {
   const date = dayAt(offset);
   const wd = date.getUTCDay();
 
-  // Thứ Hai (wd === 1): Nhà hàng thường nghỉ định kỳ
-  if (wd === 1) {
+  // Thứ Hai & Thứ Ba (wd === 1 || wd === 2): Nhà hàng nghỉ định kỳ
+  if (wd === 1 || wd === 2) {
     // Chỉ tạo 1 sự kiện tiệc riêng ở quá khứ (-7 ngày) để báo cáo phong phú
     if (offset === -7) {
       targets.push({ date, slot: "SLOT_1945", seats: 12 });
@@ -326,17 +324,17 @@ for (let offset = -21; offset <= 14; offset++) {
 
   // Thứ Bảy (wd === 6): Cuối tuần cao điểm
   if (wd === 6) {
-    // 17:30: Rất đông (26 - 34 chỗ)
+    // 17:30: Rất đông (20 - 26 chỗ)
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(26, 34),
+      seats: randInt(20, 26),
     });
-    // 19:45: Kín 100% (42 chỗ) để kích hoạt danh sách chờ Waitlist
+    // 19:45: Kín 100% (30 chỗ) để kích hoạt danh sách chờ Waitlist
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: 42,
+      seats: 30,
       full: true,
     });
   }
@@ -345,12 +343,12 @@ for (let offset = -21; offset <= 14; offset++) {
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(18, 28),
+      seats: randInt(14, 22),
     });
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: randInt(30, 40),
+      seats: randInt(22, 30),
     });
   }
   // Thứ Sáu (wd === 5): Tối mở màn cuối tuần
@@ -358,12 +356,12 @@ for (let offset = -21; offset <= 14; offset++) {
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(16, 26),
+      seats: randInt(14, 20),
     });
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: randInt(36, 42),
+      seats: randInt(24, 30),
       full: randInt(1, 2) === 1,
     });
   }

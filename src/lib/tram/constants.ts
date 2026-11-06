@@ -6,8 +6,8 @@ export const RESTAURANT = {
   address: "Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh",
   hotline: "0901 234 567",
   email: "hello@tramreserve.vn",
-  totalSeats: 40,
-  totalTables: 12,
+  totalSeats: 30,
+  totalTables: 10,
 } as const;
 
 export const PRICES = {

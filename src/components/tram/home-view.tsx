@@ -712,8 +712,8 @@ function HeroScreen({
           </span>
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
           <span className="inline-flex items-center gap-2">
-            <span className="font-heading text-lg font-semibold text-[#b45309]">40</span>
-            chỗ ngồi · 12 bàn
+            <span className="font-heading text-lg font-semibold text-[#b45309]">30</span>
+            chỗ ngồi · 10 bàn
           </span>
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
           <span className="inline-flex items-center gap-2">
@@ -779,7 +779,7 @@ function StoryScreen({ active }: { active: boolean }) {
               trọn vẹn của Việt Nam.
             </motion.p>
             <motion.p variants={revealUp}>
-              Với 40 chỗ ngồi và hai khung phục vụ mỗi tối, chúng tôi dành hết sự chú
+              Với 30 chỗ ngồi và hai khung phục vụ mỗi tối, chúng tôi dành hết sự chú
               tâm cho từng khách mời — từ ly rượu đầu tiên đến giọt trà atiso cuối
               cùng của buổi tối.
             </motion.p>

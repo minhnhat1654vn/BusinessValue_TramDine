@@ -590,7 +590,7 @@ export function AdminInventory({
             tone:
               report.maxStandardGuests === 0 || report.needsReorderCount > 0
                 ? ("warn" as const)
-                : report.maxStandardGuests >= 40
+                : report.maxStandardGuests >= 30
                   ? ("good" as const)
                   : ("default" as const),
           },

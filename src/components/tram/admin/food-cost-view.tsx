@@ -160,7 +160,7 @@ const GROUP_SECTION_STYLES: Record<
   },
 };
 
-const QUICK_GUESTS = [1, 4, 10, 40];
+const QUICK_GUESTS = [1, 4, 10, 30];
 
 type WarehouseScope = "ALL" | "STANDARD" | "CUSTOM";
 
@@ -463,7 +463,7 @@ export function AdminFoodCost({
                       : "border-border bg-background text-stone-600 hover:border-[#b45309]/50 hover:text-[#92400e]",
                   )}
                 >
-                  {n === 40 ? "40 · đủ ca" : `${n} khách`}
+                  {n === 30 ? "30 · đủ ca" : `${n} khách`}
                 </button>
               ))}
             </div>

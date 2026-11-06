@@ -46,7 +46,7 @@ interface ShiftPurchaseCardProps {
   className?: string;
 }
 
-const QUICK_GUESTS_BUTTONS = [4, 10, 20, 40];
+const QUICK_GUESTS_BUTTONS = [4, 10, 20, 30];
 
 export function ShiftPurchaseCard({
   stockOverrides,
@@ -57,8 +57,8 @@ export function ShiftPurchaseCard({
   const effectiveToday = today ?? new Date().toISOString().slice(0, 10);
   const [selectedDate, setSelectedDate] = useState<string>(effectiveToday);
   const [selectedSlot, setSelectedSlot] = useState<Slot | "ALL">("SLOT_1730");
-  const [guests, setGuests] = useState<number>(40);
-  const [guestsInput, setGuestsInput] = useState<string>("40");
+  const [guests, setGuests] = useState<number>(30);
+  const [guestsInput, setGuestsInput] = useState<string>("30");
   const [actualBookedGuests, setActualBookedGuests] = useState<number | null>(null);
   const [loadingReservations, setLoadingReservations] = useState<boolean>(false);
   const [copiedChannel, setCopiedChannel] = useState<"zalo" | "email" | null>(null);
@@ -98,7 +98,7 @@ export function ShiftPurchaseCard({
 
         if (!cancelled) {
           setActualBookedGuests(totalGuests);
-          const targetGuests = totalGuests > 0 ? totalGuests : 40;
+          const targetGuests = totalGuests > 0 ? totalGuests : 30;
           setGuests(targetGuests);
           setGuestsInput(String(targetGuests));
           setLoadingReservations(false);
@@ -358,7 +358,7 @@ export function ShiftPurchaseCard({
                       : "border-stone-300 bg-transparent text-stone-600 hover:border-[#7c2d12]",
                   )}
                 >
-                  {q === 40 ? "40 (Đầy ca)" : `${q} khách`}
+                  {q === 30 ? "30 (Đầy ca)" : `${q} khách`}
                 </button>
               ))}
             </div>

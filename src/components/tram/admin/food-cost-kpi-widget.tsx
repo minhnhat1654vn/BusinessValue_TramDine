@@ -166,7 +166,7 @@ export function FoodCostKpiWidget({
   const deltaCost = simulatedCostPerGuest - baselineCostPerGuest;
   const deltaGrossProfit = simulatedGrossProfit - baselineGrossProfit;
   const deltaFoodCostPct = Number((simulatedFoodCostPct - baselineFoodCostPct).toFixed(1));
-  const shiftImpact = deltaGrossProfit * 40; // Tác động 1 ca 40 khách chuẩn
+  const shiftImpact = deltaGrossProfit * 30; // Tác động 1 ca 30 khách chuẩn
 
   const bufferPct = Number((TARGET_FOOD_COST_CEILING_PCT - simulatedFoodCostPct).toFixed(1));
   const bufferVND = Math.round(simMenuPrice * 0.5 - simulatedCostPerGuest);
@@ -966,7 +966,7 @@ export function FoodCostKpiWidget({
                         </strong>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-amber-200">
-                        <span className="text-stone-600">Δ 1 ca (40 khách):</span>
+                        <span className="text-stone-600">Δ 1 ca (30 khách):</span>
                         <strong
                           className={cn(
                             "font-bold",
