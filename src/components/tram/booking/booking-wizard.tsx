@@ -965,9 +965,9 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     <Plus className="h-4 w-4" aria-hidden />
                   </Button>
                   <p className="hidden text-xs leading-relaxed text-muted-foreground sm:block">
-                    Đoàn trên 6 khách: nhà hàng sẽ xếp bàn ghép —
+                    Đoàn trên 4 khách: nhà hàng sẽ xếp bàn ghép —
                     <br />
-                    vui lòng đăng ký danh sách chờ nếu còn trống.
+                    vui lòng đăng ký danh sách chờ để được sắp xếp chu đáo.
                   </p>
                 </div>
               </div>
@@ -997,9 +997,13 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     }}
                     className="h-12 min-w-40 rounded-full bg-[#b45309] px-8 text-[#fffbf2] hover:bg-[#92400e] disabled:opacity-50"
                   >
-                    {slotsSummary?.find((x) => x.slot === slot)?.remainingSeats === 0
-                      ? "Đăng ký danh sách chờ"
-                      : "Chọn bàn"}
+                    {(() => {
+                      const curRem = slotsSummary?.find((x) => x.slot === slot)?.remainingSeats;
+                      if (partySize > 4 || (curRem !== undefined && curRem < partySize)) {
+                        return "Đăng ký danh sách chờ";
+                      }
+                      return "Chọn bàn";
+                    })()}
                     <ArrowRight className="ml-1 h-4 w-4" aria-hidden />
                   </Button>
                 </div>
@@ -1052,7 +1056,15 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
               {(() => {
-                // Khung còn chỗ tổng nhưng không có bàn nào đủ cho số khách đã chọn → giải thích rõ cho khách
+                if (partySize > 4) {
+                  return (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-[#92400e]">
+                      Bàn trực tuyến của TRẦM tối đa 4 chỗ. Đoàn {partySize} khách cần được nhân viên hỗ trợ ghép bàn riêng.
+                      Vui lòng để lại thông tin bên dưới để nhà hàng liên hệ phục vụ chu đáo nhất.
+                    </div>
+                  );
+                }
+                // Khung còn chỗ tổng nhưng không có bàn nào đủ cho số khách đã chọn (vd: ca còn 2 chỗ nhưng đi 4 khách)
                 const freeSeatsList = (tables ?? [])
                   .filter((t) => t.reason === "TOO_SMALL")
                   .map((t) => t.table.seats);

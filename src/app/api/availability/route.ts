@@ -57,6 +57,8 @@ export async function GET(request: NextRequest) {
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
 
     const [tables, dayReservations] = await Promise.all([
+      // Chỉ tải 10 bàn tiêu chuẩn (tối đa 4 chỗ/bàn) cho khách tự chọn trực tuyến trên sơ đồ.
+      // 2 bàn B11, B12 (mỗi bàn 6 chỗ, nâng tổng nhà hàng lên 12 bàn / 40 chỗ) dành cho nhà hàng chủ động xếp đoàn đông qua Waitlist.
       db.table.findMany({
         where: { code: { notIn: ["B11", "B12"] } },
         orderBy: { code: "asc" },

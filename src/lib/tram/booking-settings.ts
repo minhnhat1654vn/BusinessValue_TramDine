@@ -8,7 +8,7 @@ export interface BookingProgramSettings {
   programEndDate: string; // YYYY-MM-DD
   programDays: string[]; // Danh sách các ngày cụ thể [YYYY-MM-DD]
   closedDates: string[]; // Danh sách ngày nghỉ đột xuất/lễ tết [YYYY-MM-DD]
-  allowMonday: boolean; // Có mở cửa thứ Hai hay không
+  allowMonday: boolean; // Có mở cửa ngày nghỉ định kỳ (Thứ Hai & Thứ Ba) hay không
   notes?: string;
   updatedAt: string;
 }

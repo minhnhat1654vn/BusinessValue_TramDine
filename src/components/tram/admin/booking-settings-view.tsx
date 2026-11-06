@@ -345,10 +345,10 @@ export function AdminBookingSettingsView({
             <div className="flex items-center justify-between rounded-xl border border-border/80 bg-[#fffdf9] p-4">
               <div className="space-y-0.5">
                 <Label className="text-sm font-semibold text-[#292524]">
-                  Mở phục vụ vào Thứ Hai
+                  Mở phục vụ ngày nghỉ định kỳ (Thứ Hai &amp; Thứ Ba)
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Mặc định TRẦM nghỉ Thứ Hai. Bật tùy chọn này nếu muốn mở thêm ca vào Thứ Hai.
+                  Mặc định TRẦM nghỉ Thứ Hai &amp; Thứ Ba (mở Thứ Tư → Chủ Nhật). Bật tùy chọn này nếu muốn mở thêm ca vào ngày nghỉ định kỳ.
                 </p>
               </div>
               <Switch
@@ -541,7 +541,7 @@ export function AdminBookingSettingsView({
               </p>
               {settings.closedDates.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-stone-200 p-6 text-center text-xs text-muted-foreground">
-                  Chưa có ngày nghỉ đột xuất nào được thêm. Nhà hàng hoạt động bình thường các ngày trong tuần (nghỉ Thứ Hai định kỳ).
+                  Chưa có ngày nghỉ đột xuất nào được thêm. Nhà hàng hoạt động bình thường các ngày trong tuần (nghỉ Thứ Hai và Thứ Ba định kỳ).
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">

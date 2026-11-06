@@ -1625,7 +1625,7 @@ export function AdminRecipes({
                   {actualFoodCostPct <= TARGET_FOOD_COST_PCT
                     ? `Đạt chuẩn tối ưu (${actualFoodCostPct}% ≤ ${TARGET_FOOD_COST_PCT}%)`
                     : actualFoodCostPct <= 35.0
-                      ? `Trong khung duyệt P&L 28%–35% (${actualFoodCostPct}%)`
+                      ? `Trong khung duyệt P&L (≤ 35%) (${actualFoodCostPct}%)`
                       : `Vượt ngưỡng mục tiêu (+${(actualFoodCostPct - TARGET_FOOD_COST_PCT).toFixed(1)}%)`}
                 </span>
               </div>
@@ -1639,7 +1639,7 @@ export function AdminRecipes({
                     Tỷ lệ giá vốn thực tế: <strong className="text-[#92400e]">{actualFoodCostPct}%</strong>
                   </span>
                   <span>
-                    Mục tiêu chuẩn: <strong className="text-emerald-800">{TARGET_FOOD_COST_PCT}%</strong> (khung duyệt P&L 28%–35%)
+                    Mục tiêu chuẩn: <strong className="text-emerald-800">{TARGET_FOOD_COST_PCT}%</strong> (khung duyệt P&L ≤ 35%)
                   </span>
                 </div>
                 <div className="relative h-3 w-full overflow-hidden rounded-sm border border-stone-300 bg-[#f6efe0]">

@@ -119,7 +119,9 @@ export function WaitlistPanel({
           </div>
           <div>
             <CardTitle className="font-heading text-xl text-[#292524]">
-              Khung giờ đã hết chỗ
+              {partySize > 4
+                ? "Đăng ký xếp bàn (Đoàn từ 5 khách)"
+                : "Đăng ký danh sách chờ (Waitlist)"}
             </CardTitle>
             <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="h-3.5 w-3.5" aria-hidden />
@@ -130,9 +132,20 @@ export function WaitlistPanel({
       </CardHeader>
       <CardContent>
         <p className="mb-6 rounded-lg border border-dashed border-[#b45309]/35 bg-[#fdf0d5]/50 p-3 text-sm leading-relaxed text-stone-600">
-          Rất tiếc, khung <span className="font-medium">{slotTime}</span> này
-          không còn bàn trống đủ chỗ cho đoàn của Quý khách. Đăng ký danh sách
-          chờ — nhà hàng sẽ liên hệ ngay khi có bàn nhả.
+          {partySize > 4 ? (
+            <>
+              Bàn tiêu chuẩn trên sơ đồ tối đa 4 chỗ. Với đoàn{" "}
+              <strong className="text-[#92400e]">{partySize} khách</strong> khung{" "}
+              <span className="font-medium">{slotTime}</span>, nhà hàng sẽ chủ động sắp xếp
+              bàn ghép và liên hệ xác nhận với Quý khách ngay khi hoàn tất.
+            </>
+          ) : (
+            <>
+              Rất tiếc, khung <span className="font-medium">{slotTime}</span> này
+              không còn bàn trống đủ chỗ cho đoàn của Quý khách. Đăng ký danh sách
+              chờ — nhà hàng sẽ liên hệ ngay khi có bàn nhả.
+            </>
+          )}
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">

@@ -244,7 +244,7 @@ export function EditConceptModal({
                   step="0.1"
                   value={targetFoodCostPct}
                   onChange={(e) => setTargetFoodCostPct(e.target.value)}
-                  placeholder="33.5"
+                  placeholder="34.7"
                   className="h-9 text-xs"
                 />
               </div>

@@ -71,7 +71,7 @@ export const IMPORT_UNIT_LABELS: Record<ImportUnit, string> = {
 
 // Bảng đơn giá nhập kho chuẩn cho toàn bộ 56 nguyên liệu trong danh mục bếp TRẦM.
 // Mức giá phản ánh nguồn nguyên liệu tuyển chọn chuẩn Fine Dining Việt Nam
-// (tổng giá vốn suất chuẩn 7 món = 388.407 đ/khách ≈ 32,6% giá menu, đạt mục tiêu ≤ 33,5%).
+// (tổng giá vốn suất chuẩn 7 món = 499.680 đ/khách = 34,7% giá menu, đạt mục tiêu chuẩn 34,7%).
 export const INGREDIENT_PRICE_SPECS: IngredientPriceSpec[] = [
   // 1. Đạm (cá, thịt, đậu)
   { ingredientId: "ca-bop", defaultImportPrice: 950_000, importUnit: "kg", origin: "Cần Thơ · phi lê chuẩn sashimi" },

@@ -28,7 +28,7 @@ export function AdminBomSubNav({
     {
       key: "warehouse-cost" as const,
       label: "Kho & Giá vốn nguyên liệu",
-      desc: "Food Cost 34,7% (Mục tiêu 28%) & Tồn kho thực tế",
+      desc: "Food Cost 34,7% (Mục tiêu 34,7%) & Tồn kho thực tế",
       icon: Warehouse,
     },
   ];
