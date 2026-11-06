@@ -1051,6 +1051,31 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   </Button>
                 </div>
               </div>
+              {(() => {
+                // Khung còn chỗ tổng nhưng không có bàn nào đủ cho số khách đã chọn → giải thích rõ cho khách
+                const freeSeatsList = (tables ?? [])
+                  .filter((t) => t.reason === "TOO_SMALL")
+                  .map((t) => t.table.seats);
+                if (freeSeatsList.length === 0) return null;
+                const maxFree = Math.max(...freeSeatsList);
+                return (
+                  <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-[#92400e]">
+                    Khung này vẫn còn bàn trống nhưng bàn lớn nhất chỉ có {maxFree} chỗ,
+                    chưa đủ cho đoàn {partySize} khách. Quý khách có thể{" "}
+                    <button
+                      type="button"
+                      className="font-semibold underline underline-offset-2"
+                      onClick={() => {
+                        setPartySize(Math.min(partySize, maxFree));
+                        setStep(1);
+                      }}
+                    >
+                      giảm số khách xuống {Math.min(partySize, maxFree)} để chọn bàn
+                    </button>{" "}
+                    hoặc đăng ký danh sách chờ bên dưới.
+                  </div>
+                );
+              })()}
               <WaitlistPanel
                 date={date}
                 slot={slot}
