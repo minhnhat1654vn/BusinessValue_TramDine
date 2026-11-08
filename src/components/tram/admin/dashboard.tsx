@@ -370,7 +370,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
         />
       </div>
 
-      {/* ---- FR-33: Widget KPI Food cost / Doanh thu menu · Mục tiêu 50% ---- */}
+      {/* ---- FR-33: Widget KPI Food cost / Doanh thu menu · Trần 35% ---- */}
       <motion.div variants={fadeUpItem}>
         <FoodCostKpiWidget
           kpi={data.foodCostKpi}
@@ -938,7 +938,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               </div>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.440.000 đ) kèm Wine / Tea Pairing của các đơn đặt bàn có hiệu lực.
+              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.440.000 đ) kèm Tea Pairing của các đơn đặt bàn có hiệu lực.
             </p>
           </CardContent>
         </Card>

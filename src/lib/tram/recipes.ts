@@ -49,75 +49,41 @@ export interface Ingredient {
 }
 
 export const INGREDIENTS: Ingredient[] = [
-  // Đạm
-  { id: "ca-bop", name: "Cá bớp sông Cửu Long", unit: "g", group: "PROTEIN", spec: "Phi lê, bỏ da" },
-  { id: "ca-loc", name: "Cá lóc đồng", unit: "g", group: "PROTEIN", spec: "Đã làm sạch, bỏ ruột" },
-  { id: "than-bo", name: "Thăn bò vàng Quảng Nam", unit: "g", group: "PROTEIN", spec: "Thăn ngoại, lọc gân" },
-  { id: "ca-duoi", name: "Cá đuối", unit: "g", group: "PROTEIN", spec: "Đã làm sạch nhớt, cắt khúc" },
-  { id: "dau-phu", name: "Đậu phụ non Bảo Lạc", unit: "g", group: "PROTEIN", spec: "Đậu phụ làm từ đậu tương" },
-
-  // Tinh bột
-  { id: "bot-mi", name: "Bột mì số 13", unit: "g", group: "STARCH", spec: "Bột làm bánh mì" },
-  { id: "bot-gao", name: "Bột gạo không gluten", unit: "g", group: "STARCH" },
-  { id: "bot-nang", name: "Bột năng", unit: "g", group: "STARCH" },
-  { id: "bun-tuoi", name: "Bún tươi sợi nhỏ", unit: "g", group: "STARCH", spec: "Tráng thủ công trong ngày" },
-
-  // Sữa & chất béo
-  { id: "bo-lat", name: "Bơ lạt thủ công", unit: "g", group: "DAIRY_FAT" },
-  { id: "sua-tuoi", name: "Sữa tươi không đường", unit: "ml", group: "DAIRY_FAT" },
-  { id: "dau-an", name: "Dầu ăn thực vật", unit: "ml", group: "DAIRY_FAT" },
-
-  // Rau, nấm & thảo mộc
-  { id: "rau-dang", name: "Rau đắng đất", unit: "g", group: "PRODUCE" },
-  { id: "rau-cang-cua", name: "Rau càng cua", unit: "g", group: "PRODUCE" },
-  { id: "hoa-chuoi", name: "Hoa chuối", unit: "g", group: "PRODUCE", spec: "Bào sợi, ngâm nước chanh" },
-  { id: "rau-ram", name: "Rau răm", unit: "g", group: "PRODUCE" },
-  { id: "hanh-tim", name: "Hành tím", unit: "g", group: "PRODUCE" },
-  { id: "hanh-la", name: "Hành lá", unit: "g", group: "PRODUCE" },
-  { id: "toi", name: "Tỏi", unit: "g", group: "PRODUCE", spec: "Đã bóc vỏ" },
-  { id: "gung", name: "Gừng", unit: "g", group: "PRODUCE" },
-  { id: "sa", name: "Sả cây", unit: "g", group: "PRODUCE" },
-  { id: "ot-hiem", name: "Ớt hiểm", unit: "g", group: "PRODUCE" },
-  { id: "ot-chi-thien", name: "Ớt chỉ thiên hun khói", unit: "g", group: "PRODUCE" },
-  { id: "kinh-gioi", name: "Kinh giới", unit: "g", group: "PRODUCE" },
-  { id: "tia-to", name: "Lá tía tô", unit: "g", group: "PRODUCE" },
-  { id: "rau-nhai", name: "Rau nhái", unit: "g", group: "PRODUCE" },
-  { id: "dot-xoai", name: "Đọt xoài non", unit: "g", group: "PRODUCE" },
-  { id: "la-coc", name: "Lá cóc non", unit: "g", group: "PRODUCE" },
-  { id: "la-lot", name: "Lá lốt", unit: "g", group: "PRODUCE" },
-  { id: "la-moc-mat", name: "Lá móc mật", unit: "g", group: "PRODUCE", spec: "Lá tươi rừng Trà Bồng" },
-  { id: "ca-chua", name: "Cà chua", unit: "g", group: "PRODUCE" },
-  { id: "bac-ha", name: "Bạc hà (dọc mùng)", unit: "g", group: "PRODUCE", spec: "Tước vỏ, cắt xéo" },
-  { id: "nam-huong", name: "Nấm hương rừng tươi", unit: "g", group: "PRODUCE" },
-  { id: "nam-dui-ga", name: "Nấm đùi gà", unit: "g", group: "PRODUCE" },
-  { id: "nam-rom", name: "Nấm rơm", unit: "g", group: "PRODUCE" },
-
-  // Trái cây & hạt
-  { id: "me-chin", name: "Me chín", unit: "g", group: "FRUIT_NUT", spec: "Dầm lấy nước cốt" },
-  { id: "chanh", name: "Nước cốt chanh", unit: "ml", group: "FRUIT_NUT" },
-  { id: "thom", name: "Thơm (dứa)", unit: "g", group: "FRUIT_NUT", spec: "Đã gọt mắt" },
-  { id: "dau-phong", name: "Đậu phộng rang", unit: "g", group: "FRUIT_NUT", spec: "Bỏ vỏ lụa" },
-  { id: "nhan-xuong", name: "Nhãn xuồng cơm vàng Long An", unit: "g", group: "FRUIT_NUT", spec: "Cùi đã bóc, bỏ hạt" },
-  { id: "hat-sen", name: "Hạt sen tươi Tây Hồ", unit: "g", group: "FRUIT_NUT", spec: "Đã bỏ tim" },
-
-  // Gia vị & nước chấm
-  { id: "muoi-bien", name: "Muối biển hạt", unit: "g", group: "SEASONING" },
-  { id: "muoi-ot-tn", name: "Muối ớt Tây Ninh", unit: "g", group: "SEASONING" },
-  { id: "duong-trang", name: "Đường cát trắng", unit: "g", group: "SEASONING" },
-  { id: "duong-thot-not", name: "Đường thốt nốt", unit: "g", group: "SEASONING" },
-  { id: "duong-phen", name: "Đường phèn", unit: "g", group: "SEASONING" },
-  { id: "mat-ong", name: "Mật ong hoa rừng", unit: "ml", group: "SEASONING" },
-  { id: "nuoc-mam", name: "Nước mắm nhĩ Phú Quốc", unit: "ml", group: "SEASONING" },
-  { id: "nuoc-tuong", name: "Nước tương nấm (chay)", unit: "ml", group: "SEASONING" },
-  { id: "tuong-bao-lac", name: "Tương đậu tương Bảo Lạc", unit: "g", group: "SEASONING", spec: "Ủ chum lên men" },
-  { id: "tieu-rung", name: "Tiêu rừng", unit: "g", group: "SEASONING" },
-  { id: "tieu-den", name: "Tiêu đen xay", unit: "g", group: "SEASONING" },
-
-  // Hương liệu & phụ liệu
-  { id: "men-tuoi", name: "Men tươi", unit: "g", group: "AROMATIC" },
-  { id: "tram-huong", name: "Tinh chất trầm hương thực phẩm", unit: "ml", group: "AROMATIC" },
-  { id: "atiso", name: "Hoa atiso khô Đà Lạt", unit: "g", group: "AROMATIC", spec: "Ủ lạnh làm trà" },
-  { id: "rom", name: "Rơm nếp sạch", unit: "g", group: "AROMATIC", spec: "Dùng để nướng trui" },
+  // Danh mục 34 nguyên liệu theo sheet BOM "Tiến Vua · Bảy Báu Vật Việt" (khớp prisma/seed-bom.ts)
+  { id: "caviar-lam-dong", name: "Trứng cá tầm muối Lâm Đồng (caviar) — trung cấp lai", unit: "g", group: "PROTEIN", spec: "Cao nguyên Lâm Đồng · Hũ 30–50g giữ chuỗi lạnh" },
+  { id: "sa-sung-van-don", name: "Sá sùng khô đảo Vân Đồn — loại đặc biệt", unit: "g", group: "PROTEIN", spec: "Vân Đồn, Quảng Ninh · Túi zip 500g" },
+  { id: "bao-ngu-nha-trang", name: "Bào ngư biển lạnh Nha Trang (nguyên con ~65 g)", unit: "g", group: "PROTEIN", spec: "Nha Trang, Khánh Hòa · Size ~15 con/kg tươi sống" },
+  { id: "yen-sao-khanh-hoa", name: "Yến sào tinh chế Khánh Hòa (yến nhà loại 1)", unit: "g", group: "PROTEIN", spec: "Khánh Hòa · Yến tinh chế hộp 100g" },
+  { id: "ga-ta-nuoc-dung", name: "Gà ta thả vườn (nước dùng chưng 6 giờ)", unit: "g", group: "PROTEIN", spec: "Nội địa · Gà ta chưng cô 6 giờ lấy nước dùng" },
+  { id: "ca-tam-da-lat", name: "Fillet cá tầm Lâm Đồng", unit: "g", group: "PROTEIN", spec: "Cao nguyên Lâm Đồng · Fillet cá tầm tươi sống" },
+  { id: "ga-dong-tao", name: "Đùi gà Đông Tảo Hưng Yên (thuần chủng, tuyển)", unit: "g", group: "PROTEIN", spec: "Hưng Yên · Đùi gà thuần chủng đặt lô 5kg" },
+  { id: "banh-da-nem", name: "Đế bánh đa nem nướng", unit: "g", group: "STARCH", spec: "Hải Dương / Hải Phòng · Bánh đa khô nướng giòn" },
+  { id: "banh-mi-men-tuoi", name: "Bánh mì men tươi artisan — bánh chào mừng", unit: "g", group: "STARCH", spec: "Nội địa · Bếp TRẦM tự làm thủ công" },
+  { id: "com-chay-st25", name: "Gạo ST25 (làm cơm cháy)", unit: "g", group: "STARCH", spec: "Sóc Trăng · Gạo ST25 chuẩn xuất khẩu chiên giòn" },
+  { id: "kem-chua", name: "Kem chua (sour cream) Tatua đánh bông", unit: "g", group: "DAIRY_FAT", spec: "Nội địa — Hộp 1 kg đánh bông mịn" },
+  { id: "bo-lat-president", name: "Bơ lạt President (Pháp)", unit: "g", group: "DAIRY_FAT", spec: "Nhập khẩu Pháp · Bơ lạt sỉ làm bánh & áp chảo" },
+  { id: "kem-tuoi-whipping", name: "Kem tươi whipping Anchor (làm kem trầm hương)", unit: "g", group: "DAIRY_FAT", spec: "New Zealand · Whipping Cream Anchor hộp 1 lít" },
+  { id: "sen-co-ngu", name: "Hạt sen Cổ Ngự Hồ Tây (tuyển)", unit: "g", group: "FRUIT_NUT", spec: "Hồ Tây, Hà Nội · Sen tươi Cổ Ngự tuyển đặc sản" },
+  { id: "hat-dieu-rang-muoi", name: "Hạt điều rang muối (hạt rừng)", unit: "g", group: "FRUIT_NUT", spec: "Bình Phước · Nguyên hạt còn vỏ lụa" },
+  { id: "nhan-long-hung-yen", name: "Nhãn lồng Hưng Yên (sơ chế tách hạt)", unit: "g", group: "FRUIT_NUT", spec: "Hưng Yên · Nhãn mọng nước cùi dày" },
+  { id: "hoa-tieu-rung", name: "Hoa tiêu rừng Tuyên Quang", unit: "g", group: "SEASONING", spec: "Tuyên Quang · Tiêu rừng Măng Đen / Tuyên Quang" },
+  { id: "ruou-nep-cai", name: "Rượu nếp cái hoa vàng — nướng ấm", unit: "ml", group: "SEASONING", spec: "Nội địa · Can 5 lít ủ chum thơm" },
+  { id: "nuoc-cot-ga-ta", name: "Nước cốt gà thả vườn — chưng cô (phân bổ)", unit: "ml", group: "SEASONING", spec: "Nội địa · Nước cốt gà ta nguyên chất" },
+  { id: "chanh-day-cot", name: "Chanh dây — cốt (Đà Lạt)", unit: "g", group: "SEASONING", spec: "Đà Lạt · Cốt chiết xuất 40% khối lượng" },
+  { id: "mat-ong-rung", name: "Mật ong rừng Tây Bắc", unit: "g", group: "SEASONING", spec: "Tây Bắc · Mật ong khoái rừng nguyên chất" },
+  { id: "muoi-ot-hoa-trang-tri", name: "Muối ớt & hoa trang trí — chào mừng", unit: "g", group: "SEASONING", spec: "Nội địa · Muối ớt Tây Ninh, hoa & phụ theo phần" },
+  { id: "mac-khen-tay-bac", name: "Mắc khén Tây Bắc (rang, giã)", unit: "g", group: "AROMATIC", spec: "Tây Bắc · Hạt mắc khén rang thơm" },
+  { id: "huong-tram-tam-uop", name: "Hương trầm — tẩm ướp (phân bổ)", unit: "g", group: "AROMATIC", spec: "Nội địa · Trầm hương tự nhiên phân bổ theo phần" },
+  { id: "phu-trang-tri-trang-mieng", name: "Phụ trang trí tráng miệng (vừng rang, hoa, bánh kẹp)", unit: "g", group: "PRODUCE", spec: "Nội địa · Vừng rang, cánh hoa, bánh kẹp giòn" },
+  { id: "tra-shan-tuyet", name: "Trà Shan tuyết cổ thụ Tà Xùa", unit: "g", group: "AROMATIC", spec: "Tà Xùa, Tây Bắc · Búp trà cổ thụ >100 tuổi" },
+  { id: "gia-vi-mon-1", name: "Gia vị cơ bản & phụ liệu Món 1 (chanh vàng, tía tô non)", unit: "g", group: "PRODUCE", spec: "Chanh vàng vỏ 25g x 50đ + tía tô non 8g x 60đ" },
+  { id: "gia-vi-mon-2", name: "Gia vị cơ bản & phụ liệu Món 2 (muối hạt, gừng, sả)", unit: "g", group: "SEASONING", spec: "Muối hạt 6g x 25đ + gừng 7g x 50đ + sả 5g x 40đ" },
+  { id: "gia-vi-mon-3", name: "Gia vị cơ bản & phụ liệu Món 3 (hành boa rô)", unit: "g", group: "PRODUCE", spec: "Hành boa rô 10g x 50đ" },
+  { id: "gia-vi-mon-4", name: "Gia vị cơ bản & phụ liệu Món 4 (hành khô, gừng)", unit: "g", group: "SEASONING", spec: "Hành khô nướng 4g x 60đ + gừng 2g x 50đ" },
+  { id: "gia-vi-mon-6", name: "Gia vị cơ bản & phụ liệu Món 6 (dầu ăn, mắm, tỏi, đường cát)", unit: "g", group: "SEASONING", spec: "Dầu 15ml x 35đ + mắm 8g x 30đ + tỏi 5g x 40đ + đường 3g x 20đ" },
+  { id: "gia-vi-mon-7", name: "Gia vị cơ bản & phụ liệu Món 7 (đường phèn, sữa tươi, đường cát)", unit: "g", group: "SEASONING", spec: "Đường phèn 40g x 45đ + sữa tươi 10g x 28đ + đường 5g x 20đ" },
+  { id: "than-hoa-hong", name: "Than hoa hồng (than trắng, nướng)", unit: "g", group: "SEASONING", spec: "Nhập khẩu / nội địa · Kỹ thuật nướng (phân bổ)" },
+  { id: "rau-thom-hoa-trang-tri", name: "Rau thơm & hoa trang trí đĩa", unit: "g", group: "PRODUCE", spec: "Đà Lạt · Trình bày món (phân bổ)" },
 ];
 
 const INGREDIENT_MAP: Record<string, Ingredient> = Object.fromEntries(
@@ -154,241 +120,125 @@ export interface DishRecipe {
   variants: RecipeVariant[];
 }
 
-// Món 1 — Bánh mì bơ trầm hương & muối ớt Tây Ninh
-const BANH_MI_STD: RecipeLine[] = [
-  { ingredientId: "bot-mi", qty: 30 },
-  { ingredientId: "men-tuoi", qty: 1, note: "Ủ bột 36 giờ" },
-  { ingredientId: "sua-tuoi", qty: 12 },
-  { ingredientId: "duong-trang", qty: 2 },
-  { ingredientId: "muoi-bien", qty: 0.5 },
-  { ingredientId: "bo-lat", qty: 15, note: "Đánh bông cùng trầm hương" },
-  { ingredientId: "tram-huong", qty: 0.05 },
-  { ingredientId: "muoi-ot-tn", qty: 3 },
+// Công thức BOM 7 món "Tiến Vua · Bảy Báu Vật Việt" — tổng 472.975 đ/khách (khớp sheet BOM & prisma/seed-bom.ts)
+const DISH_1_LINES: RecipeLine[] = [
+  { ingredientId: "caviar-lam-dong", qty: 4, note: "Hũ caviar Lâm Đồng trung cấp lai ướp lạnh" },
+  { ingredientId: "banh-da-nem", qty: 30, note: "Đế bánh đa nem nướng giòn" },
+  { ingredientId: "kem-chua", qty: 15, note: "Kem chua Tatua đánh bông mịn" },
+  { ingredientId: "tra-shan-tuyet", qty: 5, note: "Nghi thức trà chào mừng dùng chung cả menu" },
+  { ingredientId: "banh-mi-men-tuoi", qty: 60, note: "Bánh mì men tươi artisan chào mừng" },
+  { ingredientId: "bo-lat-president", qty: 10, note: "Bơ lạt President ăn kèm bánh chào mừng" },
+  { ingredientId: "mat-ong-rung", qty: 5, note: "Mật ong rừng Tây Bắc ăn kèm bánh" },
+  { ingredientId: "muoi-ot-hoa-trang-tri", qty: 1, note: "Muối ớt Tây Ninh & hoa trang trí theo phần" },
+  { ingredientId: "gia-vi-mon-1", qty: 1, note: "Chanh vàng vỏ bào 25g, tía tô non 8g" },
 ];
 
-const BANH_MI_GF: RecipeLine[] = [
-  { ingredientId: "bot-gao", qty: 24 },
-  { ingredientId: "bot-nang", qty: 8, note: "Tạo độ dai thay gluten" },
-  { ingredientId: "men-tuoi", qty: 1 },
-  { ingredientId: "sua-tuoi", qty: 14 },
-  { ingredientId: "duong-trang", qty: 2 },
-  { ingredientId: "muoi-bien", qty: 0.5 },
-  { ingredientId: "bo-lat", qty: 15, note: "Đánh bông cùng trầm hương" },
-  { ingredientId: "tram-huong", qty: 0.05 },
-  { ingredientId: "muoi-ot-tn", qty: 3 },
+const DISH_2_LINES: RecipeLine[] = [
+  { ingredientId: "sa-sung-van-don", qty: 3, note: "Sá sùng khô Vân Đồn loại đặc biệt nướng than hoa" },
+  { ingredientId: "hoa-tieu-rung", qty: 2, note: "Hoa tiêu rừng Tuyên Quang rang giã thơm" },
+  { ingredientId: "gia-vi-mon-2", qty: 1, note: "Muối hạt 6g, gừng tươi 7g, sả tươi 5g" },
 ];
 
-// Món 2 — Gỏi cá bớp sông Cửu Long
-const GOI_CA_BOP_STD: RecipeLine[] = [
-  { ingredientId: "ca-bop", qty: 60, note: "Thái lát mỏng 3 mm" },
-  { ingredientId: "me-chin", qty: 12 },
-  { ingredientId: "duong-thot-not", qty: 4 },
-  { ingredientId: "nuoc-mam", qty: 5 },
-  { ingredientId: "chanh", qty: 5 },
-  { ingredientId: "rau-dang", qty: 10 },
-  { ingredientId: "rau-cang-cua", qty: 10 },
-  { ingredientId: "hanh-tim", qty: 5, note: "Thái mỏng, ngâm đá" },
-  { ingredientId: "ot-hiem", qty: 1 },
-  { ingredientId: "dau-phong", qty: 5 },
+const DISH_3_LINES: RecipeLine[] = [
+  { ingredientId: "bao-ngu-nha-trang", qty: 65, note: "Bào ngư biển lạnh Nha Trang nguyên con ~65g làm sạch" },
+  { ingredientId: "ruou-nep-cai", qty: 30, note: "Rượu nếp cái hoa vàng nướng ấm khử tanh" },
+  { ingredientId: "nuoc-cot-ga-ta", qty: 20, note: "Nước cốt gà thả vườn chưng cô đặc phân bổ" },
+  { ingredientId: "gia-vi-mon-3", qty: 1, note: "Hành boa rô 10g" },
 ];
 
-const GOI_CA_BOP_COOKED: RecipeLine[] = [
-  { ingredientId: "ca-bop", qty: 60, note: "Áp chảo chín tới" },
-  { ingredientId: "dau-an", qty: 3 },
-  { ingredientId: "me-chin", qty: 12 },
-  { ingredientId: "duong-thot-not", qty: 4 },
-  { ingredientId: "nuoc-mam", qty: 5 },
-  { ingredientId: "chanh", qty: 5 },
-  { ingredientId: "rau-dang", qty: 10 },
-  { ingredientId: "rau-cang-cua", qty: 10 },
-  { ingredientId: "hanh-tim", qty: 5, note: "Thái mỏng, ngâm đá" },
-  { ingredientId: "ot-hiem", qty: 1 },
-  { ingredientId: "dau-phong", qty: 5 },
+const DISH_4_LINES: RecipeLine[] = [
+  { ingredientId: "yen-sao-khanh-hoa", qty: 2.5, note: "Yến sào tinh chế Khánh Hòa chưng cách thủy" },
+  { ingredientId: "sen-co-ngu", qty: 8, note: "Hạt sen Cổ Ngự Hồ Tây tuyển chọn hấp bở" },
+  { ingredientId: "ga-ta-nuoc-dung", qty: 75, note: "Nước dùng gà ta thả vườn chưng 6 giờ phân bổ" },
+  { ingredientId: "gia-vi-mon-4", qty: 1, note: "Hành khô nướng 4g, gừng 2g" },
 ];
 
-const GOI_CA_BOP_VEG: RecipeLine[] = [
-  { ingredientId: "hoa-chuoi", qty: 40 },
-  { ingredientId: "rau-dang", qty: 10 },
-  { ingredientId: "rau-cang-cua", qty: 10 },
-  { ingredientId: "rau-ram", qty: 3 },
-  { ingredientId: "me-chin", qty: 12 },
-  { ingredientId: "duong-thot-not", qty: 4 },
-  { ingredientId: "nuoc-tuong", qty: 5, note: "Thay nước mắm" },
-  { ingredientId: "chanh", qty: 5 },
-  { ingredientId: "ot-hiem", qty: 1 },
-  { ingredientId: "dau-phong", qty: 8 },
+const DISH_5_LINES: RecipeLine[] = [
+  { ingredientId: "ca-tam-da-lat", qty: 100, note: "Fillet cá tầm Lâm Đồng áp chảo da giòn" },
+  { ingredientId: "bo-lat-president", qty: 15, note: "Bơ lạt President Pháp áp chảo" },
+  { ingredientId: "chanh-day-cot", qty: 15, note: "Cốt chanh dây Đà Lạt tạo vị chua thanh" },
+  { ingredientId: "hat-dieu-rang-muoi", qty: 10, note: "Hạt điều rang muối Bình Phước rắc giòn" },
 ];
 
-// Món 3 — Bún đậu tương Bảo Lạc
-const BUN_DAU_STD: RecipeLine[] = [
-  { ingredientId: "bun-tuoi", qty: 50 },
-  { ingredientId: "dau-phu", qty: 40, note: "Chiên vàng giòn" },
-  { ingredientId: "tuong-bao-lac", qty: 20 },
-  { ingredientId: "ot-chi-thien", qty: 2 },
-  { ingredientId: "toi", qty: 2 },
-  { ingredientId: "duong-trang", qty: 2 },
-  { ingredientId: "dau-an", qty: 5 },
-  { ingredientId: "kinh-gioi", qty: 5 },
-  { ingredientId: "tia-to", qty: 3 },
+const DISH_6_LINES: RecipeLine[] = [
+  { ingredientId: "ga-dong-tao", qty: 110, note: "Đùi gà Đông Tảo Hưng Yên thuần chủng tuyển" },
+  { ingredientId: "com-chay-st25", qty: 50, note: "Cơm cháy gạo ST25 chiên giòn ăn kèm" },
+  { ingredientId: "mat-ong-rung", qty: 15, note: "Mật ong rừng glaze da gà óng ả" },
+  { ingredientId: "mac-khen-tay-bac", qty: 2, note: "Mắc khén Tây Bắc rang giã xát da gà" },
+  { ingredientId: "gia-vi-mon-6", qty: 1, note: "Dầu ăn 15ml, nước mắm 8g, tỏi 5g, đường 3g" },
 ];
 
-// Món 4 — Cá lóc nướng trui rau rừng
-const CA_LOC_STD: RecipeLine[] = [
-  { ingredientId: "ca-loc", qty: 100 },
-  { ingredientId: "rom", qty: 50, note: "Đốt phủ cá khoảng 12 phút" },
-  { ingredientId: "rau-nhai", qty: 8 },
-  { ingredientId: "dot-xoai", qty: 6 },
-  { ingredientId: "la-coc", qty: 6 },
-  { ingredientId: "muoi-bien", qty: 2, note: "Hầm cùng tiêu rừng" },
-  { ingredientId: "tieu-rung", qty: 1 },
-  { ingredientId: "chanh", qty: 5 },
-];
-
-const CA_LOC_STEAMED: RecipeLine[] = [
-  { ingredientId: "ca-loc", qty: 100 },
-  { ingredientId: "la-lot", qty: 6 },
-  { ingredientId: "nam-huong", qty: 25 },
-  { ingredientId: "gung", qty: 3 },
-  { ingredientId: "hanh-la", qty: 3 },
-  { ingredientId: "nuoc-mam", qty: 3 },
-  { ingredientId: "rau-nhai", qty: 8 },
-  { ingredientId: "dot-xoai", qty: 6 },
-  { ingredientId: "muoi-bien", qty: 1 },
-  { ingredientId: "tieu-rung", qty: 1 },
-];
-
-// Món 5 — Bò Quảng Nam nướng lá móc mật
-const BO_STD: RecipeLine[] = [
-  { ingredientId: "than-bo", qty: 80 },
-  { ingredientId: "la-moc-mat", qty: 3, note: "Lót vỉ nướng" },
-  { ingredientId: "mat-ong", qty: 8 },
-  { ingredientId: "sa", qty: 5 },
-  { ingredientId: "toi", qty: 3 },
-  { ingredientId: "nuoc-mam", qty: 4 },
-  { ingredientId: "tieu-den", qty: 0.5 },
-  { ingredientId: "dau-an", qty: 3 },
-];
-
-const BO_MUSHROOM: RecipeLine[] = [
-  { ingredientId: "nam-dui-ga", qty: 100, note: "Áp chảo khứa vảy rồng" },
-  { ingredientId: "bo-lat", qty: 8 },
-  { ingredientId: "la-moc-mat", qty: 3, note: "Lót chảo" },
-  { ingredientId: "mat-ong", qty: 5 },
-  { ingredientId: "toi", qty: 3 },
-  { ingredientId: "nuoc-tuong", qty: 5, note: "Thay nước mắm" },
-  { ingredientId: "tieu-den", qty: 1.5 },
-  { ingredientId: "dau-an", qty: 3 },
-];
-
-// Món 6 — Canh chành cá đuối tía tô
-const CANH_CA_DUOI_STD: RecipeLine[] = [
-  { ingredientId: "ca-duoi", qty: 50 },
-  { ingredientId: "me-chin", qty: 10 },
-  { ingredientId: "ca-chua", qty: 20 },
-  { ingredientId: "thom", qty: 15 },
-  { ingredientId: "bac-ha", qty: 15 },
-  { ingredientId: "tia-to", qty: 4, note: "Cho vào khi tắt bếp" },
-  { ingredientId: "hanh-tim", qty: 2 },
-  { ingredientId: "nuoc-mam", qty: 4 },
-  { ingredientId: "duong-trang", qty: 3 },
-  { ingredientId: "ot-hiem", qty: 0.5 },
-];
-
-const CANH_NAM_SEN: RecipeLine[] = [
-  { ingredientId: "nam-rom", qty: 40 },
-  { ingredientId: "hat-sen", qty: 20 },
-  { ingredientId: "me-chin", qty: 10 },
-  { ingredientId: "ca-chua", qty: 20 },
-  { ingredientId: "thom", qty: 15 },
-  { ingredientId: "bac-ha", qty: 15 },
-  { ingredientId: "tia-to", qty: 4, note: "Cho vào khi tắt bếp" },
-  { ingredientId: "nuoc-tuong", qty: 4, note: "Thay nước mắm" },
-  { ingredientId: "duong-trang", qty: 3 },
-];
-
-// Món 7 — Chè trầm nhãn Long An kèm trà atiso
-const CHE_STD: RecipeLine[] = [
-  { ingredientId: "nhan-xuong", qty: 50 },
-  { ingredientId: "hat-sen", qty: 20, note: "Bọc trong cùi nhãn" },
-  { ingredientId: "duong-phen", qty: 12 },
-  { ingredientId: "bot-nang", qty: 3, note: "Tạo độ sánh" },
-  { ingredientId: "tram-huong", qty: 0.05 },
-  { ingredientId: "atiso", qty: 3, note: "Ủ lạnh 8 giờ" },
-];
-
-const CHE_LOW_SUGAR: RecipeLine[] = [
-  { ingredientId: "nhan-xuong", qty: 50 },
-  { ingredientId: "hat-sen", qty: 20, note: "Bọc trong cùi nhãn" },
-  { ingredientId: "duong-phen", qty: 6, note: "Giảm 50% đường phèn" },
-  { ingredientId: "bot-nang", qty: 3, note: "Tạo độ sánh" },
-  { ingredientId: "tram-huong", qty: 0.05 },
-  { ingredientId: "atiso", qty: 3, note: "Ủ lạnh 8 giờ" },
+const DISH_7_LINES: RecipeLine[] = [
+  { ingredientId: "nhan-long-hung-yen", qty: 160, note: "Nhãn lồng Hưng Yên sơ chế tách hạt" },
+  { ingredientId: "kem-tuoi-whipping", qty: 20, note: "Kem tươi whipping Anchor New Zealand làm kem trầm" },
+  { ingredientId: "huong-tram-tam-uop", qty: 1, note: "Hương trầm tẩm ướp phân bổ theo phần" },
+  { ingredientId: "phu-trang-tri-trang-mieng", qty: 1, note: "Phụ trang trí tráng miệng (vừng rang, hoa, bánh kẹp)" },
+  { ingredientId: "tra-shan-tuyet", qty: 5, note: "Trà Shan tuyết cổ thụ Tà Xùa pha kèm món" },
+  { ingredientId: "gia-vi-mon-7", qty: 1, note: "Đường phèn 40g, sữa tươi 10g, đường cát 5g" },
 ];
 
 export const DISH_RECIPES: DishRecipe[] = [
   {
     dishIndex: 1,
-    portion: "1 ổ bánh mì nhỏ khoảng 45 g kèm 15 g bơ trầm hương",
-    method: "Ủ bột lạnh 36 giờ, nướng 190 °C trong 14 phút; bơ đánh bông với trầm hương, rắc muối ớt khi ra món.",
+    portion: "1 khách",
+    method: "Ướp lạnh & Mở hộp tại bàn",
     variants: [
-      { optionId: "std", lines: BANH_MI_STD },
-      { optionId: "gf", lines: BANH_MI_GF, note: "Thay bột mì bằng bột gạo và bột năng; chế biến trên khu vực riêng không gluten." },
+      { optionId: "std", lines: DISH_1_LINES },
+      { optionId: "extra_blini", lines: DISH_1_LINES, note: "Giữ nguyên định lượng chuẩn; bánh blini phục vụ thêm theo yêu cầu." },
     ],
   },
   {
     dishIndex: 2,
-    portion: "1 đĩa gỏi khoảng 120 g",
-    method: "Cá thái lát mỏng giữ lạnh 2 °C, trộn nước me ngay trước khi ra món; rắc đậu phộng sau cùng.",
+    portion: "1 khách",
+    method: "Nướng than thảo mộc",
     variants: [
-      { optionId: "std", lines: GOI_CA_BOP_STD },
-      { optionId: "cooked", lines: GOI_CA_BOP_COOKED, note: "Cá áp chảo chín tới, thêm dầu ăn; các thành phần còn lại giữ nguyên." },
-      { optionId: "veg", lines: GOI_CA_BOP_VEG, note: "Thay cá bằng hoa chuối, nước tương thay nước mắm, bỏ hành tím." },
+      { optionId: "std", lines: DISH_2_LINES },
+      { optionId: "crispy_fried", lines: DISH_2_LINES, note: "Giữ nguyên định lượng; đổi kỹ thuật chiên phồng." },
     ],
   },
   {
     dishIndex: 3,
-    portion: "1 phần bún khoảng 130 g kèm chén tương 20 g",
-    method: "Đậu phụ chiên vàng, tương Bảo Lạc phi tỏi và ớt hun khói, bún tươi cuộn lá kinh giới.",
+    portion: "1 khách",
+    method: "Om chậm men rượu nếp cái hoa vàng",
     variants: [
-      { optionId: "std", lines: BUN_DAU_STD },
-      { optionId: "mild", lines: BUN_DAU_STD, note: "Giữ nguyên định lượng; ớt hun khói để riêng chén nhỏ để khách tự gia giảm." },
+      { optionId: "std", lines: DISH_3_LINES },
+      { optionId: "mild_wine", lines: DISH_3_LINES, note: "Giữ nguyên định lượng; giảm thời gian om rượu." },
     ],
   },
   {
     dishIndex: 4,
-    portion: "1 khúc cá lóc khoảng 80 g thành phẩm kèm rau rừng",
-    method: "Cá xiên que, phủ rơm đốt khoảng 12 phút đến khi da sém giòn; cạo lớp cháy, ăn kèm rau rừng và muối tiêu chanh.",
+    portion: "1 khách",
+    method: "Tiềm thanh nhã & Rót tại bàn",
     variants: [
-      { optionId: "std", lines: CA_LOC_STD },
-      { optionId: "steamed", lines: CA_LOC_STEAMED, note: "Không dùng rơm; cá hấp cùng lá lốt, nấm hương, gừng — bỏ lá cóc và chanh." },
+      { optionId: "std", lines: DISH_4_LINES },
+      { optionId: "extra_lotus", lines: DISH_4_LINES, note: "Giữ nguyên định lượng chuẩn; hạt sen thêm theo yêu cầu." },
     ],
   },
   {
     dishIndex: 5,
-    portion: "1 phần bò khoảng 70 g thành phẩm",
-    method: "Ướp mật ong, sả, tỏi 2 giờ; nướng trên lá móc mật lửa than, nghỉ thịt 3 phút trước khi thái.",
+    portion: "1 khách",
+    method: "Áp chảo chảo gang bơ thảo mộc",
     variants: [
-      { optionId: "med", lines: BO_STD },
-      { optionId: "welldone", lines: BO_STD, note: "Giữ nguyên định lượng; nướng thêm 2–3 phút đến chín kỹ." },
-      { optionId: "mushroom", lines: BO_MUSHROOM, note: "Thay thăn bò bằng nấm đùi gà áp bơ; nước tương thay nước mắm, bỏ sả." },
+      { optionId: "std", lines: DISH_5_LINES },
+      { optionId: "herb_steamed", lines: DISH_5_LINES, note: "Giữ nguyên định lượng; đổi kỹ thuật hấp thảo mộc." },
     ],
   },
   {
     dishIndex: 6,
-    portion: "1 chén canh khoảng 150 ml",
-    method: "Nấu với khoảng 120 ml nước lọc (không tính trong BOM); dầm me lấy nước cốt, cho cá khi nước sôi, tía tô thả sau cùng.",
+    portion: "1 khách",
+    method: "Quay giòn da đượm hương rừng Tây Bắc",
     variants: [
-      { optionId: "std", lines: CANH_CA_DUOI_STD },
-      { optionId: "veg_soup", lines: CANH_NAM_SEN, note: "Thay cá đuối bằng nấm rơm và hạt sen; nước tương thay nước mắm, bỏ hành tím và ớt." },
+      { optionId: "std", lines: DISH_6_LINES },
+      { optionId: "mild_spice", lines: DISH_6_LINES, note: "Giữ nguyên định lượng; giảm lượng mắc khén khi ra món." },
     ],
   },
   {
     dishIndex: 7,
-    portion: "1 chén chè khoảng 100 g kèm 100 ml trà atiso",
-    method: "Nhãn bọc hạt sen, nấu chè lửa nhỏ với đường phèn; nhỏ trầm hương khi nguội. Trà atiso ủ lạnh 8 giờ với khoảng 100 ml nước lọc.",
+    portion: "1 khách",
+    method: "Nấu nước đường phèn thanh tao & Nghi thức trà 3 lần rót",
     variants: [
-      { optionId: "std", lines: CHE_STD },
-      { optionId: "low_sugar", lines: CHE_LOW_SUGAR, note: "Giảm 50% đường phèn (12 g → 6 g); các thành phần còn lại giữ nguyên." },
+      { optionId: "std", lines: DISH_7_LINES },
+      { optionId: "low_sweet", lines: DISH_7_LINES, note: "Giữ nguyên định lượng; giảm đường khi nấu." },
     ],
   },
 ];

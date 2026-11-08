@@ -617,12 +617,12 @@ export function AdminFoodCost({
                 Mục tiêu {formatPercent(report.targetFoodCostPct, 1)} ({formatVND(report.targetFoodCostPerGuest)})
               </div>
 
-              {/* Nhãn mốc trần 50% (FR-33) */}
+              {/* Nhãn mốc trần 35% (FR-33) */}
               <div
                 style={{ left: "35%" }}
                 className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-rose-700"
               >
-                Trần 35% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
+                Mục tiêu trần 35% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
               </div>
 
               <div className="relative h-4 w-full overflow-hidden rounded-full border border-border/80 bg-[#f5efe4]">

@@ -67,79 +67,44 @@ export const IMPORT_UNIT_LABELS: Record<ImportUnit, string> = {
   ml: "ml",
 };
 
-// Bảng đơn giá nhập kho chuẩn cho toàn bộ 56 nguyên liệu trong danh mục bếp TRẦM.
+// Bảng đơn giá nhập kho chuẩn cho 34 nguyên liệu trong danh mục bếp TRẦM (theo sheet BOM).
 // Mức giá phản ánh nguồn nguyên liệu tuyển chọn chuẩn Fine Dining Việt Nam
 // (tổng giá vốn suất chuẩn 7 món = 472.975 đ/khách theo sheet BOM, khung duyệt 28–35%).
 export const INGREDIENT_PRICE_SPECS: IngredientPriceSpec[] = [
-  // 1. Đạm (cá, thịt, đậu)
-  { ingredientId: "ca-bop", defaultImportPrice: 950_000, importUnit: "kg", origin: "Cần Thơ · phi lê chuẩn sashimi" },
-  { ingredientId: "ca-loc", defaultImportPrice: 520_000, importUnit: "kg", origin: "Đồng Tháp · cá đồng tự nhiên" },
-  { ingredientId: "than-bo", defaultImportPrice: 1_650_000, importUnit: "kg", origin: "Quảng Nam · thăn ngoại bò vàng" },
-  { ingredientId: "ca-duoi", defaultImportPrice: 720_000, importUnit: "kg", origin: "Vũng Tàu · đánh bắt trong ngày" },
-  { ingredientId: "dau-phu", defaultImportPrice: 140_000, importUnit: "kg", origin: "Cao Bằng · làm thủ công" },
-
-  // 2. Tinh bột
-  { ingredientId: "bot-mi", defaultImportPrice: 45_000, importUnit: "kg", origin: "Bột mì protein cao" },
-  { ingredientId: "bot-gao", defaultImportPrice: 52_000, importUnit: "kg", origin: "Gạo hữu cơ xay mịn" },
-  { ingredientId: "bot-nang", defaultImportPrice: 48_000, importUnit: "kg", origin: "Tinh bột khoai mì lọc" },
-  { ingredientId: "bun-tuoi", defaultImportPrice: 65_000, importUnit: "kg", origin: "Lò bún thủ công TP.HCM" },
-
-  // 3. Sữa & chất béo
-  { ingredientId: "bo-lat", defaultImportPrice: 520_000, importUnit: "kg", origin: "Bơ lạt lên men thủ công" },
-  { ingredientId: "sua-tuoi", defaultImportPrice: 45_000, importUnit: "l", origin: "Đà Lạt · thanh trùng" },
-  { ingredientId: "dau-an", defaultImportPrice: 58_000, importUnit: "l", origin: "Dầu hạt cải ép lạnh" },
-
-  // 4. Rau, nấm & thảo mộc
-  { ingredientId: "rau-dang", defaultImportPrice: 140_000, importUnit: "kg", origin: "Đồng bằng sông Cửu Long" },
-  { ingredientId: "rau-cang-cua", defaultImportPrice: 120_000, importUnit: "kg", origin: "Vườn hữu cơ Củ Chi" },
-  { ingredientId: "hoa-chuoi", defaultImportPrice: 75_000, importUnit: "kg", origin: "Hoa chuối hột miền Tây" },
-  { ingredientId: "rau-ram", defaultImportPrice: 95_000, importUnit: "kg", origin: "Đà Lạt" },
-  { ingredientId: "hanh-tim", defaultImportPrice: 85_000, importUnit: "kg", origin: "Vĩnh Châu, Sóc Trăng" },
-  { ingredientId: "hanh-la", defaultImportPrice: 75_000, importUnit: "kg", origin: "Đà Lạt" },
-  { ingredientId: "toi", defaultImportPrice: 180_000, importUnit: "kg", origin: "Tỏi cô đơn Lý Sơn" },
-  { ingredientId: "gung", defaultImportPrice: 70_000, importUnit: "kg", origin: "Gừng sẻ Tây Nguyên" },
-  { ingredientId: "sa", defaultImportPrice: 45_000, importUnit: "kg", origin: "Tiền Giang" },
-  { ingredientId: "ot-hiem", defaultImportPrice: 130_000, importUnit: "kg", origin: "Ớt hiểm xanh miền Trung" },
-  { ingredientId: "ot-chi-thien", defaultImportPrice: 450_000, importUnit: "kg", origin: "Bảo Lạc · hun khói củi" },
-  { ingredientId: "kinh-gioi", defaultImportPrice: 95_000, importUnit: "kg", origin: "Vườn thảo mộc Đà Lạt" },
-  { ingredientId: "tia-to", defaultImportPrice: 110_000, importUnit: "kg", origin: "Vườn thảo mộc Đà Lạt" },
-  { ingredientId: "rau-nhai", defaultImportPrice: 160_000, importUnit: "kg", origin: "Rau rừng Tây Ninh" },
-  { ingredientId: "dot-xoai", defaultImportPrice: 150_000, importUnit: "kg", origin: "Đồng Tháp" },
-  { ingredientId: "la-coc", defaultImportPrice: 150_000, importUnit: "kg", origin: "Miền Tây Nam Bộ" },
-  { ingredientId: "la-lot", defaultImportPrice: 110_000, importUnit: "kg", origin: "Củ Chi" },
-  { ingredientId: "la-moc-mat", defaultImportPrice: 240_000, importUnit: "kg", origin: "Trà Bồng, Quảng Ngãi" },
-  { ingredientId: "ca-chua", defaultImportPrice: 65_000, importUnit: "kg", origin: "Cà chua hữu cơ Đà Lạt" },
-  { ingredientId: "bac-ha", defaultImportPrice: 60_000, importUnit: "kg", origin: "Tiền Giang" },
-  { ingredientId: "nam-huong", defaultImportPrice: 380_000, importUnit: "kg", origin: "Nấm hương tươi Sapa" },
-  { ingredientId: "nam-dui-ga", defaultImportPrice: 220_000, importUnit: "kg", origin: "Trại nấm hữu cơ Đà Lạt" },
-  { ingredientId: "nam-rom", defaultImportPrice: 210_000, importUnit: "kg", origin: "Nấm rơm búp Đồng Tháp" },
-
-  // 5. Trái cây & hạt
-  { ingredientId: "me-chin", defaultImportPrice: 90_000, importUnit: "kg", origin: "Me chín An Giang" },
-  { ingredientId: "chanh", defaultImportPrice: 90_000, importUnit: "l", origin: "Chanh bông tím Long An" },
-  { ingredientId: "thom", defaultImportPrice: 55_000, importUnit: "kg", origin: "Khóm Cầu Đúc, Hậu Giang" },
-  { ingredientId: "dau-phong", defaultImportPrice: 110_000, importUnit: "kg", origin: "Đậu phộng sẻ Quảng Nam" },
-  { ingredientId: "nhan-xuong", defaultImportPrice: 360_000, importUnit: "kg", origin: "Long An · cùi nhãn xuồng bóc hạt" },
-  { ingredientId: "hat-sen", defaultImportPrice: 480_000, importUnit: "kg", origin: "Tây Hồ · sen tươi bỏ tim" },
-
-  // 6. Gia vị & nước chấm
-  { ingredientId: "muoi-bien", defaultImportPrice: 28_000, importUnit: "kg", origin: "Muối hầm Sa Huỳnh" },
-  { ingredientId: "muoi-ot-tn", defaultImportPrice: 180_000, importUnit: "kg", origin: "Tây Ninh · muối ớt hạt ngọc" },
-  { ingredientId: "duong-trang", defaultImportPrice: 32_000, importUnit: "kg", origin: "Đường mía tinh luyện" },
-  { ingredientId: "duong-thot-not", defaultImportPrice: 95_000, importUnit: "kg", origin: "Tri Tôn, An Giang" },
-  { ingredientId: "duong-phen", defaultImportPrice: 85_000, importUnit: "kg", origin: "Quảng Ngãi · kết tinh thủ công" },
-  { ingredientId: "mat-ong", defaultImportPrice: 550_000, importUnit: "l", origin: "Mật ong rừng Trà My" },
-  { ingredientId: "nuoc-mam", defaultImportPrice: 260_000, importUnit: "l", origin: "Phú Quốc · mắm nhĩ 43°N" },
-  { ingredientId: "nuoc-tuong", defaultImportPrice: 165_000, importUnit: "l", origin: "Ủ lên men tự nhiên từ nấm" },
-  { ingredientId: "tuong-bao-lac", defaultImportPrice: 380_000, importUnit: "kg", origin: "Bảo Lạc, Cao Bằng · ủ chum sành" },
-  { ingredientId: "tieu-rung", defaultImportPrice: 680_000, importUnit: "kg", origin: "Tiêu rừng Măng Đen" },
-  { ingredientId: "tieu-den", defaultImportPrice: 360_000, importUnit: "kg", origin: "Tiêu đen chín cây Phú Quốc" },
-
-  // 7. Hương liệu & phụ liệu
-  { ingredientId: "men-tuoi", defaultImportPrice: 320_000, importUnit: "kg", origin: "Men bánh mì tươi nhập khẩu" },
-  { ingredientId: "tram-huong", defaultImportPrice: 240_000, importUnit: "ml", origin: "Khánh Hòa · tinh chất thực phẩm" },
-  { ingredientId: "atiso", defaultImportPrice: 650_000, importUnit: "kg", origin: "Đà Lạt · hoa atiso sấy lạnh" },
-  { ingredientId: "rom", defaultImportPrice: 60_000, importUnit: "kg", origin: "Rơm nếp sạch phơi nắng" },
+  { ingredientId: "caviar-lam-dong", defaultImportPrice: 20000000, importUnit: "kg", origin: "Cao nguyên Lâm Đồng · Hũ 30–50g giữ chuỗi lạnh" },
+  { ingredientId: "sa-sung-van-don", defaultImportPrice: 6000000, importUnit: "kg", origin: "Vân Đồn, Quảng Ninh · Túi zip 500g" },
+  { ingredientId: "bao-ngu-nha-trang", defaultImportPrice: 800000, importUnit: "kg", origin: "Nha Trang, Khánh Hòa · Size ~15 con/kg tươi sống" },
+  { ingredientId: "yen-sao-khanh-hoa", defaultImportPrice: 32000000, importUnit: "kg", origin: "Khánh Hòa · Yến tinh chế hộp 100g" },
+  { ingredientId: "ga-ta-nuoc-dung", defaultImportPrice: 150000, importUnit: "kg", origin: "Nội địa · Gà ta chưng cô 6 giờ lấy nước dùng" },
+  { ingredientId: "ca-tam-da-lat", defaultImportPrice: 320000, importUnit: "kg", origin: "Cao nguyên Lâm Đồng · Fillet cá tầm tươi sống" },
+  { ingredientId: "ga-dong-tao", defaultImportPrice: 1000000, importUnit: "kg", origin: "Hưng Yên · Đùi gà thuần chủng đặt lô 5kg" },
+  { ingredientId: "banh-da-nem", defaultImportPrice: 90000, importUnit: "kg", origin: "Hải Dương / Hải Phòng · Bánh đa khô nướng giòn" },
+  { ingredientId: "banh-mi-men-tuoi", defaultImportPrice: 100000, importUnit: "kg", origin: "Nội địa · Bếp TRẦM tự làm thủ công" },
+  { ingredientId: "com-chay-st25", defaultImportPrice: 40000, importUnit: "kg", origin: "Sóc Trăng · Gạo ST25 chuẩn xuất khẩu chiên giòn" },
+  { ingredientId: "kem-chua", defaultImportPrice: 200000, importUnit: "kg", origin: "Nội địa — Hộp 1 kg đánh bông mịn" },
+  { ingredientId: "bo-lat-president", defaultImportPrice: 350000, importUnit: "kg", origin: "Nhập khẩu Pháp · Bơ lạt sỉ làm bánh & áp chảo" },
+  { ingredientId: "kem-tuoi-whipping", defaultImportPrice: 160000, importUnit: "kg", origin: "New Zealand · Whipping Cream Anchor hộp 1 lít" },
+  { ingredientId: "sen-co-ngu", defaultImportPrice: 700000, importUnit: "kg", origin: "Hồ Tây, Hà Nội · Sen tươi Cổ Ngự tuyển đặc sản" },
+  { ingredientId: "hat-dieu-rang-muoi", defaultImportPrice: 300000, importUnit: "kg", origin: "Bình Phước · Nguyên hạt còn vỏ lụa" },
+  { ingredientId: "nhan-long-hung-yen", defaultImportPrice: 120000, importUnit: "kg", origin: "Hưng Yên · Nhãn mọng nước cùi dày" },
+  { ingredientId: "hoa-tieu-rung", defaultImportPrice: 400000, importUnit: "kg", origin: "Tuyên Quang · Tiêu rừng Măng Đen / Tuyên Quang" },
+  { ingredientId: "ruou-nep-cai", defaultImportPrice: 100000, importUnit: "l", origin: "Nội địa · Can 5 lít ủ chum thơm" },
+  { ingredientId: "nuoc-cot-ga-ta", defaultImportPrice: 190000, importUnit: "l", origin: "Nội địa · Nước cốt gà ta nguyên chất" },
+  { ingredientId: "chanh-day-cot", defaultImportPrice: 120000, importUnit: "kg", origin: "Đà Lạt · Cốt chiết xuất 40% khối lượng" },
+  { ingredientId: "mat-ong-rung", defaultImportPrice: 250000, importUnit: "kg", origin: "Tây Bắc · Mật ong khoái rừng nguyên chất" },
+  { ingredientId: "muoi-ot-hoa-trang-tri", defaultImportPrice: 500000, importUnit: "kg", origin: "Nội địa · Muối ớt Tây Ninh, hoa & phụ theo phần" },
+  { ingredientId: "mac-khen-tay-bac", defaultImportPrice: 350000, importUnit: "kg", origin: "Tây Bắc · Hạt mắc khén rang thơm" },
+  { ingredientId: "huong-tram-tam-uop", defaultImportPrice: 1200000, importUnit: "kg", origin: "Nội địa · Trầm hương tự nhiên phân bổ theo phần" },
+  { ingredientId: "phu-trang-tri-trang-mieng", defaultImportPrice: 1000000, importUnit: "kg", origin: "Nội địa · Vừng rang, cánh hoa, bánh kẹp giòn" },
+  { ingredientId: "tra-shan-tuyet", defaultImportPrice: 1200000, importUnit: "kg", origin: "Tà Xùa, Tây Bắc · Búp trà cổ thụ >100 tuổi" },
+  { ingredientId: "gia-vi-mon-1", defaultImportPrice: 1730000, importUnit: "kg", origin: "Chanh vàng vỏ 25g x 50đ + tía tô non 8g x 60đ" },
+  { ingredientId: "gia-vi-mon-2", defaultImportPrice: 700000, importUnit: "kg", origin: "Muối hạt 6g x 25đ + gừng 7g x 50đ + sả 5g x 40đ" },
+  { ingredientId: "gia-vi-mon-3", defaultImportPrice: 500000, importUnit: "kg", origin: "Hành boa rô 10g x 50đ" },
+  { ingredientId: "gia-vi-mon-4", defaultImportPrice: 340000, importUnit: "kg", origin: "Hành khô nướng 4g x 60đ + gừng 2g x 50đ" },
+  { ingredientId: "gia-vi-mon-6", defaultImportPrice: 1025000, importUnit: "kg", origin: "Dầu 15ml x 35đ + mắm 8g x 30đ + tỏi 5g x 40đ + đường 3g x 20đ" },
+  { ingredientId: "gia-vi-mon-7", defaultImportPrice: 2180000, importUnit: "kg", origin: "Đường phèn 40g x 45đ + sữa tươi 10g x 28đ + đường 5g x 20đ" },
+  { ingredientId: "than-hoa-hong", defaultImportPrice: 40000, importUnit: "kg", origin: "Nhập khẩu / nội địa · Kỹ thuật nướng (phân bổ)" },
+  { ingredientId: "rau-thom-hoa-trang-tri", defaultImportPrice: 150000, importUnit: "kg", origin: "Đà Lạt · Trình bày món (phân bổ)" },
 ];
 
 const PRICE_SPEC_MAP: Record<string, IngredientPriceSpec> = Object.fromEntries(
@@ -591,7 +556,7 @@ export function isValidDishIndex(index: number): boolean {
   return MENU_ITEMS.some((m) => m.index === index);
 }
 
-// ---------- FR-33: KPI Food Cost đối chiếu doanh thu menu dự thu (Mục tiêu 50%) ----------
+// ---------- FR-33: KPI Food Cost đối chiếu doanh thu menu dự thu (Trần 35%) ----------
 
 export interface FoodCostKpiSummary {
   /** Giá vốn nguyên liệu 1 khách (Tầng 1): Tổng định lượng × đơn giá trên 7 món */
@@ -600,11 +565,11 @@ export interface FoodCostKpiSummary {
   menuPricePerGuest: number;
   /** Tỷ lệ Food Cost % (Tầng 2): Giá vốn ÷ Giá menu × 100 */
   foodCostPct: number;
-  /** Trần mục tiêu theo FR-33 (50%) */
+  /** Trần mục tiêu theo FR-33 (35%) */
   targetCeilingPct: number;
   /** Mục tiêu lý tưởng chuẩn (34,7%) */
   targetStandardPct: number;
-  /** Đạt mục tiêu nếu foodCostPct <= 50% */
+  /** Đạt mục tiêu nếu foodCostPct <= 35% */
   isWithinTarget: boolean;
   /** Món có chi phí nguyên liệu cao nhất (Top Cost Driver) */
   topCostDish: {
@@ -640,7 +605,7 @@ export interface FoodCostKpiOptions {
 /**
  * Tự động tính chỉ số KPI Food Cost theo phép tính 2 tầng quy định tại FR-33:
  * Tầng 1: Giá vốn = Σ(định lượng × đơn giá) trên 7 món + tìm món đắt nhất
- * Tầng 2: Food cost % = Giá vốn ÷ Giá menu × 100 (đối chiếu mục tiêu trần 50%)
+ * Tầng 2: Food cost % = Giá vốn ÷ Giá menu × 100 (đối chiếu mục tiêu trần 35%)
  * Doanh thu tính riêng phần menu (loại trừ pairing).
  */
 export function getFoodCostKpiSummary(
