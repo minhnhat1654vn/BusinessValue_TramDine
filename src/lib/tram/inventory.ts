@@ -40,80 +40,46 @@ export interface InventoryStockSpec {
   storageZone: StorageZone;
 }
 
-// Định mức tồn kho chuẩn cho toàn bộ 56 nguyên liệu tại bếp TRẦM (quy mô 40 ghế / ca):
+// Định mức tồn kho chuẩn cho 34 nguyên liệu BOM tại bếp TRẦM (quy mô 40 ghế / ca):
 // - Đạm tươi & bún thủ công: dự trữ cho 75–90 suất; ngưỡng đặt lại là 40 suất (1 ca đầy)
 // - Rau rừng, thảo mộc & trái cây tươi: dự trữ 80–150 suất trong kho mát; ngưỡng đặt lại 35–45 suất
 // - Đồ khô, gia vị ủ chum & tinh chất trầm hương: dự trữ 120–400 suất; ngưỡng an toàn 30–40% tồn chuẩn
 export const INVENTORY_STOCK_SPECS: InventoryStockSpec[] = [
-  // 1. Đạm (cá, thịt, đậu) — nhập tươi theo đợt 2–3 ngày trong tuần Concept
-  { ingredientId: "ca-bop", defaultStockQty: 12_000, defaultReorderPoint: 3_840, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "ca-loc", defaultStockQty: 15_000, defaultReorderPoint: 4_800, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "than-bo", defaultStockQty: 6_400, defaultReorderPoint: 2_048, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "ca-duoi", defaultStockQty: 8_000, defaultReorderPoint: 2_560, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "dau-phu", defaultStockQty: 4_000, defaultReorderPoint: 1_280, storageZone: "Tủ mát 0–2°C" },
-
-  // 2. Tinh bột
-  { ingredientId: "bot-mi", defaultStockQty: 10_000, defaultReorderPoint: 3_200, storageZone: "Kho khô" },
-  { ingredientId: "bot-gao", defaultStockQty: 3_000, defaultReorderPoint: 960, storageZone: "Kho khô" },
-  { ingredientId: "bot-nang", defaultStockQty: 2_500, defaultReorderPoint: 800, storageZone: "Kho khô" },
-  { ingredientId: "bun-tuoi", defaultStockQty: 5_000, defaultReorderPoint: 1_600, storageZone: "Bếp ngày" },
-
-  // 3. Sữa & chất béo
-  { ingredientId: "bo-lat", defaultStockQty: 4_000, defaultReorderPoint: 1_280, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "sua-tuoi", defaultStockQty: 4_000, defaultReorderPoint: 1_280, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "dau-an", defaultStockQty: 5_000, defaultReorderPoint: 1_600, storageZone: "Kho khô" },
-
-  // 4. Rau, nấm & thảo mộc
-  { ingredientId: "rau-dang", defaultStockQty: 1_800, defaultReorderPoint: 576, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "rau-cang-cua", defaultStockQty: 2_500, defaultReorderPoint: 800, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "hoa-chuoi", defaultStockQty: 1_200, defaultReorderPoint: 384, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "rau-ram", defaultStockQty: 400, defaultReorderPoint: 128, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "hanh-tim", defaultStockQty: 2_000, defaultReorderPoint: 640, storageZone: "Kho khô" },
-  { ingredientId: "hanh-la", defaultStockQty: 500, defaultReorderPoint: 160, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "toi", defaultStockQty: 1_500, defaultReorderPoint: 480, storageZone: "Kho khô" },
-  { ingredientId: "gung", defaultStockQty: 800, defaultReorderPoint: 256, storageZone: "Kho khô" },
-  { ingredientId: "sa", defaultStockQty: 1_500, defaultReorderPoint: 480, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "ot-hiem", defaultStockQty: 400, defaultReorderPoint: 128, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "ot-chi-thien", defaultStockQty: 600, defaultReorderPoint: 192, storageZone: "Kho khô" },
-  { ingredientId: "kinh-gioi", defaultStockQty: 1_500, defaultReorderPoint: 480, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "tia-to", defaultStockQty: 2_000, defaultReorderPoint: 640, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "rau-nhai", defaultStockQty: 2_200, defaultReorderPoint: 704, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "dot-xoai", defaultStockQty: 1_800, defaultReorderPoint: 576, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "la-coc", defaultStockQty: 1_800, defaultReorderPoint: 576, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "la-lot", defaultStockQty: 400, defaultReorderPoint: 128, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "la-moc-mat", defaultStockQty: 600, defaultReorderPoint: 192, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "ca-chua", defaultStockQty: 5_500, defaultReorderPoint: 1_760, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "bac-ha", defaultStockQty: 4_200, defaultReorderPoint: 1_344, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "nam-huong", defaultStockQty: 1_000, defaultReorderPoint: 320, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "nam-dui-ga", defaultStockQty: 2_000, defaultReorderPoint: 640, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "nam-rom", defaultStockQty: 1_200, defaultReorderPoint: 384, storageZone: "Kho mát 8–12°C" },
-
-  // 5. Trái cây & hạt
-  { ingredientId: "me-chin", defaultStockQty: 6_000, defaultReorderPoint: 1_920, storageZone: "Kho khô" },
-  { ingredientId: "chanh", defaultStockQty: 3_000, defaultReorderPoint: 960, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "thom", defaultStockQty: 4_200, defaultReorderPoint: 1_344, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "dau-phong", defaultStockQty: 1_500, defaultReorderPoint: 480, storageZone: "Kho khô" },
-  { ingredientId: "nhan-xuong", defaultStockQty: 10_000, defaultReorderPoint: 3_200, storageZone: "Kho mát 8–12°C" },
-  { ingredientId: "hat-sen", defaultStockQty: 5_500, defaultReorderPoint: 1_760, storageZone: "Kho mát 8–12°C" },
-
-  // 6. Gia vị & nước chấm
-  { ingredientId: "muoi-bien", defaultStockQty: 3_000, defaultReorderPoint: 960, storageZone: "Kho khô" },
-  { ingredientId: "muoi-ot-tn", defaultStockQty: 1_200, defaultReorderPoint: 384, storageZone: "Kho khô" },
-  { ingredientId: "duong-trang", defaultStockQty: 5_000, defaultReorderPoint: 1_600, storageZone: "Kho khô" },
-  { ingredientId: "duong-thot-not", defaultStockQty: 2_000, defaultReorderPoint: 640, storageZone: "Kho khô" },
-  { ingredientId: "duong-phen", defaultStockQty: 3_000, defaultReorderPoint: 960, storageZone: "Kho khô" },
-  { ingredientId: "mat-ong", defaultStockQty: 2_500, defaultReorderPoint: 800, storageZone: "Kho khô" },
-  { ingredientId: "nuoc-mam", defaultStockQty: 4_000, defaultReorderPoint: 1_280, storageZone: "Kho khô" },
-  { ingredientId: "nuoc-tuong", defaultStockQty: 2_000, defaultReorderPoint: 640, storageZone: "Kho khô" },
-  { ingredientId: "tuong-bao-lac", defaultStockQty: 5_500, defaultReorderPoint: 1_760, storageZone: "Kho khô" },
-  { ingredientId: "tieu-rung", defaultStockQty: 500, defaultReorderPoint: 160, storageZone: "Kho khô" },
-  { ingredientId: "tieu-den", defaultStockQty: 600, defaultReorderPoint: 192, storageZone: "Kho khô" },
-
-  // 7. Hương liệu & phụ liệu
-  { ingredientId: "men-tuoi", defaultStockQty: 500, defaultReorderPoint: 160, storageZone: "Tủ mát 0–2°C" },
-  { ingredientId: "tram-huong", defaultStockQty: 25, defaultReorderPoint: 8, storageZone: "Kho khô" },
-  { ingredientId: "atiso", defaultStockQty: 1_200, defaultReorderPoint: 384, storageZone: "Kho khô" },
-  { ingredientId: "rom", defaultStockQty: 15_000, defaultReorderPoint: 4_800, storageZone: "Kho khô" },
+  // Tồn chuẩn = định lượng/khách × 100 suất (≈ 1 tuần 2,5 ca đầy 40 khách); ngưỡng đặt lại 32%
+  { ingredientId: "caviar-lam-dong", defaultStockQty: 400, defaultReorderPoint: 128, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "sa-sung-van-don", defaultStockQty: 300, defaultReorderPoint: 96, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "bao-ngu-nha-trang", defaultStockQty: 6500, defaultReorderPoint: 2080, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "yen-sao-khanh-hoa", defaultStockQty: 250, defaultReorderPoint: 80, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "ga-ta-nuoc-dung", defaultStockQty: 7500, defaultReorderPoint: 2400, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "ca-tam-da-lat", defaultStockQty: 10000, defaultReorderPoint: 3200, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "ga-dong-tao", defaultStockQty: 11000, defaultReorderPoint: 3520, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "banh-da-nem", defaultStockQty: 3000, defaultReorderPoint: 960, storageZone: "Kho khô" },
+  { ingredientId: "banh-mi-men-tuoi", defaultStockQty: 6000, defaultReorderPoint: 1920, storageZone: "Kho khô" },
+  { ingredientId: "com-chay-st25", defaultStockQty: 5000, defaultReorderPoint: 1600, storageZone: "Kho khô" },
+  { ingredientId: "kem-chua", defaultStockQty: 1500, defaultReorderPoint: 480, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "bo-lat-president", defaultStockQty: 2500, defaultReorderPoint: 800, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "kem-tuoi-whipping", defaultStockQty: 2000, defaultReorderPoint: 640, storageZone: "Tủ mát 0–2°C" },
+  { ingredientId: "sen-co-ngu", defaultStockQty: 800, defaultReorderPoint: 256, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "hat-dieu-rang-muoi", defaultStockQty: 1000, defaultReorderPoint: 320, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "nhan-long-hung-yen", defaultStockQty: 16000, defaultReorderPoint: 5120, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "hoa-tieu-rung", defaultStockQty: 200, defaultReorderPoint: 64, storageZone: "Kho khô" },
+  { ingredientId: "ruou-nep-cai", defaultStockQty: 3000, defaultReorderPoint: 960, storageZone: "Kho khô" },
+  { ingredientId: "nuoc-cot-ga-ta", defaultStockQty: 2000, defaultReorderPoint: 640, storageZone: "Kho khô" },
+  { ingredientId: "chanh-day-cot", defaultStockQty: 1500, defaultReorderPoint: 480, storageZone: "Kho khô" },
+  { ingredientId: "mat-ong-rung", defaultStockQty: 2000, defaultReorderPoint: 640, storageZone: "Kho khô" },
+  { ingredientId: "muoi-ot-hoa-trang-tri", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "mac-khen-tay-bac", defaultStockQty: 200, defaultReorderPoint: 64, storageZone: "Kho khô" },
+  { ingredientId: "huong-tram-tam-uop", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "phu-trang-tri-trang-mieng", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "tra-shan-tuyet", defaultStockQty: 1000, defaultReorderPoint: 320, storageZone: "Kho khô" },
+  { ingredientId: "gia-vi-mon-1", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "gia-vi-mon-2", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "gia-vi-mon-3", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho mát 8–12°C" },
+  { ingredientId: "gia-vi-mon-4", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "gia-vi-mon-6", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "gia-vi-mon-7", defaultStockQty: 100, defaultReorderPoint: 32, storageZone: "Kho khô" },
+  { ingredientId: "than-hoa-hong", defaultStockQty: 5000, defaultReorderPoint: 1600, storageZone: "Kho khô" },
+  { ingredientId: "rau-thom-hoa-trang-tri", defaultStockQty: 5000, defaultReorderPoint: 1600, storageZone: "Kho mát 8–12°C" },
 ];
 
 const STOCK_SPEC_MAP: Record<string, InventoryStockSpec> = Object.fromEntries(
@@ -122,81 +88,40 @@ const STOCK_SPEC_MAP: Record<string, InventoryStockSpec> = Object.fromEntries(
 
 /** Thời hạn sử dụng / bảo quản chuẩn (số ngày) của 56 nguyên liệu tại bếp TRẦM */
 export const DEFAULT_SHELF_LIFE_DAYS: Record<string, number> = {
-  // 1 ngày (hàng tươi làm trong ngày, rất mau hỏng)
-  "bun-tuoi": 1,
-  "dau-phu": 1,
-  "hoa-chuoi": 1,
-  "kinh-gioi": 1,
-
-  // 2 ngày (đạm tươi sống & rau mọng nước ngắn ngày)
-  "ca-bop": 2,
-  "rau-dang": 2,
-  "rau-cang-cua": 2,
-  "nam-rom": 2,
-  "hanh-la": 2,
-  "rau-ram": 2,
-  "men-tuoi": 2,
-
-  // 3 ngày (cá tươi ủ lạnh, nấm, rau rừng, sữa thanh trùng)
-  "ca-loc": 3,
-  "ca-duoi": 3,
-  "sua-tuoi": 3,
-  "nam-huong": 3,
-  "rau-nhai": 3,
-  "dot-xoai": 3,
-  "la-coc": 3,
-  "bac-ha": 3,
-  "tia-to": 3,
-
-  // 4 ngày (thịt đỏ ủ mát, quả tươi)
-  "than-bo": 4,
-  "ca-chua": 4,
-  "thom": 4,
-  "nam-dui-ga": 4,
-  "la-lot": 4,
-  "la-moc-mat": 4,
-
-  // 5 ngày (quả mọng, chanh, hạt tươi)
-  "chanh": 5,
-  "nhan-xuong": 5,
-  "hat-sen": 5,
-  "ot-hiem": 5,
-
-  // 7 ngày (gia vị tươi củ rễ, bơ thủ công)
-  "bo-lat": 7,
-  "sa": 7,
-  "gung": 7,
-  "ot-chi-thien": 7,
-
-  // 14 ngày (củ tươi, sốt đặc chế)
-  "hanh-tim": 14,
-  "toi": 14,
-
-  // 30 ngày (me, đậu phộng)
-  "me-chin": 30,
-  "dau-phong": 30,
-
-  // 60-90 ngày (bột, atiso khô, rơm ủ)
-  "bot-mi": 90,
-  "bot-gao": 90,
-  "bot-nang": 90,
-  "atiso": 60,
-  "rom": 60,
-
-  // 180-365 ngày (dầu, gia vị ủ chum, rượu, muối, mắm, mật ong, trầm hương)
-  "dau-an": 180,
-  "muoi-bien": 365,
-  "muoi-ot-tn": 180,
-  "duong-trang": 365,
-  "duong-thot-not": 180,
-  "duong-phen": 365,
-  "mat-ong": 365,
-  "nuoc-mam": 365,
-  "nuoc-tuong": 365,
-  "tuong-bao-lac": 180,
-  "tieu-rung": 180,
-  "tieu-den": 180,
-  "tram-huong": 365,
+  "caviar-lam-dong": 3,
+  "sa-sung-van-don": 3,
+  "bao-ngu-nha-trang": 3,
+  "yen-sao-khanh-hoa": 3,
+  "ga-ta-nuoc-dung": 3,
+  "ca-tam-da-lat": 3,
+  "ga-dong-tao": 3,
+  "banh-da-nem": 30,
+  "banh-mi-men-tuoi": 30,
+  "com-chay-st25": 30,
+  "kem-chua": 10,
+  "bo-lat-president": 10,
+  "kem-tuoi-whipping": 10,
+  "sen-co-ngu": 7,
+  "hat-dieu-rang-muoi": 7,
+  "nhan-long-hung-yen": 7,
+  "hoa-tieu-rung": 90,
+  "ruou-nep-cai": 90,
+  "nuoc-cot-ga-ta": 90,
+  "chanh-day-cot": 90,
+  "mat-ong-rung": 90,
+  "muoi-ot-hoa-trang-tri": 90,
+  "mac-khen-tay-bac": 180,
+  "huong-tram-tam-uop": 180,
+  "phu-trang-tri-trang-mieng": 4,
+  "tra-shan-tuyet": 180,
+  "gia-vi-mon-1": 4,
+  "gia-vi-mon-2": 90,
+  "gia-vi-mon-3": 4,
+  "gia-vi-mon-4": 90,
+  "gia-vi-mon-6": 90,
+  "gia-vi-mon-7": 90,
+  "than-hoa-hong": 90,
+  "rau-thom-hoa-trang-tri": 4,
 };
 
 export function getInventoryStockSpec(ingredientId: string): InventoryStockSpec | undefined {

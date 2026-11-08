@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
 
     const [tables, dayReservations] = await Promise.all([
-      // 10 bàn tiêu chuẩn (5 bàn 2 chỗ A01–A05, 5 bàn 4 chỗ B01–B05 = tổng 30 chỗ ngồi)
+      // 15 bàn tiêu chuẩn (5 bàn 2 chỗ A01–A05, 10 bàn 3 chỗ B01–B10 = tổng 40 chỗ ngồi)
       db.table.findMany({
         where: { code: { notIn: ["B11", "B12"] } },
         orderBy: { code: "asc" },

@@ -596,10 +596,10 @@ export function AdminInventory({
           },
           {
             id: "food-cost-kpi",
-            label: "Food cost (Mục tiêu 50%)",
+            label: "Food cost (Trần 35%)",
             value: formatPercent(foodCostKpi.foodCostPct, 1),
             sub: `${formatVND(foodCostKpi.costPerGuest)}/khách · ${
-              foodCostKpi.isWithinTarget ? "✓ Đạt mục tiêu" : "⚠️ Vượt trần 50%"
+              foodCostKpi.isWithinTarget ? "✓ Đạt mục tiêu" : "⚠️ Vượt trần 35%"
             }`,
             icon: Calculator,
             tone: foodCostKpi.isWithinTarget ? ("good" as const) : ("warn" as const),

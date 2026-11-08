@@ -311,7 +311,7 @@ export function AdminBookingUnifiedView({
 
   const allReservations = useMemo(() => listData?.reservations ?? [], [listData]);
 
-  // Danh sách 10 bàn của TRẦM (A01–A05 & B01–B05) — B11 & B12 đã bỏ
+  // Danh sách 15 bàn của TRẦM (A01–A05 & B01–B10)
   const DEFAULT_TABLE_DEFS = useMemo(
     () => [
       { id: "tbl_A01", code: "A01", seats: 2, zone: "Khu cửa sổ" },
@@ -319,11 +319,16 @@ export function AdminBookingUnifiedView({
       { id: "tbl_A03", code: "A03", seats: 2, zone: "Khu cửa sổ" },
       { id: "tbl_A04", code: "A04", seats: 2, zone: "Khu cửa sổ" },
       { id: "tbl_A05", code: "A05", seats: 2, zone: "Khu cửa sổ" },
-      { id: "tbl_B01", code: "B01", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B02", code: "B02", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B03", code: "B03", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B04", code: "B04", seats: 4, zone: "Khu trung tâm" },
-      { id: "tbl_B05", code: "B05", seats: 4, zone: "Khu trung tâm" },
+      { id: "tbl_B01", code: "B01", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B02", code: "B02", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B03", code: "B03", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B04", code: "B04", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B05", code: "B05", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B06", code: "B06", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B07", code: "B07", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B08", code: "B08", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B09", code: "B09", seats: 3, zone: "Khu trung tâm" },
+      { id: "tbl_B10", code: "B10", seats: 3, zone: "Khu trung tâm" },
     ],
     []
   );
@@ -766,7 +771,7 @@ export function AdminBookingUnifiedView({
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
-                10 bàn (A01–A05 &amp; B01–B05). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.
+                15 bàn (A01–A05 &amp; B01–B10). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.
               </CardDescription>
             </div>
 

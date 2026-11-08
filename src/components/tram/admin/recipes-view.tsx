@@ -110,7 +110,7 @@ const GROUP_STYLES: Record<IngredientGroup, { badge: string; dot: string }> = {
   AROMATIC: { badge: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500" },
 };
 
-const QUICK_GUESTS = [1, 4, 10, 30];
+const QUICK_GUESTS = [1, 4, 10, 40];
 const COMMON_QTY_PILLS = [5, 10, 15, 20, 30, 40, 50, 60, 80, 120];
 const COMMON_PREP_SUGGESTIONS = [
   "Lọ ướp lạnh, mở tại bàn",
@@ -449,9 +449,9 @@ export function AdminRecipes({
   const grossProfit = Math.max(0, MENU_SELLING_PRICE - totalFoodCost);
   const grossProfitPct = Math.round((grossProfit / MENU_SELLING_PRICE) * 1000) / 10;
 
-  // 5. Chi phí ca 30 khách
-  const shift30Cost = totalFoodCost * 30;
-  const shift30Revenue = MENU_SELLING_PRICE * 30;
+  // 5. Chi phí ca đầy 40 khách (15 bàn · 40 chỗ)
+  const shift30Cost = totalFoodCost * 40;
+  const shift30Revenue = MENU_SELLING_PRICE * 40;
 
   // 6. Món có chi phí cao nhất
   const highestDish = useMemo(() => {
@@ -1160,9 +1160,9 @@ export function AdminRecipes({
               },
               {
                 id: "shift-capacity",
-                label: "Giá vốn ca 30 khách",
+                label: "Giá vốn ca 40 khách",
                 value: formatVND(shift30Cost),
-                sub: `Doanh thu ca 30 khách: ${formatVND(shift30Revenue)}`,
+                sub: `Doanh thu ca 40 khách: ${formatVND(shift30Revenue)}`,
                 tone: "default",
                 icon: Users,
               },
@@ -1428,7 +1428,7 @@ export function AdminRecipes({
                                 : "border-stone-300 bg-transparent text-stone-700 hover:border-[#7c2d12]",
                             )}
                           >
-                            {n === 1 ? "1 suất" : n === 30 ? "30 (Đầy ca)" : `${n} khách`}
+                            {n === 1 ? "1 suất" : n === 40 ? "40 (Đầy ca)" : `${n} khách`}
                           </button>
                         ))}
                       </div>
@@ -1716,7 +1716,7 @@ export function AdminRecipes({
                       Tỷ trọng Food Cost
                     </TableHead>
                     <TableHead className="text-right text-[11px] font-semibold uppercase tracking-wider text-stone-600">
-                      Giá vốn ca 30 khách
+                      Giá vốn ca 40 khách
                     </TableHead>
                     <TableHead className="w-28 pr-4 text-center text-[11px] font-semibold uppercase tracking-wider text-stone-600">
                       Thao tác
@@ -1759,7 +1759,7 @@ export function AdminRecipes({
                             {share}%
                           </TableCell>
                           <TableCell className="text-right font-heading text-xs tabular-nums text-stone-600">
-                            {formatVND(cost * 30)}
+                            {formatVND(cost * 40)}
                           </TableCell>
                           <TableCell className="pr-4 text-center">
                             <button
@@ -2005,16 +2005,16 @@ export function AdminRecipes({
                   ))}
                 </div>
               </div>
-              {/* Thẻ tính toán tự động: chi phí & quy đổi 30 khách */}
+              {/* Thẻ tính toán tự động: chi phí & quy đổi 40 khách */}
               <div className="rounded-xl border border-[#b45309]/20 bg-[#fdf0d5]/40 p-3 text-xs space-y-1">
                 <div className="flex justify-between font-medium text-[#78350f]">
                   <span>Chi phí nguyên liệu ước tính / 1 suất:</span>
                   <span className="font-bold font-heading">{formatVND(estimatedLineCost)}</span>
                 </div>
                 <div className="flex justify-between text-stone-600 text-[11px]">
-                  <span>Tổng định lượng cho 30 khách (đủ ca):</span>
+                  <span>Tổng định lượng cho 40 khách (đủ ca):</span>
                   <span className="font-semibold">
-                    {formatQty(Number((editingLine.qtyPerGuest * 30).toFixed(1)), editingLine.unit as any)}
+                    {formatQty(Number((editingLine.qtyPerGuest * 40).toFixed(1)), editingLine.unit as any)}
                   </span>
                 </div>
               </div>
