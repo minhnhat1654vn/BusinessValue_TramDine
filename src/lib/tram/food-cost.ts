@@ -24,18 +24,16 @@ export const MENU_PRICE_PER_GUEST = PRICES.menu; // 1.440.000 đ/khách
 export const WINE_PAIRING_PRICE = PRICES.winePairing; // 650.000 đ/khách
 export const TEA_PAIRING_PRICE = PRICES.teaPairing; // 350.000 đ/khách
 
-/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục tiêu P&L thực tế: 34,7% trên giá menu 1.440.000 đ) */
+/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục tiêu P&L thực tế: 34,7% trên giá menu 1.440.000 đ; khung duyệt 28–35%, mục tiêu 28%) */
 export const TARGET_FOOD_COST_PCT = 34.7;
 
-/** Trần mục tiêu KPI food cost theo FR-33 (ngưỡng an toàn tối đa 50% doanh thu menu) */
-export const TARGET_FOOD_COST_CEILING_PCT = 50;
+/** Vạch cảnh báo đỏ trần mục tiêu KPI food cost (ngưỡng an toàn tối đa 35% doanh thu menu theo spec demo) */
+export const TARGET_FOOD_COST_CEILING_PCT = 35;
 
-/** Trần giá vốn nguyên liệu mục tiêu cho 1 khách: 1.440.000 × 34,7% = 499.680 đ */
-export const TARGET_FOOD_COST_PER_GUEST = Math.round(
-  (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_PCT) / 100,
-);
+/** Giá vốn nguyên liệu định mức chuẩn cho 1 khách theo sheet BOM: 472.975 đ */
+export const TARGET_FOOD_COST_PER_GUEST = 472_975;
 
-/** Trần giá vốn tối đa theo ngưỡng mục tiêu 50%: 1.440.000 × 50% = 720.000 đ */
+/** Trần giá vốn tối đa theo vạch cảnh báo đỏ 35%: 1.440.000 × 35% = 504.000 đ */
 export const CEILING_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_CEILING_PCT) / 100,
 );
@@ -71,7 +69,7 @@ export const IMPORT_UNIT_LABELS: Record<ImportUnit, string> = {
 
 // Bảng đơn giá nhập kho chuẩn cho toàn bộ 56 nguyên liệu trong danh mục bếp TRẦM.
 // Mức giá phản ánh nguồn nguyên liệu tuyển chọn chuẩn Fine Dining Việt Nam
-// (tổng giá vốn suất chuẩn 7 món = 499.680 đ/khách = 34,7% giá menu, đạt mục tiêu chuẩn 34,7%).
+// (tổng giá vốn suất chuẩn 7 món = 472.975 đ/khách theo sheet BOM, khung duyệt 28–35%).
 export const INGREDIENT_PRICE_SPECS: IngredientPriceSpec[] = [
   // 1. Đạm (cá, thịt, đậu)
   { ingredientId: "ca-bop", defaultImportPrice: 950_000, importUnit: "kg", origin: "Cần Thơ · phi lê chuẩn sashimi" },

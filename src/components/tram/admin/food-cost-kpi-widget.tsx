@@ -166,10 +166,10 @@ export function FoodCostKpiWidget({
   const deltaCost = simulatedCostPerGuest - baselineCostPerGuest;
   const deltaGrossProfit = simulatedGrossProfit - baselineGrossProfit;
   const deltaFoodCostPct = Number((simulatedFoodCostPct - baselineFoodCostPct).toFixed(1));
-  const shiftImpact = deltaGrossProfit * 30; // Tác động 1 ca 30 khách chuẩn
+  const shiftImpact = deltaGrossProfit * 40; // Tác động 1 ca đầy 40 khách theo spec
 
   const bufferPct = Number((TARGET_FOOD_COST_CEILING_PCT - simulatedFoodCostPct).toFixed(1));
-  const bufferVND = Math.round(simMenuPrice * 0.5 - simulatedCostPerGuest);
+  const bufferVND = Math.round(simMenuPrice * (TARGET_FOOD_COST_CEILING_PCT / 100) - simulatedCostPerGuest);
 
   // Dữ liệu cho Biểu đồ Cột Chồng What-if (Recharts BarChart)
   // Luôn đảm bảo có 4 cột so sánh trực quan, trong đó 1 cột luôn đại diện cho simMenuPrice đang kéo
@@ -715,11 +715,11 @@ export function FoodCostKpiWidget({
                     </span>
                     {isSimulatedSafe ? (
                       <Badge className="border-emerald-300 bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        ✓ Trong mục tiêu ≤ 50%
+                        ✓ Trong khung an toàn ≤ 35%
                       </Badge>
                     ) : (
                       <Badge className="border-rose-300 bg-rose-100 text-rose-800 text-[10px] font-bold">
-                        ⚠️ Vượt trần 50%
+                        ⚠️ Vượt trần cảnh báo đỏ 35%
                       </Badge>
                     )}
                   </div>
@@ -798,12 +798,12 @@ export function FoodCostKpiWidget({
                         />
                         <RechartsTooltip content={<WhatIfChartTooltip />} />
                         <ReferenceLine
-                          y={Math.round(simMenuPrice * 0.5)}
+                          y={Math.round(simMenuPrice * (TARGET_FOOD_COST_CEILING_PCT / 100))}
                           stroke="#e11d48"
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Trần 50% (${formatVND(Math.round(simMenuPrice * 0.5))})`,
+                            value: `Vạch trần đỏ 35% (${formatVND(Math.round(simMenuPrice * 0.35))})`,
                             position: "right",
                             fill: "#be123c",
                             fontSize: 10,
@@ -820,7 +820,7 @@ export function FoodCostKpiWidget({
                             <Cell
                               key={`cell-cost-${index}`}
                               fill={
-                                entry.foodCostPct > 50
+                                entry.foodCostPct > TARGET_FOOD_COST_CEILING_PCT
                                   ? "#e11d48"
                                   : entry.isCurrent
                                     ? "#92400e"

@@ -43,18 +43,7 @@ export const SYSTEM_VOUCHERS: Record<string, VoucherDefinition> = {
     giftDescription: "Tặng 100% Set Trà & Bánh Signature Trầm và Sen (Trị giá 350.000 đ/khách)",
   },
 
-  // 3. Combo Cá nhân hóa Khách Cũ: Gu Rượu Vang (FR-38)
-  "COMBO-WINE15": {
-    code: "COMBO-WINE15",
-    name: "Combo Tinh Tuyển: Bữa Tiệc Rượu Vang",
-    description: "Giảm 15% toàn bộ Combo Menu Tasting + Gói Wine Pairing hảo hạng",
-    type: "COMBO_WINE",
-    discountPercent: 15,
-    targetAudience: "RETURNING",
-    giftDescription: "Tặng 01 ly vang tráng miệng hảo hạng tuyển chọn từ Sommelier",
-  },
-
-  // 4. Khách cũ thân thiết chung (FR-38)
+  // 3. Khách cũ thân thiết chung (FR-38)
   LOYAL15: {
     code: "LOYAL15",
     name: "Tri Ân Thực Khách Thân Thiết",
@@ -65,7 +54,7 @@ export const SYSTEM_VOUCHERS: Record<string, VoucherDefinition> = {
     giftDescription: "Tặng 01 Tách Trà Trầm Khai Vị thượng hạng đón chào",
   },
 
-  // 5. Khung Giờ Vàng (FR-34)
+  // 4. Khung Giờ Vàng (FR-34)
   "GOLDEN-T4-1111": {
     code: "GOLDEN-T4-1111",
     name: "Đặc Quyền Khung Giờ Vàng (Ca Chiều 17:30)",
@@ -110,17 +99,12 @@ export function getPersonalizedVoucherForCustomer(customer: {
     return SYSTEM_VOUCHERS.WELCOME10;
   }
 
-  // Khách cũ: Phân tích thói quen đồ uống & món ăn từ FR-36
+  // Khách cũ: Ưu tiên gợi ý COMBO-TEA15 cho khách thích trà, hoặc LOYAL15
   const pastPairings = customer.pastPairings ?? [];
   const teaCount = pastPairings.filter((p) => p === "TEA").length;
-  const wineCount = pastPairings.filter((p) => p === "WINE").length;
 
-  if (teaCount > 0 && teaCount >= wineCount) {
+  if (teaCount > 0) {
     return SYSTEM_VOUCHERS["COMBO-TEA15"];
-  }
-
-  if (wineCount > 0) {
-    return SYSTEM_VOUCHERS["COMBO-WINE15"];
   }
 
   // Mặc định khách cũ

@@ -337,7 +337,7 @@ function DateStrip({
   );
 }
 
-// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng
+// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng (15 bàn: A01-A05 2 chỗ, B01-B10 3 chỗ)
 const FLOORPLAN_COORDINATES: Record<
   string,
   { x: number; y: number; w: number; h: number; shape: "square" | "circle" }
@@ -349,12 +349,17 @@ const FLOORPLAN_COORDINATES: Record<
   A04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
   A05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
 
-  // KHU B - TRUNG TÂM (5 bàn tròn 4 chỗ bố trí quanh Bếp Mở: B01 - B05)
-  B01: { x: 27.5, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
-  B02: { x: 27.5, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
-  B03: { x: 81.1, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
-  B04: { x: 81.1, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
-  B05: { x: 54.5, y: 64.5, w: 7.6, h: 7.6, shape: "circle" },
+  // KHU B - TRUNG TÂM (10 bàn 3 chỗ bố trí xung quanh Bếp Mở: B01 - B10)
+  B01: { x: 22.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
+  B02: { x: 33.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
+  B03: { x: 22.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
+  B04: { x: 33.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
+  B05: { x: 27.5, y: 72.0, w: 7.2, h: 7.2, shape: "circle" },
+  B06: { x: 74.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
+  B07: { x: 85.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
+  B08: { x: 74.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
+  B09: { x: 85.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
+  B10: { x: 54.5, y: 66.0, w: 7.2, h: 7.2, shape: "circle" },
 };
 
 // ---------- Bước 2: SƠ ĐỒ MẶT BẰNG TƯƠNG TÁC TINH TẾ (ARCHITECTURAL FLOOR PLAN) ----------
@@ -965,7 +970,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                     <Plus className="h-4 w-4" aria-hidden />
                   </Button>
                   <p className="hidden text-xs leading-relaxed text-muted-foreground sm:block">
-                    Đoàn trên 4 khách: nhà hàng sẽ xếp bàn ghép —
+                    Đoàn trên 3 khách: nhà hàng sẽ xếp bàn ghép —
                     <br />
                     vui lòng đăng ký danh sách chờ để được sắp xếp chu đáo.
                   </p>
@@ -999,7 +1004,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   >
                     {(() => {
                       const curRem = slotsSummary?.find((x) => x.slot === slot)?.remainingSeats;
-                      if (partySize > 4 || (curRem !== undefined && curRem < partySize)) {
+                      if (partySize > 3 || (curRem !== undefined && curRem < partySize)) {
                         return "Đăng ký danh sách chờ";
                       }
                       return "Chọn bàn";
@@ -1056,10 +1061,10 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                 </div>
               </div>
               {(() => {
-                if (partySize > 4) {
+                if (partySize > 3) {
                   return (
                     <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs leading-relaxed text-[#92400e]">
-                      Bàn trực tuyến của TRẦM tối đa 4 chỗ. Đoàn {partySize} khách cần được nhân viên hỗ trợ ghép bàn riêng.
+                      Bàn trực tuyến của TRẦM tối đa 3 chỗ (Khu B: 3 chỗ, Khu A: 2 chỗ). Đoàn {partySize} khách cần được nhân viên hỗ trợ ghép bàn riêng.
                       Vui lòng để lại thông tin bên dưới để nhà hàng liên hệ phục vụ chu đáo nhất.
                     </div>
                   );
@@ -1467,19 +1472,13 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
 
               <div className="space-y-2">
                 <Label>Gói Pairing đi kèm thực đơn</Label>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 sm:grid-cols-2">
                   {(
                     [
                       { value: "NONE", label: "Không pairing", price: 0, icon: Ban },
                       {
-                        value: "WINE",
-                        label: "Wine pairing",
-                        price: PRICES.winePairing,
-                        icon: Wine,
-                      },
-                      {
                         value: "TEA",
-                        label: "Tea pairing",
+                        label: "Tea pairing độc bản",
                         price: PRICES.teaPairing,
                         icon: Coffee,
                       },

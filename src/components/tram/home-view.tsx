@@ -779,8 +779,8 @@ function StoryScreen({ active }: { active: boolean }) {
               trọn vẹn của Việt Nam.
             </motion.p>
             <motion.p variants={revealUp}>
-              Với 30 chỗ ngồi và hai khung phục vụ mỗi tối, chúng tôi dành hết sự chú
-              tâm cho từng khách mời — từ ly rượu đầu tiên đến giọt trà atiso cuối
+              Với 40 chỗ ngồi và hai khung phục vụ mỗi tối (15 bàn), chúng tôi dành hết sự chú
+              tâm cho từng khách mời — từ tách trà Shan tuyết đầu tiên đến ngụm trà ấm cuối
               cùng của buổi tối.
             </motion.p>
           </div>
@@ -951,22 +951,13 @@ function DishScreen({
 /* SECTION · PAIRING                                                   */
 /* ================================================================== */
 function PairingScreen({ active, onBookNow }: { active: boolean; onBookNow: () => void }) {
-  const options = [
-    {
-      key: "wine",
-      icon: Wine,
-      title: "Wine pairing",
-      desc: "Năm ly rượu vang Việt tuyển chọn, hòa theo nhịp của từng món trong hành trình vị.",
-      price: PRICES.winePairing,
-    },
-    {
-      key: "tea",
-      icon: Coffee,
-      title: "Tea pairing",
-      desc: "Bốn lớp trà Việt — trà atiso Đà Lạt, trà ô long cao nguyên — thanh lọc vị giác qua từng món.",
-      price: PRICES.teaPairing,
-    },
-  ];
+  const option = {
+    key: "tea",
+    icon: Coffee,
+    title: "Tea pairing độc bản",
+    desc: "Bốn lớp trà Việt thượng hạng — trà Shan Tuyết cổ thụ 300 năm Hà Giang, trà sen Tây Hồ và ô long mộc bản — thanh lọc vị giác và nâng đỡ trọn vẹn từng món tasting.",
+    price: PRICES.teaPairing,
+  };
 
   return (
     <Screen label="Pairing" className="tram-texture">
@@ -974,44 +965,40 @@ function PairingScreen({ active, onBookNow }: { active: boolean; onBookNow: () =
         variants={revealContainer}
         initial="hidden"
         animate={active ? "visible" : "hidden"}
-        className="mx-auto flex min-h-full max-w-5xl flex-col justify-center px-6 py-12"
+        className="mx-auto flex min-h-full max-w-4xl flex-col justify-center px-6 py-12"
       >
         <motion.div variants={revealUp}>
           <SectionLabel>Đi kèm menu</SectionLabel>
           <h2 className="tram-underline-center tram-underline font-heading mb-4 text-center text-3xl font-semibold text-[#292524] sm:text-4xl lg:text-5xl">
-            Hai lựa chọn pairing
+            Tea pairing tuyển chọn
           </h2>
           <p className="mx-auto mb-10 max-w-xl text-center text-sm text-muted-foreground">
-            Nâng tầm từng tầng hương vị của bảy món — chọn khi đặt bàn, mặc định không
-            kèm pairing.
+            Hương vị trà Việt tinh tế đồng điệu cùng bảy món báu vật — lựa chọn tùy ý khi đặt bàn (mục tiêu 50% thực khách chọn).
           </p>
         </motion.div>
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          {options.map((o) => {
-            const Icon = o.icon;
-            return (
-              <motion.div key={o.key} variants={revealUp} whileHover={{ y: -6 }}>
-                <Card className="h-full border-[#b45309]/25 bg-[#fffdf9]/90 shadow-md backdrop-blur transition-shadow hover:shadow-xl">
-                  <CardContent className="p-8 text-center">
-                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[#b45309]/25 bg-[#fdf0d5] text-[#b45309]">
-                      <Icon className="h-7 w-7" aria-hidden />
-                    </div>
-                    <h3 className="font-heading text-2xl font-semibold text-[#292524]">
-                      {o.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                      {o.desc}
-                    </p>
-                    <p className="mt-6 font-heading text-3xl font-semibold text-[#b45309]">
-                      +{formatVND(o.price)}
-                      <span className="text-sm font-normal text-muted-foreground"> / khách</span>
-                    </p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
+        <div className="mx-auto max-w-xl w-full">
+          <motion.div variants={revealUp} whileHover={{ y: -6 }}>
+            <Card className="border-[#b45309]/30 bg-[#fffdf9]/95 shadow-lg backdrop-blur transition-shadow hover:shadow-2xl">
+              <CardContent className="p-8 text-center sm:p-10">
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-[#b45309]/25 bg-[#fdf0d5] text-[#b45309]">
+                  <Coffee className="h-8 w-8" aria-hidden />
+                </div>
+                <h3 className="font-heading text-2xl sm:text-3xl font-semibold text-[#292524]">
+                  {option.title}
+                </h3>
+                <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted-foreground">
+                  {option.desc}
+                </p>
+                <div className="mt-6 flex items-baseline justify-center gap-2">
+                  <span className="font-heading text-3xl sm:text-4xl font-semibold text-[#b45309]">
+                    +{formatVND(option.price)}
+                  </span>
+                  <span className="text-sm font-normal text-muted-foreground">/ khách</span>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         <motion.div variants={revealUp} className="mt-10 flex justify-center">
@@ -1020,7 +1007,7 @@ function PairingScreen({ active, onBookNow }: { active: boolean; onBookNow: () =
             variant="outline"
             className="h-11 rounded-full border-[#b45309] px-8 text-[#92400e] hover:bg-[#b45309] hover:text-[#fffbf2]"
           >
-            Đặt bàn kèm pairing
+            Đặt bàn kèm Tea pairing
             <ArrowRight className="ml-1.5 h-4 w-4" />
           </Button>
         </motion.div>

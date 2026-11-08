@@ -34,18 +34,23 @@ const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) =>
   min + Math.floor(rng() * (max - min + 1));
 
-// ---------- Bảng 12 bàn theo spec ----------
+// ---------- Bảng 15 bàn theo spec mới (40 chỗ mỗi ca) ----------
 const TABLES = [
   { code: "A01", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A02", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A03", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A04", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A05", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "B01", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B02", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B03", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B04", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B05", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "B01", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B02", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B03", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B04", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B05", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B06", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B07", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B08", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B09", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B10", seats: 3, zone: "Khu trung tâm (Khu B)" },
 ];
 
 // ---------- Khách hàng giả lập ----------
@@ -255,11 +260,9 @@ function pickSourceAndNotes(): {
   }
 }
 
-function pickPairing(): "NONE" | "WINE" | "TEA" {
-  const r = rng();
-  if (r < 0.42) return "NONE";
-  if (r < 0.8) return "WINE";
-  return "TEA";
+function pickPairing(): "NONE" | "TEA" {
+  // Demo spec: Chỉ tea pairing 350.000đ/khách (mục tiêu 50% khách chọn); bỏ wine pairing
+  return rng() < 0.5 ? "NONE" : "TEA";
 }
 
 // ---------- Ngày tiện ích ----------
@@ -267,11 +270,9 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+// Demo spec STT 19: Giai đoạn sau go-live, ví dụ tháng 3/2027 (chọn Thứ Tư 17/03/2027)
 const TODAY = (() => {
-  const now = new Date();
-  return new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
+  return new Date(Date.UTC(2027, 2, 17));
 })();
 
 function dayAt(offset: number): Date {
@@ -303,38 +304,38 @@ interface EveningTarget {
   date: Date;
   slot: "SLOT_1730" | "SLOT_1945";
   seats: number;
-  full?: boolean; // kín 100% (30/30 chỗ)
+  full?: boolean; // kín 100% (40/40 chỗ theo spec 15 bàn)
 }
 
 const targets: EveningTarget[] = [];
 
-// Quét từ -21 ngày đến +14 ngày (tổng cộng 35 ngày)
+// Quét từ -21 ngày đến +14 ngày (tổng cộng 35 ngày quanh tháng 3/2027)
 for (let offset = -21; offset <= 14; offset++) {
   const date = dayAt(offset);
   const wd = date.getUTCDay();
 
-  // Thứ Hai & Thứ Ba (wd === 1 || wd === 2): Nhà hàng nghỉ định kỳ
+  // Thứ Hai & Thứ Ba (wd === 1 || wd === 2): Nhà hàng nghỉ định kỳ theo mô hình 5 tối/tuần
   if (wd === 1 || wd === 2) {
     // Chỉ tạo 1 sự kiện tiệc riêng ở quá khứ (-7 ngày) để báo cáo phong phú
     if (offset === -7) {
-      targets.push({ date, slot: "SLOT_1945", seats: 12 });
+      targets.push({ date, slot: "SLOT_1945", seats: 15 });
     }
     continue;
   }
 
   // Thứ Bảy (wd === 6): Cuối tuần cao điểm
   if (wd === 6) {
-    // 17:30: Rất đông (20 - 26 chỗ)
+    // 17:30: Rất đông (26 - 36 chỗ)
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(20, 26),
+      seats: randInt(26, 36),
     });
-    // 19:45: Kín 100% (30 chỗ) để kích hoạt danh sách chờ Waitlist
+    // 19:45: Kín 100% (40 chỗ) để kích hoạt danh sách chờ Waitlist
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: 30,
+      seats: 40,
       full: true,
     });
   }
@@ -343,12 +344,12 @@ for (let offset = -21; offset <= 14; offset++) {
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(14, 22),
+      seats: randInt(20, 30),
     });
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: randInt(22, 30),
+      seats: randInt(32, 40),
     });
   }
   // Thứ Sáu (wd === 5): Tối mở màn cuối tuần
@@ -356,41 +357,28 @@ for (let offset = -21; offset <= 14; offset++) {
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(14, 20),
+      seats: randInt(20, 28),
     });
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: randInt(24, 30),
+      seats: randInt(32, 40),
       full: randInt(1, 2) === 1,
     });
   }
   // Thứ Tư (wd === 3) & Thứ Năm (wd === 4): Giữa tuần thanh lịch
   else if (wd === 3 || wd === 4) {
-    // 17:30: Khung giờ vàng (12 - 20 chỗ ~ 28% - 47% lấp đầy)
+    // 17:30: Khung giờ vàng (16 - 24 chỗ ~ 40% - 60% lấp đầy)
     targets.push({
       date,
       slot: "SLOT_1730",
-      seats: randInt(12, 20),
+      seats: randInt(16, 24),
     });
-    // 19:45: Giờ ăn tối chính (24 - 34 chỗ)
+    // 19:45: Giờ ăn tối chính (30 - 38 chỗ)
     targets.push({
       date,
       slot: "SLOT_1945",
-      seats: randInt(24, 34),
-    });
-  }
-  // Thứ Ba (wd === 2): Mở đầu tuần sau ngày nghỉ
-  else if (wd === 2) {
-    targets.push({
-      date,
-      slot: "SLOT_1730",
-      seats: randInt(8, 16),
-    });
-    targets.push({
-      date,
-      slot: "SLOT_1945",
-      seats: randInt(18, 28),
+      seats: randInt(30, 38),
     });
   }
 }
@@ -399,9 +387,9 @@ for (let offset = -21; offset <= 14; offset++) {
 const todayTargets = targets.filter(
   (t) => t.date.getTime() === TODAY.getTime(),
 );
-if (todayTargets.length === 0 && TODAY.getUTCDay() !== 1) {
-  targets.push({ date: TODAY, slot: "SLOT_1730", seats: 20 });
-  targets.push({ date: TODAY, slot: "SLOT_1945", seats: 34 });
+if (todayTargets.length === 0 && TODAY.getUTCDay() !== 1 && TODAY.getUTCDay() !== 2) {
+  targets.push({ date: TODAY, slot: "SLOT_1730", seats: 24 });
+  targets.push({ date: TODAY, slot: "SLOT_1945", seats: 40, full: true });
 }
 
 // =====================================================================
@@ -439,12 +427,12 @@ for (const t of targets) {
   for (const table of shuffled) {
     if (acc >= t.seats) break;
 
-    // Quy mô đoàn khớp với sức chứa bàn
+    // Quy mô đoàn khớp với sức chứa bàn: bàn 2 chỗ đi 2 người, bàn 3 chỗ đi 2 hoặc 3 người (tối đa 3 khách/bàn theo spec)
     let party = table.seats;
-    if (table.seats >= 4 && rng() < 0.25) party = table.seats - 1;
+    if (table.seats === 3 && rng() < 0.35) party = 2;
     if (t.full) party = table.seats;
     if (acc + party > t.seats && !t.full) continue;
-    if (acc + party > t.seats && t.full) party = t.seats - acc;
+    if (acc + party > t.seats && t.full) party = Math.min(table.seats, t.seats - acc);
     if (party < 2) continue;
 
     // Chọn khách hàng (35% khách quen, 65% khách mới)
@@ -557,8 +545,8 @@ for (let i = 7; i < Math.min(13, seatedList.length); i++) {
   item.customerName = "Nguyễn Hữu Phúc";
   item.phone = "0993738817";
   item.email = "phuc.nguyen@gmail.com";
-  item.notes = "Thượng khách Hạng Nam Trầm (ưu tiên Wine Pairing)";
-  item.pairing = "WINE";
+  item.notes = "Thượng khách Hạng Nam Trầm (ưu tiên Tea Pairing)";
+  item.pairing = "TEA";
   item.source = "PHONE";
 }
 
@@ -619,7 +607,7 @@ for (const sat of upcomingSaturdays.slice(0, 2)) {
     waitlist.push({
       name: WAITLIST_NAMES[wlIdx % WAITLIST_NAMES.length],
       phone: `09${randInt(10, 99)}${String(randInt(100000, 999999))}`,
-      partySize: pick([2, 2, 4, 4]),
+      partySize: pick([2, 3, 4, 5]),
       date: sat,
       slot: "SLOT_1945",
       position: p,
@@ -633,18 +621,18 @@ for (const sat of upcomingSaturdays.slice(0, 2)) {
 // KHẢO SÁT ĐÁNH GIÁ (SURVEY) — FR-23 CHO CÁC LƯỢT SEATED TRONG QUÁ KHỨ
 // =====================================================================
 const SURVEY_COMMENTS = [
-  "Món súp bồ câu tiềm sen rất đậm đà và thanh mát. Không gian ấm cúng, nhạc nền êm dịu.",
+  "Món canh ngọc yến thanh mát và thịt ngọc áp chảo thơm lừng. Không gian ấm cúng, nhạc nền êm dịu.",
   "Tasting Menu 7 món được dẫn dắt rất cuốn hút. Nhân viên giải thích chi tiết nguồn gốc nguyên liệu.",
-  "Gói Wine Pairing kết hợp với món cá tuyết và bò sốt tiêu rừng vô cùng xuất sắc!",
+  "Gói Tea Pairing kết hợp với món cá tầm và gà Đông Tảo quay mắc khén vô cùng xuất sắc!",
   "Đêm kỷ niệm ngày cưới thật trọn vẹn tại TRẦM. Cảm ơn nhà hàng đã chuẩn bị nến và hoa chu đáo.",
-  "Món chè sen long nhãn tráng miệng và trà Shan Tuyết cổ thụ để lại hậu vị khó quên.",
+  "Món tráng miệng Trầm và Sen hòa cùng trà Shan Tuyết cổ thụ để lại hậu vị khó quên.",
   "Phục vụ nhẹ nhàng, chuyên nghiệp và rất tinh tế. Chắc chắn sẽ quay lại cùng đối tác.",
   "Món ăn rất ngon và tinh hoa ẩm thực Việt. Ca tối khá đông khách nhưng mọi thứ vẫn chỉn chu.",
   "Bàn hướng ra sân sau rất thoáng và riêng tư. Bò nướng lá chuối mềm mọng nước tuyệt vời.",
-  "Rất ấn tượng với set Tea Pairing không cồn, thơm phức hương trà hoa và thảo mộc vùng cao.",
+  "Rất ấn tượng với set Tea Pairing độc bản, thơm phức hương trà hoa và thảo mộc vùng cao.",
   "Trải nghiệm fine dining hương vị Việt đúng nghĩa. Đã giới thiệu cho nhiều bạn bè.",
   "Không gian trầm hương dễ chịu, ánh sáng vừa phải tạo cảm giác thư giãn tuyệt đối sau ngày làm việc.",
-  "Món khai vị bánh tôm giòn rụm và nước chấm pha chuẩn vị Bắc. Rất đáng tiền!",
+  "Món khai vị Tuyết Cá Tầm mở hộp tại bàn rất trang trọng và tinh tế. Rất đáng tiền!",
 ];
 
 // =====================================================================
@@ -657,7 +645,7 @@ async function main() {
   await db.reservation.deleteMany();
   await db.table.deleteMany();
 
-  console.log("Tạo 12 bàn...");
+  console.log("Tạo 15 bàn...");
   const tableRows = await db.table.createMany({
     data: TABLES,
   });
@@ -749,8 +737,8 @@ async function main() {
       programEnabled: true,
       programName: "Hành trình vị Việt - Tasting Menu 7 món",
       programMode: "range",
-      programStartDate: "2026-10-15",
-      programEndDate: "2026-11-30",
+      programStartDate: "2027-03-01",
+      programEndDate: "2027-04-30",
       closedDates: "[]",
       allowMonday: false,
       notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
@@ -760,8 +748,8 @@ async function main() {
       programEnabled: true,
       programName: "Hành trình vị Việt - Tasting Menu 7 món",
       programMode: "range",
-      programStartDate: "2026-10-15",
-      programEndDate: "2026-11-30",
+      programStartDate: "2027-03-01",
+      programEndDate: "2027-04-30",
       closedDates: "[]",
       allowMonday: false,
       notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
@@ -775,8 +763,8 @@ async function main() {
       programEnabled: true,
       programName: "Hành trình vị Việt - Tasting Menu 7 món",
       programMode: "range",
-      programStartDate: "2026-10-15",
-      programEndDate: "2026-11-30",
+      programStartDate: "2027-03-01",
+      programEndDate: "2027-04-30",
       programDays: [],
       closedDates: [],
       allowMonday: false,

@@ -6,14 +6,15 @@ export const RESTAURANT = {
   address: "Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh",
   hotline: "0901 234 567",
   email: "hello@tramreserve.vn",
-  totalSeats: 30,
-  totalTables: 10,
+  totalSeats: 40,
+  totalTables: 15,
+  maxPartySizePerTable: 3,
 } as const;
 
 export const PRICES = {
   menu: 1_440_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (1.440.000 đ)
-  winePairing: 650_000, // đ/khách
-  teaPairing: 350_000, // đ/khách
+  winePairing: 650_000, // đ/khách (ngừng phục vụ theo spec demo mới)
+  teaPairing: 350_000, // đ/khách (duy nhất)
   deposit: 300_000, // đ/khách
 } as const;
 
@@ -29,8 +30,8 @@ export const SLOT_TIMES: { value: "SLOT_1730" | "SLOT_1945"; label: string }[] =
 
 export const PAIRING_LABELS: Record<string, string> = {
   NONE: "Không pairing",
-  WINE: "Wine pairing",
   TEA: "Tea pairing",
+  WINE: "Wine pairing (Ngừng phục vụ)",
 };
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -164,7 +165,7 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     index: 7,
-    name: "Trầm và Sen — Nhãn lồng hạt sen cung đình",
+    name: "Trầm và Sen",
     description:
       "Nhãn lồng bọc hạt sen cung đình kết hợp nghi thức trà Shan tuyết cổ thụ 3 lần rót.",
     region: "Cung Đình Huế",
@@ -198,7 +199,7 @@ export const REVIEWS = [
     name: "Lê Thu Hằng",
     title: "Food blogger",
     content:
-      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Wine pairing chọn rượu rất táo bạo và tinh tế.",
+      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Tea pairing chọn các dòng trà hoa và trà cổ thụ rất tao nhã và tinh tế.",
     stars: 5,
   },
 ] as const;

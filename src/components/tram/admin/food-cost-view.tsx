@@ -642,21 +642,21 @@ export function AdminFoodCost({
                 className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-emerald-700"
               />
 
-              {/* Vạch dọc mốc 50% */}
+              {/* Vạch dọc cảnh báo đỏ mốc 35% */}
               <div
-                style={{ left: "50%" }}
+                style={{ left: `${TARGET_FOOD_COST_CEILING_PCT}%` }}
                 aria-hidden
                 className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-rose-700"
               />
             </div>
           </div>
 
-          {/* Cảnh báo & 3 lựa chọn quản trị nếu Food Cost vượt 50% */}
+          {/* Cảnh báo & 3 lựa chọn quản trị nếu Food Cost vượt trần 35% */}
           {report.foodCostPct > TARGET_FOOD_COST_CEILING_PCT && (
             <div className="rounded-xl border border-rose-300 bg-rose-50/90 p-4 space-y-2 text-xs">
               <div className="flex items-center gap-2 font-bold text-rose-900">
                 <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
-                <span>Ý nghĩa quản trị (FR-33): Food Cost đang vượt trần 50% → 3 Lựa chọn:</span>
+                <span>Ý nghĩa quản trị (FR-33): Food Cost đang vượt vạch cảnh báo đỏ 35% → 3 Lựa chọn:</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-stone-700">
                 <div className="rounded-lg bg-white p-2.5 border border-rose-200">

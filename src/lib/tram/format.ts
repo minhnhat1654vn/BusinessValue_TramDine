@@ -12,13 +12,12 @@ export const WEEKDAY_FULL_LABELS = [
   "Thứ Bảy",
 ];
 
-/** Ngày hiện tại (client) dạng YYYY-MM-DD theo giờ địa phương */
+/** Ngày hiện tại dạng YYYY-MM-DD (Mặc định neo mốc demo sau go-live tháng 3/2027 theo spec báo cáo) */
 export function todayLocalISO(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  if (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_DEMO_DATE) {
+    return process.env.NEXT_PUBLIC_DEMO_DATE;
+  }
+  return "2027-03-17";
 }
 
 /** Chuyển Date (UTC midnight) → YYYY-MM-DD */

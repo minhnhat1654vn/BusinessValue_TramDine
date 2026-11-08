@@ -69,9 +69,9 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       name: "Concept 2: Hành trình vị Việt",
       description: "Thực đơn Tasting 7 món đang phục vụ tuần này tại TRẦM",
       status: "ACTIVE",
-      weekLabel: "02/11/2026 - 08/11/2026",
-      startDate: "2026-11-02",
-      endDate: "2026-11-08",
+      weekLabel: "15/03/2027 - 21/03/2027",
+      startDate: "2027-03-15",
+      endDate: "2027-03-21",
       sellingPrice: 1440000,
       targetFoodCostPct: 34.7,
       dishes: liveBom.dishes,
@@ -84,11 +84,11 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
       id: "concept-3",
       code: "C3",
       name: "Concept 3: Đông Vị - Hương Sắc Đất Trầm",
-      description: "Thực đơn Tasting chuẩn bị áp dụng (09/11 - 15/11/2026)",
+      description: "Thực đơn Tasting chuẩn bị áp dụng (22/03 - 28/03/2027)",
       status: "UPCOMING",
-      weekLabel: "09/11/2026 - 15/11/2026",
-      startDate: "2026-11-09",
-      endDate: "2026-11-15",
+      weekLabel: "22/03/2027 - 28/03/2027",
+      startDate: "2027-03-22",
+      endDate: "2027-03-28",
       sellingPrice: 1440000,
       targetFoodCostPct: 34.7,
       dishes: [],
@@ -103,9 +103,9 @@ export async function ensureConceptsInitialized(): Promise<ConceptsStore> {
     let changed = false;
     for (const c of store.concepts) {
       if (c.id === "concept-2" && (!c.startDate || !c.endDate)) {
-        c.startDate = "2026-11-02";
-        c.endDate = "2026-11-08";
-        c.weekLabel = "02/11/2026 - 08/11/2026";
+        c.startDate = "2027-03-15";
+        c.endDate = "2027-03-21";
+        c.weekLabel = "15/03/2027 - 21/03/2027";
         changed = true;
       }
     }

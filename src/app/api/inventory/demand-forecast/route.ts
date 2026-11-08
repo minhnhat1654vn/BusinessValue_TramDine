@@ -8,8 +8,8 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    // Current simulated date anchored to 2026-11-05
-    const today = new Date("2026-11-05T00:00:00.000Z");
+    // Current simulated date anchored to 2027-03-17 (Post go-live demo spec)
+    const today = new Date("2027-03-17T00:00:00.000Z");
     const todayTs = today.getTime();
     
     // Fetch reservations from today onwards up to 14 days
@@ -42,8 +42,8 @@ export async function GET() {
       const dt = new Date(r.date);
       const iso = toISODate(dt);
       
-      // Only include from 2026-11-05 onwards
-      if (iso < "2026-11-05") continue;
+      // Only include from 2027-03-17 onwards
+      if (iso < "2027-03-17") continue;
 
       const curr = dateMap.get(iso) ?? { tableCount: 0, guestCount: 0, reservations: [] };
       curr.tableCount += 1;

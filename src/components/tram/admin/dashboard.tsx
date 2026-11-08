@@ -354,7 +354,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           icon={Percent}
           label="Tỷ lệ lấp chỗ TB"
           value={formatPercent(data.occupancyRate)}
-          sub="Các khung giờ có khách · 30 chỗ/khung"
+          sub="Các khung giờ có khách · 40 chỗ/khung"
         />
         <KpiCard
           icon={UserX}
@@ -541,15 +541,15 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                           axisLine={{ stroke: "#e7e1d3" }}
                           tickLine={false}
                         />
-                        <YAxis domain={[0, 36]} hide />
-                        {/* Đường mục tiêu 25 chỗ (85% của 30 chỗ) */}
+                        <YAxis domain={[0, 45]} hide />
+                        {/* Đường mục tiêu 34 chỗ (85% của 40 chỗ) */}
                         <ReferenceLine
-                          y={25}
+                          y={34}
                           stroke="#dc2626"
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: "25 chỗ (85%)",
+                            value: "34 chỗ (85%)",
                             position: "right",
                             fill: "#dc2626",
                             fontSize: 10,
@@ -593,7 +593,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 17:30:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1730Occupied}/30 khách ({p.bar1730}%)
+                                        {p.slot1730Occupied}/40 khách ({p.bar1730}%)
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -602,22 +602,22 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 19:45:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1945Occupied}/30 khách ({p.bar1945}%)
+                                        {p.slot1945Occupied}/40 khách ({p.bar1945}%)
                                       </span>
                                     </div>
                                     <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
-                                      <span className="text-stone-500">Mục tiêu 25 chỗ:</span>
+                                      <span className="text-stone-500">Mục tiêu 34 chỗ:</span>
                                       <span
-                                        className={`font-bold ${p.slot1730Occupied >= 36 || p.slot1945Occupied >= 36
+                                        className={`font-bold ${p.slot1730Occupied >= 34 || p.slot1945Occupied >= 34
                                             ? "text-emerald-700"
                                             : "text-amber-700"
                                           }`}
                                       >
-                                        {p.slot1730Occupied >= 36 && p.slot1945Occupied >= 36
+                                        {p.slot1730Occupied >= 34 && p.slot1945Occupied >= 34
                                           ? "✓ Đạt cả 2 khung"
-                                          : p.slot1945Occupied >= 36
+                                          : p.slot1945Occupied >= 34
                                             ? "✓ Đạt khung 19:45"
-                                            : p.slot1730Occupied >= 36
+                                            : p.slot1730Occupied >= 34
                                               ? "✓ Đạt khung 17:30"
                                               : "Chưa đạt"}
                                       </span>
