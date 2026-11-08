@@ -95,7 +95,11 @@ export async function POST(request: NextRequest) {
     if (!body.phone || !/^0\d{9}$/.test(body.phone.trim())) {
       errors.push("Số điện thoại không hợp lệ (vd: 0912345678).");
     }
-    if (body.email && body.email.trim() && !/^\S+@\S+\.\S+$/.test(body.email.trim())) {
+    // Khách tự đặt trên web bắt buộc có email (nhận xác nhận, thực đơn và thông tin khuyến mãi);
+    // đặt hộ từ quản trị (điện thoại/Zalo) có thể để trống.
+    if (!isAdmin && !(body.email && body.email.trim())) {
+      errors.push("Vui lòng nhập email để nhận xác nhận và thông tin ưu đãi.");
+    } else if (body.email && body.email.trim() && !/^\S+@\S+\.\S+$/.test(body.email.trim())) {
       errors.push("Email không hợp lệ.");
     }
     if (!["NONE", "WINE", "TEA"].includes(body.pairing ?? "NONE")) {

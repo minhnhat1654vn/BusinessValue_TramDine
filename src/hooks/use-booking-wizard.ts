@@ -445,7 +445,11 @@ export function useBookingWizard() {
       toast.error("Số điện thoại không hợp lệ (vd: 0912345678).");
       return false;
     }
-    if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+    if (!email.trim()) {
+      toast.error("Vui lòng nhập email để nhận xác nhận và thông tin ưu đãi.");
+      return false;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
       toast.error("Email không hợp lệ.");
       return false;
     }

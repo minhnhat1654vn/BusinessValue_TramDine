@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const dayEnd = new Date(`${date}T00:00:00.001Z`);
 
     const [tables, dayReservations] = await Promise.all([
-      // 10 bàn tiêu chuẩn (5 bàn 2 chỗ A01–A05, 5 bàn 4 chỗ B01–B05 = tổng 30 chỗ ngồi)
+      // 12 bàn (6 bàn đôi A01–A06, 5 bàn tròn 4 chỗ B01–B05, Chef's Table C01 8 chỗ = 40 chỗ)
       db.table.findMany({
         where: { code: { notIn: ["B11", "B12"] } },
         orderBy: { code: "asc" },
@@ -112,6 +112,10 @@ export async function GET(request: NextRequest) {
           };
         }
 
+        // Chef's Table 8 chỗ chỉ nhận đoàn từ 5 khách để không lãng phí chỗ
+        if (t.seats >= 8 && partySize < 5) {
+          return { table: t, available: false, reason: "GROUP_ONLY" as const, reservation: null };
+        }
         if (t.seats < partySize) {
           return {
             table: t,

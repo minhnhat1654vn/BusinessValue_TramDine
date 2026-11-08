@@ -7,8 +7,8 @@ export const RESTAURANT = {
   hotline: "0901 234 567",
   email: "hello@tramreserve.vn",
   totalSeats: 40,
-  totalTables: 15,
-  maxPartySizePerTable: 3,
+  totalTables: 12,
+  maxPartySizePerTable: 8,
 } as const;
 
 export const PRICES = {

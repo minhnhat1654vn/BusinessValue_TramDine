@@ -206,7 +206,7 @@ export function evaluateGoldenHourShifts(params: {
     if (!config.applicableDays.includes(wd)) continue;
 
     const booked = bookedByDate.get(isoDate) ?? 0;
-    const capacity = RESTAURANT.totalSeats; // Cố định 15 bàn 40 chỗ
+    const capacity = RESTAURANT.totalSeats; // Cố định 12 bàn 40 chỗ
     const available = Math.max(0, capacity - booked);
     const occupancyPct = Number(((booked / capacity) * 100).toFixed(1));
 

@@ -134,33 +134,33 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const ZONES = [
-  { name: "Khu cửa sổ", hint: "A01 - A05" },
-  { name: "Khu trung tâm", hint: "B01 - B10" },
+  { name: "Khu cửa sổ", hint: "A01 - A06 · bàn đôi" },
+  { name: "Khu trung tâm", hint: "B01 - B05 · 4 chỗ" },
+  { name: "Chef's Table", hint: "C01 · 8 chỗ" },
 ];
 
-// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng (15 bàn: A01-A05 2 chỗ, B01-B10 3 chỗ)
+// Tọa độ các bàn trên bản vẽ mặt bằng (12 bàn / 40 chỗ: A01–A06 bàn đôi, B01–B05 bàn tròn 4 chỗ, C01 Chef's Table 8 chỗ)
 const FLOORPLAN_COORDINATES: Record<
   string,
   { x: number; y: number; w: number; h: number; shape: "square" | "circle" }
 > = {
-  // KHU A - CỬA SỔ - SÁT VIEW SÔNG (5 bàn vuông 2 chỗ: A01 - A05)
-  A01: { x: 16.5, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
-  A02: { x: 34.8, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
-  A03: { x: 53.1, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
-  A04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
-  A05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
+  // KHU A - CỬA SỔ - SÁT VIEW SÔNG (6 bàn đôi: A01 - A06)
+  A01: { x: 15.0, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
+  A02: { x: 29.5, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
+  A03: { x: 44.0, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
+  A04: { x: 58.5, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
+  A05: { x: 73.0, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
+  A06: { x: 87.5, y: 19.8, w: 6.6, h: 6.6, shape: "square" },
 
-  // KHU B - TRUNG TÂM (10 bàn 3 chỗ bố trí quanh Bếp Mở: B01 - B10)
-  B01: { x: 22.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
-  B02: { x: 33.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
-  B03: { x: 22.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
-  B04: { x: 33.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
-  B05: { x: 27.5, y: 72.0, w: 7.2, h: 7.2, shape: "circle" },
-  B06: { x: 74.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
-  B07: { x: 85.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
-  B08: { x: 74.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
-  B09: { x: 85.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
-  B10: { x: 54.5, y: 66.0, w: 7.2, h: 7.2, shape: "circle" },
+  // KHU B - TRUNG TÂM (5 bàn tròn 4 chỗ quanh Bếp Mở: B01 - B05)
+  B01: { x: 21.0, y: 40.0, w: 8.0, h: 8.0, shape: "circle" },
+  B02: { x: 21.0, y: 60.0, w: 8.0, h: 8.0, shape: "circle" },
+  B03: { x: 85.0, y: 40.0, w: 8.0, h: 8.0, shape: "circle" },
+  B04: { x: 85.0, y: 60.0, w: 8.0, h: 8.0, shape: "circle" },
+  B05: { x: 53.0, y: 69.0, w: 8.0, h: 8.0, shape: "circle" },
+
+  // CHEF'S TABLE - quầy 8 chỗ sát Bếp Mở (C01, dành cho đoàn 5-8 khách)
+  C01: { x: 53.0, y: 53.5, w: 26.0, h: 5.0, shape: "square" },
 };
 
 function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {
@@ -311,7 +311,7 @@ export function AdminBookingUnifiedView({
 
   const allReservations = useMemo(() => listData?.reservations ?? [], [listData]);
 
-  // Danh sách 10 bàn của TRẦM (A01–A05 & B01–B05) — B11 & B12 đã bỏ
+  // Danh sách 12 bàn của TRẦM (A01–A06 2 chỗ, B01–B05 4 chỗ, C01 Chef's Table 8 chỗ = 40 chỗ)
   const DEFAULT_TABLE_DEFS = useMemo(
     () => [
       { id: "tbl_A01", code: "A01", seats: 2, zone: "Khu cửa sổ" },
@@ -319,11 +319,13 @@ export function AdminBookingUnifiedView({
       { id: "tbl_A03", code: "A03", seats: 2, zone: "Khu cửa sổ" },
       { id: "tbl_A04", code: "A04", seats: 2, zone: "Khu cửa sổ" },
       { id: "tbl_A05", code: "A05", seats: 2, zone: "Khu cửa sổ" },
+      { id: "tbl_A06", code: "A06", seats: 2, zone: "Khu cửa sổ" },
       { id: "tbl_B01", code: "B01", seats: 4, zone: "Khu trung tâm" },
       { id: "tbl_B02", code: "B02", seats: 4, zone: "Khu trung tâm" },
       { id: "tbl_B03", code: "B03", seats: 4, zone: "Khu trung tâm" },
       { id: "tbl_B04", code: "B04", seats: 4, zone: "Khu trung tâm" },
       { id: "tbl_B05", code: "B05", seats: 4, zone: "Khu trung tâm" },
+      { id: "tbl_C01", code: "C01", seats: 8, zone: "Chef's Table" },
     ],
     []
   );
@@ -766,7 +768,7 @@ export function AdminBookingUnifiedView({
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs">
-                10 bàn (A01–A05 &amp; B01–B05). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.
+                12 bàn (A01–A06, B01–B05 &amp; Chef&apos;s Table C01). Bấm vào bàn để xem chi tiết, Check-in hoặc đổi trạng thái.
               </CardDescription>
             </div>
 

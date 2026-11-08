@@ -48,8 +48,9 @@ import { TableCourseTracker } from "./table-course-tracker";
 type AvailResp = AvailabilityResponse & { closed: boolean };
 
 const ZONES = [
-  { name: "Khu cửa sổ (Dãy A)", hint: "5 bàn 2 chỗ (A01 - A05)" },
-  { name: "Khu trung tâm (Khu B)", hint: "10 bàn 3 chỗ (B01 - B10)" },
+  { name: "Khu cửa sổ (Dãy A)", hint: "6 bàn đôi (A01 - A06)" },
+  { name: "Khu trung tâm (Khu B)", hint: "5 bàn tròn 4 chỗ (B01 - B05)" },
+  { name: "Chef's Table", hint: "C01 · 8 chỗ" },
 ];
 
 function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {

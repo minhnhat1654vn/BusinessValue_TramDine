@@ -34,23 +34,20 @@ const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) =>
   min + Math.floor(rng() * (max - min + 1));
 
-// ---------- Bảng 15 bàn theo spec mới (40 chỗ mỗi ca) ----------
+// ---------- 12 bàn / 40 chỗ mỗi ca: 6 bàn đôi, 5 bàn tròn 4 chỗ, 1 Chef's Table 8 chỗ ----------
 const TABLES = [
   { code: "A01", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A02", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A03", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A04", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A05", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "B01", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B02", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B03", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B04", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B05", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B06", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B07", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B08", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B09", seats: 3, zone: "Khu trung tâm (Khu B)" },
-  { code: "B10", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "A06", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
+  { code: "B01", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "B02", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "B03", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "B04", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "B05", seats: 4, zone: "Khu trung tâm (Khu B)" },
+  { code: "C01", seats: 8, zone: "Chef's Table" },
 ];
 
 // ---------- Khách hàng giả lập ----------
@@ -304,7 +301,7 @@ interface EveningTarget {
   date: Date;
   slot: "SLOT_1730" | "SLOT_1945";
   seats: number;
-  full?: boolean; // kín 100% (40/40 chỗ theo spec 15 bàn)
+  full?: boolean; // kín 100% (40/40 chỗ theo spec 12 bàn)
 }
 
 const targets: EveningTarget[] = [];
@@ -429,7 +426,8 @@ for (const t of targets) {
 
     // Quy mô đoàn khớp với sức chứa bàn: bàn 2 chỗ đi 2 người, bàn 3 chỗ đi 2 hoặc 3 người (tối đa 3 khách/bàn theo spec)
     let party = table.seats;
-    if (table.seats === 3 && rng() < 0.35) party = 2;
+    if (table.seats === 4) { const r = rng(); party = r < 0.45 ? 2 : r < 0.7 ? 3 : 4; }
+    if (table.seats === 8) party = 5 + Math.floor(rng() * 4);
     if (t.full) party = table.seats;
     if (acc + party > t.seats && !t.full) continue;
     if (acc + party > t.seats && t.full) party = Math.min(table.seats, t.seats - acc);
@@ -645,7 +643,7 @@ async function main() {
   await db.reservation.deleteMany();
   await db.table.deleteMany();
 
-  console.log("Tạo 15 bàn...");
+  console.log("Tạo 12 bàn...");
   const tableRows = await db.table.createMany({
     data: TABLES,
   });

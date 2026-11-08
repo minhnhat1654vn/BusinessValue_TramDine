@@ -85,7 +85,7 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     key: "booking",
     label: "Đặt bàn & Sơ đồ",
-    description: "10 bàn & danh sách",
+    description: "12 bàn & danh sách",
     icon: ClipboardList,
   },
   {
