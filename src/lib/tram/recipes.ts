@@ -94,7 +94,7 @@ export function getIngredient(id: string): Ingredient | undefined {
   return INGREDIENT_MAP[id];
 }
 
-// ---------- Công thức theo món ----------
+// ---------- Công thức theo món (Thực đơn Tiến Vua · Bảy Báu Vật Việt — 472.975 đ/khách) ----------
 
 export interface RecipeLine {
   ingredientId: string;
@@ -183,7 +183,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Ướp lạnh & Mở hộp tại bàn",
     variants: [
-      { optionId: "std", lines: DISH_1_LINES },
+      { optionId: "std", lines: DISH_1_LINES, note: "Chuẩn vị fine dining" },
       { optionId: "extra_blini", lines: DISH_1_LINES, note: "Giữ nguyên định lượng chuẩn; bánh blini phục vụ thêm theo yêu cầu." },
     ],
   },
@@ -192,7 +192,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Nướng than thảo mộc",
     variants: [
-      { optionId: "std", lines: DISH_2_LINES },
+      { optionId: "std", lines: DISH_2_LINES, note: "Vị ngọt hậu tự nhiên của sá sùng" },
       { optionId: "crispy_fried", lines: DISH_2_LINES, note: "Giữ nguyên định lượng; đổi kỹ thuật chiên phồng." },
     ],
   },
@@ -201,7 +201,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Om chậm men rượu nếp cái hoa vàng",
     variants: [
-      { optionId: "std", lines: DISH_3_LINES },
+      { optionId: "std", lines: DISH_3_LINES, note: "Vị ngọt men nồng nàn" },
       { optionId: "mild_wine", lines: DISH_3_LINES, note: "Giữ nguyên định lượng; giảm thời gian om rượu." },
     ],
   },
@@ -210,7 +210,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Tiềm thanh nhã & Rót tại bàn",
     variants: [
-      { optionId: "std", lines: DISH_4_LINES },
+      { optionId: "std", lines: DISH_4_LINES, note: "Nước dùng trong vắt, bốc khói nghi ngút" },
       { optionId: "extra_lotus", lines: DISH_4_LINES, note: "Giữ nguyên định lượng chuẩn; hạt sen thêm theo yêu cầu." },
     ],
   },
@@ -219,7 +219,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Áp chảo chảo gang bơ thảo mộc",
     variants: [
-      { optionId: "std", lines: DISH_5_LINES },
+      { optionId: "std", lines: DISH_5_LINES, note: "Thăn cá mọng nước, da giòn rụm" },
       { optionId: "herb_steamed", lines: DISH_5_LINES, note: "Giữ nguyên định lượng; đổi kỹ thuật hấp thảo mộc." },
     ],
   },
@@ -228,7 +228,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Quay giòn da đượm hương rừng Tây Bắc",
     variants: [
-      { optionId: "std", lines: DISH_6_LINES },
+      { optionId: "std", lines: DISH_6_LINES, note: "Da gà giòn sần sật, cơm cháy vàng ruộm" },
       { optionId: "mild_spice", lines: DISH_6_LINES, note: "Giữ nguyên định lượng; giảm lượng mắc khén khi ra món." },
     ],
   },
@@ -237,7 +237,7 @@ export const DISH_RECIPES: DishRecipe[] = [
     portion: "1 khách",
     method: "Nấu nước đường phèn thanh tao & Nghi thức trà 3 lần rót",
     variants: [
-      { optionId: "std", lines: DISH_7_LINES },
+      { optionId: "std", lines: DISH_7_LINES, note: "Hương vị cung đình tao nhã" },
       { optionId: "low_sweet", lines: DISH_7_LINES, note: "Giữ nguyên định lượng; giảm đường khi nấu." },
     ],
   },

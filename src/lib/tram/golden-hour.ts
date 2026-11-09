@@ -61,7 +61,7 @@ export interface GoldenHourShiftSlot {
   shortWeekdayLabel: string; // "T4", "T5", "T6"
   slot: "SLOT_1730";
   slotLabel: string; // "17:30"
-  capacity: number; // 40 chỗ
+  capacity: number; // 40 chỗ (15 bàn)
   bookedSeats: number;
   availableSeats: number;
   occupancyPct: number; // % lấp đầy hiện thời

@@ -40,7 +40,7 @@ export interface InventoryStockSpec {
   storageZone: StorageZone;
 }
 
-// Định mức tồn kho chuẩn cho 34 nguyên liệu BOM tại bếp TRẦM (quy mô 40 ghế / ca):
+// Định mức tồn kho chuẩn cho 34 nguyên liệu BOM tại bếp TRẦM (quy mô 40 ghế / ca, 15 bàn):
 // - Đạm tươi & bún thủ công: dự trữ cho 75–90 suất; ngưỡng đặt lại là 40 suất (1 ca đầy)
 // - Rau rừng, thảo mộc & trái cây tươi: dự trữ 80–150 suất trong kho mát; ngưỡng đặt lại 35–45 suất
 // - Đồ khô, gia vị ủ chum & tinh chất trầm hương: dự trữ 120–400 suất; ngưỡng an toàn 30–40% tồn chuẩn
@@ -86,7 +86,7 @@ const STOCK_SPEC_MAP: Record<string, InventoryStockSpec> = Object.fromEntries(
   INVENTORY_STOCK_SPECS.map((s) => [s.ingredientId, s]),
 );
 
-/** Thời hạn sử dụng / bảo quản chuẩn (số ngày) của 56 nguyên liệu tại bếp TRẦM */
+/** Thời hạn sử dụng / bảo quản chuẩn (số ngày) của 34 nguyên liệu tại bếp TRẦM */
 export const DEFAULT_SHELF_LIFE_DAYS: Record<string, number> = {
   "caviar-lam-dong": 3,
   "sa-sung-van-don": 3,

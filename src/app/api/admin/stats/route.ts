@@ -23,7 +23,7 @@ import type {
   SourceShare,
 } from "@/lib/tram/types";
 
-const SEATS_PER_SLOT = RESTAURANT.totalSeats; // 40 chỗ (12 bàn)
+const SEATS_PER_SLOT = RESTAURANT.totalSeats; // 40 chỗ (15 bàn: 5×2 + 10×3)
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

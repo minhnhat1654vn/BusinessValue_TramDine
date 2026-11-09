@@ -164,7 +164,7 @@ export function calculateVoucherDiscount(params: {
 
   switch (voucher.type) {
     case "PERCENT_MENU": {
-      // Giảm % trên phần Menu Tasting (1.190k)
+      // Giảm % trên phần Menu Tasting (1.440k)
       const pct = voucher.discountPercent ?? 10;
       discountAmount = Math.round(menuBaseTotal * (pct / 100));
       discountSummary = `Giảm ${pct}% Menu Tasting (${formatVND(discountAmount)})`;

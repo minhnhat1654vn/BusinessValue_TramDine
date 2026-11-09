@@ -18,14 +18,14 @@ export function getDefaultSettings(): BookingProgramSettings {
   const today = todayLocalISO();
   return {
     programEnabled: true,
-    programName: "Hành trình vị Việt - Tasting Menu 7 món",
+    programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
     programMode: "range",
     programStartDate: addDays(today, -14), // Mở từ 2 tuần trước để xem dữ liệu demo
     programEndDate: addDays(today, 28), // Kéo dài 4 tuần tới
     programDays: [],
     closedDates: [],
     allowMonday: false,
-    notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+    notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
     updatedAt: new Date().toISOString(),
   };
 }

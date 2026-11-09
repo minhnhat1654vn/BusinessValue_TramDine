@@ -354,19 +354,19 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           icon={Percent}
           label="Tỷ lệ lấp chỗ TB"
           value={formatPercent(data.occupancyRate)}
-          sub="Các khung giờ có khách · 40 chỗ/khung"
+          sub="Các khung giờ có khách · 40 chỗ/khung (15 bàn) · Mục tiêu 2029: 56%"
         />
         <KpiCard
           icon={UserX}
           label="Tỷ lệ no-show"
           value={formatPercent(data.noShowRate)}
-          sub="Trong các tối đã phục vụ (quá khứ)"
+          sub="Baseline 2025: 18,0% → Mục tiêu 2027: 9,5% · 2029: 6,2%"
         />
         <KpiCard
           icon={Banknote}
           label="Doanh thu dự thu"
           value={formatVND(data.expectedRevenue)}
-          sub="Từ đặt bàn tương lai còn hiệu lực"
+          sub="Menu “Tiến Vua” 1.440k + Tea Pairing 350k (TB 1.615k/khách)"
         />
       </div>
 
@@ -468,7 +468,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-medium text-rose-600">
                     <span className="inline-block w-4 border-b-2 border-dashed border-rose-500" />
-                    Mục tiêu 36 chỗ (85%)
+                    Mục tiêu 34 chỗ (85% của 40 chỗ)
                   </span>
                 </div>
               </div>
@@ -541,7 +541,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                           axisLine={{ stroke: "#e7e1d3" }}
                           tickLine={false}
                         />
-                        <YAxis domain={[0, 45]} hide />
+                        <YAxis domain={[0, 48]} hide />
                         {/* Đường mục tiêu 34 chỗ (85% của 40 chỗ) */}
                         <ReferenceLine
                           y={34}
@@ -624,7 +624,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                     </div>
                                   </div>
                                 ) : (
-                                  <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ thứ Hai</p>
+                                  <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ Thứ Hai &amp; Thứ Ba</p>
                                 )}
                               </div>
                             );
@@ -938,7 +938,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               </div>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.440.000 đ) kèm Tea Pairing của các đơn đặt bàn có hiệu lực.
+              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món “Tiến Vua” (1.440.000 đ/khách) kèm gói Tea Pairing (+350.000 đ/khách · hóa đơn trung bình 1.615.000 đ/khách) của các đơn đặt bàn có hiệu lực.
             </p>
           </CardContent>
         </Card>

@@ -34,7 +34,7 @@ const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) =>
   min + Math.floor(rng() * (max - min + 1));
 
-// ---------- Bảng 15 bàn theo spec mới (40 chỗ mỗi ca) ----------
+// ---------- Bảng 15 bàn theo spec (40 chỗ/ca) ----------
 const TABLES = [
   { code: "A01", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A02", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
@@ -735,24 +735,24 @@ async function main() {
     where: { id: "default" },
     update: {
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2027-03-01",
       programEndDate: "2027-04-30",
       closedDates: "[]",
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
     },
     create: {
       id: "default",
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2027-03-01",
       programEndDate: "2027-04-30",
       closedDates: "[]",
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
     },
   });
 
@@ -761,14 +761,14 @@ async function main() {
     const backupPath = path.resolve(process.cwd(), "db/booking-settings.json");
     const jsonContent = {
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2027-03-01",
       programEndDate: "2027-04-30",
       programDays: [],
       closedDates: [],
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
       updatedAt: new Date().toISOString(),
     };
     fs.writeFileSync(backupPath, JSON.stringify(jsonContent, null, 2), "utf8");

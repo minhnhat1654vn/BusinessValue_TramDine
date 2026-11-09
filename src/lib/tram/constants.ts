@@ -14,8 +14,8 @@ export const RESTAURANT = {
 export const PRICES = {
   menu: 1_440_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (1.440.000 đ)
   winePairing: 650_000, // đ/khách – NGỪNG phục vụ từ 2027 (không hiển thị trên giao diện; giữ hằng số để dữ liệu cũ không lỗi)
-  teaPairing: 350_000, // đ/khách (duy nhất)
-  deposit: 300_000, // đ/khách
+  teaPairing: 350_000, // đ/khách (duy nhất — trung bình hóa đơn 1.615.000 đ/khách với 50% khách chọn Tea Pairing)
+  deposit: 300_000, // đ/khách (20,8% giá menu, hoàn cọc trước 48h; miễn 100% cho hạng Nam Trầm)
 } as const;
 
 export const SLOT_LABELS: Record<string, string> = {
@@ -199,7 +199,7 @@ export const REVIEWS = [
     name: "Lê Thu Hằng",
     title: "Food blogger",
     content:
-      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Tea pairing chọn các dòng trà hoa và trà cổ thụ rất tao nhã và tinh tế.",
+      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Tea pairing chọn trà Shan tuyết cổ thụ rất táo bạo và tinh tế.",
     stars: 5,
   },
 ] as const;

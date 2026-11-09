@@ -2,7 +2,7 @@
 
 // Phân hệ hợp nhất: Kho & Giá vốn nguyên liệu (FR-28 & FR-29)
 // Tích hợp:
-// 1. Đối chiếu Food Cost 7 món Concept 2 (mục tiêu 34,7% trên menu 1.440.000 đ).
+// 1. Đối chiếu Food Cost 7 món Concept 2 “Tiến Vua” (mục tiêu 34,7% · trần 35% trên menu 1.440.000 đ).
 // 2. Quản lý tồn kho thực tế, cảnh báo chạm ngưỡng an toàn và trừ kho theo ca 40 khách.
 // 3. Phân trang giới hạn 20 dòng / trang.
 import { useState } from "react";
@@ -31,13 +31,13 @@ export function AdminWarehouseCost({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-4">
         <div>
           <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-            Bếp &amp; Kho · Concept 2
+            Bếp &amp; Kho · Concept 2 “Tiến Vua”
           </span>
           <h1 className="mt-0.5 font-heading text-2xl font-bold tracking-tight text-[#292524]">
             Kho &amp; Giá vốn nguyên liệu
           </h1>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Đối chiếu Food Cost 7 món (mục tiêu 34,7%) &amp; Quản lý tồn kho thực tế ca 40 khách (giới hạn 20 dòng / trang)
+            Đối chiếu Food Cost 7 món (khung duyệt 28–35% · mục tiêu 34,7%) &amp; Quản lý tồn kho thực tế ca 40 khách (15 bàn · giới hạn 20 dòng / trang)
           </p>
         </div>
 

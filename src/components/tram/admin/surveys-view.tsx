@@ -393,12 +393,12 @@ export function AdminSurveys() {
                     +{gStats?.ratingDifference ?? "0.6"}★
                   </span>
                   <span className="text-stone-600 font-medium">
-                    so với TB khu vực Q1 ({gStats?.regionalAvgRating ?? "4.3"}★)
+                    so với TB khu vực Quận 3 ({gStats?.regionalAvgRating ?? "4.3"}★)
                   </span>
                 </div>
 
                 <p className="mt-3 text-[11px] text-muted-foreground leading-relaxed border-t border-amber-900/10 pt-2">
-                  Dựa trên <strong>{gStats?.totalReviews ?? 128}</strong> đánh giá xác thực trên Google Maps. Thuộc Top 1% ẩm thực cao cấp tại TP.HCM.
+                  Dựa trên <strong>{gStats?.totalReviews ?? 128}</strong> đánh giá xác thực · Đạt vượt chỉ tiêu Lợi ích vô hình Mục 5.3.2 (Target 2029: <strong>≥ 4,6/5</strong> điểm khảo sát &amp; tỷ lệ quay lại <strong>≥ 45%</strong>).
                 </p>
               </CardContent>
             </Card>

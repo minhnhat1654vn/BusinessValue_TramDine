@@ -349,7 +349,7 @@ const FLOORPLAN_COORDINATES: Record<
   A04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
   A05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
 
-  // KHU B - TRUNG TÂM (10 bàn 3 chỗ bố trí xung quanh Bếp Mở: B01 - B10)
+  // KHU B - TRUNG TÂM (10 bàn 3 chỗ bố trí xung quanh Bếp Mở: B01 - B10 · Tổng 15 bàn / 40 chỗ)
   B01: { x: 22.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
   B02: { x: 33.0, y: 39.0, w: 7.2, h: 7.2, shape: "circle" },
   B03: { x: 22.0, y: 56.5, w: 7.2, h: 7.2, shape: "circle" },
@@ -820,8 +820,8 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   1. Ngày &amp; khung giờ
                 </h2>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  TRẦM mở cửa tối Thứ Tư → Chủ Nhật (nghỉ thứ Hai, thứ Ba), mỗi tối 2
-                  khung.
+                  TRẦM mở cửa tối Thứ Tư → Chủ Nhật (nghỉ Thứ Hai &amp; Thứ Ba), mỗi tối 2
+                  khung (15 bàn · 40 chỗ/ca).
                 </p>
 
                 {bookingSettings && !bookingSettings.programEnabled && (
@@ -1471,14 +1471,14 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Gói Pairing đi kèm thực đơn</Label>
+                <Label>Gói Pairing đi kèm thực đơn “Tiến Vua”</Label>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {(
                     [
                       { value: "NONE", label: "Không pairing", price: 0, icon: Ban },
                       {
                         value: "TEA",
-                        label: "Tea pairing độc bản",
+                        label: "Tea pairing độc bản (Trà Việt cổ thụ)",
                         price: PRICES.teaPairing,
                         icon: Coffee,
                       },

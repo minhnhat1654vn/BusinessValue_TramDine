@@ -134,11 +134,11 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const ZONES = [
-  { name: "Khu cửa sổ", hint: "A01 - A05" },
-  { name: "Khu trung tâm", hint: "B01 - B10" },
+  { name: "Khu cửa sổ", hint: "A01 - A05 (5 bàn × 2 chỗ)" },
+  { name: "Khu trung tâm", hint: "B01 - B10 (10 bàn × 3 chỗ)" },
 ];
 
-// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng (15 bàn: A01-A05 2 chỗ, B01-B10 3 chỗ)
+// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng (15 bàn: A01-A05 2 chỗ, B01-B10 3 chỗ = 40 chỗ)
 const FLOORPLAN_COORDINATES: Record<
   string,
   { x: number; y: number; w: number; h: number; shape: "square" | "circle" }
@@ -1242,7 +1242,7 @@ export function AdminBookingUnifiedView({
                 Tổng: <span className="ml-1 font-bold text-stone-800">{stats.totalCount}</span> lượt
               </Badge>
               <Badge variant="outline" className="border-border bg-white px-2.5 py-1">
-                Công suất: <span className="ml-1 font-bold text-[#b45309]">{stats.totalSeats}</span> / 84 chỗ
+                Công suất: <span className="ml-1 font-bold text-[#b45309]">{stats.totalSeats}</span> / 80 chỗ
               </Badge>
               <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-800 px-2.5 py-1">
                 Đã đến: <span className="ml-1 font-bold">{stats.seatedCount}</span>

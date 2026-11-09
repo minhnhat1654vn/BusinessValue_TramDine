@@ -1,9 +1,5 @@
 "use client";
 
-// Trang chủ TRẦM — thiết kế FULL-PAGE: mỗi section = đúng 1 màn hình (100% viewport bên dưới header)
-// Cuộn chuột / phím mũi tên / vuốt để chuyển section:
-//   Mở đầu → Câu chuyện → 7 món (trượt ngang sang phải) → Pairing → Đánh giá → Thông tin
-// Tích hợp Framer Motion (page transitions, reveal theo section đang hiển thị, parallax ảnh món)
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, type Variants } from "framer-motion";
 import {
@@ -81,9 +77,6 @@ function canScroll(el: HTMLElement, dir: 1 | -1) {
   return el.scrollTop > 2;
 }
 
-/* ------------------------------------------------------------------ */
-/* Animation variants                                                  */
-/* ------------------------------------------------------------------ */
 const revealContainer: Variants = {
   hidden: { opacity: 0, transition: { duration: 0.25 } },
   visible: {
@@ -103,9 +96,6 @@ const revealRight: Variants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-/* ------------------------------------------------------------------ */
-/* Thành phần dùng chung                                               */
-/* ------------------------------------------------------------------ */
 function SectionLabel({
   children,
   align = "center",
@@ -664,14 +654,14 @@ function HeroScreen({
           variants={revealUp}
           className="mt-6 font-heading text-xl italic text-stone-600 sm:text-2xl"
         >
-          Hành trình vị Việt — bảy món, một câu chuyện
+          Thực đơn “Tiến Vua” — bảy món, một câu chuyện
         </motion.p>
 
         <motion.p
           variants={revealUp}
           className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base"
         >
-          Thực đơn tasting bảy món tôn vinh những sản vật quý của Việt Nam: từ trứng
+          Thực đơn tasting bảy món “Tiến Vua” tôn vinh những sản vật trân quý của Việt Nam: từ trứng
           cá tầm cao nguyên Lâm Đồng, sá sùng Vân Đồn, bào ngư Nha Trang đến yến sào
           Khánh Hòa, gà Đông Tảo Hưng Yên và trà sen Hồ Tây — một hành trình kết nối
           tinh hoa nguyên liệu Việt trong không gian ẩm thực đương đại.
@@ -708,7 +698,7 @@ function HeroScreen({
         >
           <span className="inline-flex items-center gap-2">
             <span className="font-heading text-lg font-semibold text-[#b45309]">7</span>
-            món tasting
+            món “Tiến Vua”
           </span>
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
           <span className="inline-flex items-center gap-2">
@@ -718,7 +708,7 @@ function HeroScreen({
           <span className="h-1 w-1 rounded-full bg-[#c2a37a]" aria-hidden />
           <span className="inline-flex items-center gap-2">
             <span className="font-heading text-lg font-semibold text-[#b45309]">2</span>
-            khung mỗi tối
+            khung mỗi tối (T4 → CN)
           </span>
         </motion.div>
       </motion.div>
@@ -773,15 +763,15 @@ function StoryScreen({ active }: { active: boolean }) {
               đại, ngay giữa Quận 3, TP. Hồ Chí Minh.
             </motion.p>
             <motion.p variants={revealUp}>
-              Mỗi tối, bếp TRẦM kể một câu chuyện bằng bảy món ăn: những nguyên liệu
-              bé nhỏ được tuyển chọn từ từng vùng miền — cá bớp sông Cửu Long, đậu
-              tương Bảo Lạc, bò Quảng Nam — được chắp lại thành hành trình vị giác
-              trọn vẹn của Việt Nam.
+              Mỗi tối, bếp TRẦM kể một câu chuyện bằng bảy món ăn trong thực đơn “Tiến Vua”:
+              những sản vật trân quý được tuyển chọn từ khắp các vùng miền — trứng cá tầm
+              Lâm Đồng, sá sùng Vân Đồn, bào ngư Nha Trang, yến sào Khánh Hòa, gà Đông Tảo
+              Hưng Yên — được chắp lại thành hành trình mỹ vị cung đình đương đại.
             </motion.p>
             <motion.p variants={revealUp}>
-              Với 40 chỗ ngồi và hai khung phục vụ mỗi tối (15 bàn), chúng tôi dành hết sự chú
-              tâm cho từng khách mời — từ tách trà Shan tuyết đầu tiên đến ngụm trà ấm cuối
-              cùng của buổi tối.
+              Với 40 chỗ ngồi (15 bàn) và hai khung phục vụ mỗi tối từ Thứ Tư đến Chủ Nhật,
+              chúng tôi dành hết sự chú tâm cho từng khách mời — từ chén trà sen Tây Hồ khai
+              vị đến nghi thức trà Shan tuyết cổ thụ khép lại buổi tối.
             </motion.p>
           </div>
         </div>
@@ -954,8 +944,8 @@ function PairingScreen({ active, onBookNow }: { active: boolean; onBookNow: () =
   const option = {
     key: "tea",
     icon: Coffee,
-    title: "Tea pairing độc bản",
-    desc: "Bốn lớp trà Việt thượng hạng — trà Shan Tuyết cổ thụ 300 năm Hà Giang, trà sen Tây Hồ và ô long mộc bản — thanh lọc vị giác và nâng đỡ trọn vẹn từng món tasting.",
+    title: "Tea pairing độc bản — Trà Việt cổ thụ",
+    desc: "Bốn lớp trà Việt thượng hạng — trà Shan Tuyết cổ thụ 300 năm Hà Giang, trà sen Tây Hồ và ô long mộc bản — thanh lọc vị giác và nâng đỡ trọn vẹn từng món “Tiến Vua” (50% thực khách lựa chọn).",
     price: PRICES.teaPairing,
   };
 
@@ -968,12 +958,12 @@ function PairingScreen({ active, onBookNow }: { active: boolean; onBookNow: () =
         className="mx-auto flex min-h-full max-w-4xl flex-col justify-center px-6 py-12"
       >
         <motion.div variants={revealUp}>
-          <SectionLabel>Đi kèm menu</SectionLabel>
+          <SectionLabel>Đi kèm menu “Tiến Vua”</SectionLabel>
           <h2 className="tram-underline-center tram-underline font-heading mb-4 text-center text-3xl font-semibold text-[#292524] sm:text-4xl lg:text-5xl">
             Tea pairing tuyển chọn
           </h2>
           <p className="mx-auto mb-10 max-w-xl text-center text-sm text-muted-foreground">
-            Hương vị trà Việt tinh tế đồng điệu cùng bảy món báu vật — lựa chọn tùy ý khi đặt bàn (mục tiêu 50% thực khách chọn).
+            Hương vị trà Việt tinh tế đồng điệu cùng bảy món “Tiến Vua” — lựa chọn tùy ý khi đặt bàn (+350.000 đ/khách · mục tiêu 50% thực khách chọn).
           </p>
         </motion.div>
 
@@ -1102,7 +1092,7 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                   </h3>
                   <ul className="mt-3 space-y-1.5 text-sm text-stone-600">
                     <li className="flex justify-between gap-2">
-                      <span>Thứ Tư → Chủ Nhật</span>
+                      <span>Thứ Tư → Chủ Nhật (5 tối/tuần)</span>
                     </li>
                     <li className="flex justify-between gap-2">
                       <span>Khung sớm</span>
@@ -1112,7 +1102,7 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                       <span>Khung trễ</span>
                       <span className="font-medium text-[#92400e]">19:45</span>
                     </li>
-                    <li className="pt-1 text-muted-foreground">Nghỉ thứ Hai và thứ Ba hàng tuần</li>
+                    <li className="pt-1 text-muted-foreground">Nghỉ Thứ Hai &amp; Thứ Ba hàng tuần</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -1129,7 +1119,7 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                     {RESTAURANT.address}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Giữ xe ô tô có sẵn · gần Notre-Dame Sài Gòn
+                    15 bàn · 40 chỗ ngồi/ca · Không gian trầm hương Quận 3
                   </p>
                 </CardContent>
               </Card>
@@ -1147,10 +1137,10 @@ function InfoScreen({ active, onBookNow }: { active: boolean; onBookNow: () => v
                     <span className="font-medium text-[#92400e]">
                       {formatVND(PRICES.deposit)}
                     </span>{" "}
-                    / khách khi đặt bàn.
+                    / khách khi đặt bàn (20,8% giá menu).
                   </p>
                   <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    Hoàn cọc đầy đủ nếu Quý khách hủy trước 48 giờ so với giờ đến.
+                    Hoàn cọc 100% nếu hủy trước 48 giờ; miễn cọc 100% cho Thượng khách Nam Trầm.
                   </p>
                 </CardContent>
               </Card>

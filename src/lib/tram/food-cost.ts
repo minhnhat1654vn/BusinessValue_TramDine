@@ -1,6 +1,6 @@
 // FR-28 — Giá vốn nguyên liệu: tự tính giá vốn mỗi khách từ đơn giá nhập kho
-// và đối chiếu với giá bán menu tasting "Hành trình vị Việt" (1.440.000 đ/khách)
-// cùng ngưỡng mục tiêu food cost 34,7%.
+// và đối chiếu với giá bán menu tasting "Tiến Vua · Bảy Báu Vật Việt" (1.440.000 đ/khách)
+// cùng ngưỡng mục tiêu food cost 34,7% (trần duyệt 35%).
 
 import { MENU_ITEMS, PRICES } from "./constants";
 import { formatVND } from "./format";
@@ -21,19 +21,19 @@ import {
 // ---------- Hằng số nghiệp vụ đối chiếu ----------
 
 export const MENU_PRICE_PER_GUEST = PRICES.menu; // 1.440.000 đ/khách
-export const WINE_PAIRING_PRICE = PRICES.winePairing; // 650.000 đ/khách
+export const WINE_PAIRING_PRICE = PRICES.winePairing; // 650.000 đ/khách (ngừng phục vụ từ 2027)
 export const TEA_PAIRING_PRICE = PRICES.teaPairing; // 350.000 đ/khách
 
-/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu (mục tiêu P&L thực tế: 34,7% trên giá menu 1.440.000 đ; khung duyệt 28–35%, mục tiêu 28%) */
+/** Mục tiêu tỷ lệ chi phí nguyên liệu / doanh thu menu theo mô hình tài chính 2027 (34,7%, giảm về 34,3% năm 2029) */
 export const TARGET_FOOD_COST_PCT = 34.7;
 
-/** Vạch cảnh báo đỏ trần mục tiêu KPI food cost (ngưỡng an toàn tối đa 35% doanh thu menu theo spec demo) */
+/** Trần mục tiêu KPI food cost theo FR-33 (khung duyệt 28–35% doanh thu menu) */
 export const TARGET_FOOD_COST_CEILING_PCT = 35;
 
-/** Giá vốn nguyên liệu định mức chuẩn cho 1 khách theo sheet BOM: 472.975 đ */
+/** Giá vốn nguyên liệu chuẩn theo BOM sạch cho 1 khách: 472.975 đ (32,85% giá menu 1.440.000 đ) */
 export const TARGET_FOOD_COST_PER_GUEST = 472_975;
 
-/** Trần giá vốn tối đa theo vạch cảnh báo đỏ 35%: 1.440.000 × 35% = 504.000 đ */
+/** Trần giá vốn tối đa theo ngưỡng duyệt 35%: 1.440.000 × 35% = 504.000 đ */
 export const CEILING_FOOD_COST_PER_GUEST = Math.round(
   (MENU_PRICE_PER_GUEST * TARGET_FOOD_COST_CEILING_PCT) / 100,
 );
