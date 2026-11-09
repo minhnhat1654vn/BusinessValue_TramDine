@@ -1,22 +1,15 @@
 "use client";
 
 import {
-  AlertTriangle,
   Award,
   Banknote,
-  BarChart3,
-  CheckCircle2,
-  Clock,
   Coffee,
   FileSpreadsheet,
-  HeartHandshake,
   Layers,
   Scale,
   ShieldCheck,
-  Sparkles,
   Target,
   TrendingUp,
-  Users,
   UtensilsCrossed,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -192,39 +185,6 @@ const TANGIBLE_BENEFITS = [
   },
 ];
 
-const INTANGIBLE_BENEFITS = [
-  {
-    id: "loyalty",
-    title: "Customer loyalty (Lòng trung thành của khách hàng)",
-    kpi: "12-month return rate; survey score (Tỷ lệ khách quay lại trong 12 tháng; điểm khảo sát CSAT)",
-    target2029: "≥ 45% tỷ lệ quay lại; ≥ 4,6/5 điểm khảo sát",
-    evidence: "+5% retention raises profit by 25–95% (Gallo, 2014)",
-    moduleLink: "customers",
-    moduleLabel: "Hồ sơ CRM & 3 hạng Hương – Trầm – Nam Trầm",
-    icon: HeartHandshake,
-  },
-  {
-    id: "decision",
-    title: "Decision quality (Chất lượng ra quyết định quản trị)",
-    kpi: "Time to prepare the weekly report (Thời gian chuẩn bị báo cáo vận hành hàng tuần)",
-    target2029: "Từ ~4 giờ xuống < 1 giờ / tuần (From ~4 h to < 1 h)",
-    evidence: "One dashboard for bookings, occupancy, no-show (Một bảng điều khiển hợp nhất cho đặt bàn, công suất, no-show & food cost)",
-    moduleLink: "dashboard",
-    moduleLabel: "Dashboard Vận hành & Báo cáo thời gian thực",
-    icon: BarChart3,
-  },
-  {
-    id: "morale",
-    title: "Staff morale (Tinh thần & sự gắn bó của nhân sự)",
-    kpi: "Service-staff turnover (Tỷ lệ biến động / nghỉ việc của nhân viên phục vụ & lễ tân)",
-    target2029: "Giảm ít nhất 1 nhân sự nghỉ việc/năm (At least 1 fewer leaver a year)",
-    evidence: "Replacing an employee costs ≥ 33% of salary (Work Institute, 2026) · Giải phóng 532–591 giờ gọi điện nhắc lịch thủ công/năm",
-    moduleLink: "booking",
-    moduleLabel: "Tự động hóa ZNS & Sơ đồ 15 bàn",
-    icon: Users,
-  },
-];
-
 const CASH_FLOW_ROWS = [
   {
     item: "1. Lợi ích hữu hình (Tangible benefits)",
@@ -294,7 +254,7 @@ const PROFIT_IMPACT_ROWS = [
     highlight: true,
   },
   {
-    item: "Lợi nhuận trước thuế nếu KHÔNG chuyển đổi (EBT without DX — Table 3.2)",
+    item: "Lợi nhuận trước thuế nếu KHÔNG chuyển đổi (EBT without DX)",
     y2027: "(757,6) (-5,5%)",
     y2028: "(1.007,6) (-7,3%)",
     y2029: "(1.297,6) (-9,4%)",
@@ -407,7 +367,7 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
       <div className="flex flex-col gap-2 border-b border-border/80 pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#b45309]">
-            Tài chính &amp; Dự báo · Chapter 5 Financial Analysis
+            Tài chính &amp; Dự báo
           </span>
           <h2 className="mt-1 font-heading text-2xl font-bold tracking-tight text-[#292524]">
             Báo cáo Doanh thu, Giá vốn &amp; Phân tích Tài chính (2026–2029)
@@ -514,15 +474,15 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
         </Card>
       </div>
 
-      {/* ==================== KHỐI 2: CHƯƠNG 5 — TỔNG QUAN CHỈ SỐ ĐẦU TƯ DỰ ÁN (5.2, 5.3, 5.4, 5.5) ==================== */}
+      {/* ==================== KHỐI 2: TỔNG QUAN CHỈ SỐ ĐẦU TƯ DỰ ÁN ==================== */}
       <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-br from-[#fffdf9] via-[#fcf6eb] to-[#f8ecd5] p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <span className="text-[10.5px] font-bold uppercase tracking-[0.22em] text-[#b45309]">
-              Chương 5 · Phân tích Tài chính Dự án TRẦM Reserve (2026–2029)
+              Phân tích Tài chính Dự án TRẦM Reserve (2026–2029)
             </span>
             <h3 className="font-heading text-xl font-bold text-[#292524] mt-0.5">
-              Tổng hợp TCO, Lợi ích Hữu hình &amp; Vô hình, ROI, BCR và Tác động Lợi nhuận
+              Tổng hợp TCO, Lợi ích Hữu hình, ROI, BCR và Tác động Lợi nhuận
             </h3>
           </div>
           <Badge className="bg-[#b45309] text-white text-xs font-semibold">
@@ -605,146 +565,13 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
         </div>
       </div>
 
-      {/* ==================== MỤC 5.3.2: LỢI ÍCH VÔ HÌNH (INTANGIBLE BENEFITS — TABLE 5.6) ==================== */}
-      <Card className="border-2 border-[#b45309]/40 bg-gradient-to-br from-[#fffdf9] to-[#fdf0d5]/35 shadow-sm overflow-hidden">
-        <CardHeader className="border-b border-amber-200/80 bg-[#fdf0d5]/50 pb-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#b45309] text-white shadow-xs">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div>
-                <CardTitle className="font-heading text-base font-bold text-[#292524] sm:text-lg">
-                  Mục 5.3.2 · Lợi ích Vô hình (Intangible Benefits — Table 5.6)
-                </CardTitle>
-                <p className="text-xs text-stone-600 mt-0.5">
-                  Các lợi ích chiến lược không quy đổi thành tiền mặt trong công thức ROI để đảm bảo tính thận trọng (tránh thổi phồng ROI), nhưng được đo lường trực tiếp bằng KPI vận hành đến năm 2029.
-                </p>
-              </div>
-            </div>
-            <Badge className="border-amber-400 bg-amber-100 text-[#92400e] text-xs font-semibold">
-              Table 5.6 · Theo dõi bằng KPI
-            </Badge>
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-4 sm:p-5 space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {INTANGIBLE_BENEFITS.map((b) => {
-              const Icon = b.icon;
-              return (
-                <div
-                  key={b.id}
-                  className="flex flex-col justify-between rounded-xl border border-amber-300/80 bg-white p-4 shadow-2xs space-y-3"
-                >
-                  <div className="space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#fdf0d5] text-[#b45309] shrink-0">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <Badge
-                        variant="outline"
-                        className="border-emerald-300 bg-emerald-50 text-emerald-800 text-[10.5px] font-bold"
-                      >
-                        Mục tiêu 2029: {b.target2029}
-                      </Badge>
-                    </div>
-
-                    <h4 className="font-heading text-base font-bold text-[#292524]">
-                      {b.title}
-                    </h4>
-
-                    <div className="rounded-lg bg-stone-50 p-2.5 border border-stone-200/80 text-xs space-y-1">
-                      <p className="font-semibold text-stone-700">
-                        Chỉ số đo lường (KPI):
-                      </p>
-                      <p className="text-stone-600 leading-relaxed">{b.kpi}</p>
-                    </div>
-
-                    <div className="rounded-lg bg-amber-50/70 p-2.5 border border-amber-200/70 text-xs space-y-1">
-                      <p className="font-semibold text-[#92400e]">
-                        Dẫn chứng khoa học &amp; Thực tiễn (Evidence):
-                      </p>
-                      <p className="text-stone-700 leading-relaxed">{b.evidence}</p>
-                    </div>
-                  </div>
-
-                  {onNavigateTab && (
-                    <button
-                      type="button"
-                      onClick={() => onNavigateTab(b.moduleLink)}
-                      className="mt-2 inline-flex items-center justify-between w-full rounded-lg border border-amber-300/80 bg-[#fdf0d5]/50 px-3 py-1.5 text-xs font-semibold text-[#92400e] hover:bg-[#b45309] hover:text-white transition-colors"
-                    >
-                      <span>Mở phân hệ: {b.moduleLabel}</span>
-                      <span>→</span>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Bảng chuẩn Table 5.6 đúng nguyên văn cấu trúc PDF */}
-          <div className="rounded-xl border border-stone-200 bg-white overflow-hidden">
-            <Table>
-              <TableHeader className="bg-stone-100/90 text-[11px] uppercase font-bold text-stone-700">
-                <TableRow>
-                  <TableHead className="pl-4">Lợi ích vô hình (Benefit)</TableHead>
-                  <TableHead>Chỉ số đo lường (KPI)</TableHead>
-                  <TableHead>Chỉ tiêu 2029 (Target 2029)</TableHead>
-                  <TableHead className="pr-4">Dẫn chứng (Evidence)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody className="text-xs">
-                <TableRow>
-                  <TableCell className="pl-4 font-bold text-[#292524]">
-                    Customer loyalty (Lòng trung thành khách hàng)
-                  </TableCell>
-                  <TableCell>12-month return rate; survey score</TableCell>
-                  <TableCell className="font-bold text-emerald-800">
-                    ≥ 45%; ≥ 4.6/5
-                  </TableCell>
-                  <TableCell className="pr-4 text-stone-600">
-                    +5% retention raises profit by 25–95% (Gallo, 2014)
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="pl-4 font-bold text-[#292524]">
-                    Decision quality (Chất lượng quyết định)
-                  </TableCell>
-                  <TableCell>Time to prepare the weekly report</TableCell>
-                  <TableCell className="font-bold text-emerald-800">
-                    From ~4 h to &lt; 1 h
-                  </TableCell>
-                  <TableCell className="pr-4 text-stone-600">
-                    One dashboard for bookings, occupancy, no-show
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="pl-4 font-bold text-[#292524]">
-                    Staff morale (Tinh thần nhân viên)
-                  </TableCell>
-                  <TableCell>Service-staff turnover</TableCell>
-                  <TableCell className="font-bold text-emerald-800">
-                    At least 1 fewer leaver a year
-                  </TableCell>
-                  <TableCell className="pr-4 text-stone-600">
-                    Replacing an employee costs ≥ 33% of salary (Work Institute, 2026)
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ==================== MỤC 5.1: GIẢ ĐỊNH VẬN HÀNH CỐT LÕI (TABLE 5.1 & 5.2) ==================== */}
+      {/* ==================== GIẢ ĐỊNH VẬN HÀNH CỐT LÕI ==================== */}
       <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
         <CardHeader className="border-b border-border/60 pb-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
               <Target className="h-4 w-4 text-[#b45309]" />
-              Mục 5.1 · Phương pháp tiếp cận &amp; Giả định vận hành cốt lõi (Table 5.1 &amp; Table 5.2)
+              Phương pháp tiếp cận &amp; Giả định vận hành cốt lõi
             </CardTitle>
             <Badge variant="outline" className="text-[11px] border-stone-300">
               Giá cố định 2026 (Constant 2026 VND) · Không thổi phồng lợi ích
@@ -776,32 +603,18 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
               ))}
             </TableBody>
           </Table>
-          <div className="bg-stone-50/90 border-t border-border/60 p-3.5 text-xs text-stone-600 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div>
-              <strong className="text-stone-900">Tham số hủy món No-show:</strong> Mỗi khách bỏ bàn làm hỏng <strong>32,5%</strong> chi phí nguyên liệu của suất ăn (nguyên liệu tươi đã sơ chế trước ca).
-            </div>
-            <div>
-              <strong className="text-stone-900">Tham số giảm hao hụt kho:</strong> Hao hụt ban đầu <strong>8%</strong> chi phí nguyên liệu, giảm <strong>26%</strong> trên phạm vi <strong>65%</strong> lượng mua có định mức BOM.
-            </div>
-            <div>
-              <strong className="text-stone-900">Ghi nhận doanh thu thận trọng:</strong> Chỉ tính phần khách tăng thêm theo <strong>tỷ trọng đặt qua Web (35–55%)</strong> và <strong>45%</strong> doanh thu bán thêm Tea pairing cho hệ thống.
-            </div>
-            <div>
-              <strong className="text-stone-900">Giá trị giờ công lễ tân:</strong> Định giá <strong>100.000 đ/giờ</strong> (nền 2025 tốn 971 giờ/năm cho 6 phút nhận đơn + 2 cuộc gọi nhắc lịch × 2,5 phút).
-            </div>
-          </div>
         </CardContent>
       </Card>
 
-      {/* ==================== MỤC 5.2 & 5.3.1: BẢNG TCO & LỢI ÍCH HỮU HÌNH ==================== */}
+      {/* ==================== BẢNG TCO & LỢI ÍCH HỮU HÌNH ==================== */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* 5.2 TCO */}
+        {/* TCO */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
           <CardHeader className="border-b border-border/60 pb-3">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
                 <Layers className="h-4 w-4 text-[#b45309]" />
-                Mục 5.2 · Tổng Chi phí Sở hữu — TCO (Table 5.3 &amp; 5.4)
+                Tổng Chi phí Sở hữu — TCO
               </CardTitle>
               <Badge className="bg-stone-800 text-white text-[10.5px]">
                 Đơn vị: Triệu VND
@@ -853,13 +666,13 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
           </CardContent>
         </Card>
 
-        {/* 5.3.1 Tangible Benefits */}
+        {/* Tangible Benefits */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
           <CardHeader className="border-b border-border/60 pb-3">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-emerald-700" />
-                Mục 5.3.1 · Lợi ích Hữu hình — Tangible Benefits (Table 5.5)
+                Lợi ích Hữu hình — Tangible Benefits
               </CardTitle>
               <Badge className="bg-emerald-700 text-white text-[10.5px]">
                 Đơn vị: Triệu VND
@@ -910,15 +723,15 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
         </Card>
       </div>
 
-      {/* ==================== MỤC 5.4 & 5.5: DÒNG TIỀN ROI / PAYBACK & TÁC ĐỘNG LỢI NHUẬN NHÀ HÀNG ==================== */}
+      {/* ==================== DÒNG TIỀN ROI / PAYBACK & TÁC ĐỘNG LỢI NHUẬN NHÀ HÀNG ==================== */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* 5.4 Cash Flow, ROI, BCR & Payback */}
+        {/* Cash Flow, ROI, BCR & Payback */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
           <CardHeader className="border-b border-border/60 pb-3">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
                 <Scale className="h-4 w-4 text-[#b45309]" />
-                Mục 5.4 · Dòng tiền, ROI, BCR &amp; Thời gian hoàn vốn (Table 5.7)
+                Dòng tiền, ROI, BCR &amp; Thời gian hoàn vốn
               </CardTitle>
               <Badge variant="outline" className="border-amber-300 bg-amber-50 text-[#92400e] text-[10.5px]">
                 Payback: 15,8 tháng
@@ -969,13 +782,13 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
           </CardContent>
         </Card>
 
-        {/* 5.5 Impact on Restaurant's Profit */}
+        {/* Impact on Restaurant's Profit */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden">
           <CardHeader className="border-b border-border/60 pb-3">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
                 <Award className="h-4 w-4 text-emerald-700" />
-                Mục 5.5 · Tác động lên Lợi nhuận Nhà hàng (Table 5.8)
+                Tác động lên Lợi nhuận Nhà hàng
               </CardTitle>
               <Badge className="bg-emerald-100 text-emerald-900 border-emerald-300 text-[10.5px]">
                 Chênh lệch EBT: +9.292,7 tr
@@ -1009,20 +822,20 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
               </TableBody>
             </Table>
             <div className="p-3.5 bg-stone-50 border-t border-border/60 text-xs text-stone-600">
-              Nếu không chuyển đổi số (Table 3.2), nhà hàng lỗ lũy kế <strong>-3.062,8 triệu đ</strong> giai đoạn 2027–2029 (năm 2025 đã lỗ -1.114,5 triệu đ, biên -8,1%). Khi triển khai TRẦM Reserve + chuẩn hóa BOM “Tiến Vua” + chuyển sang Tea pairing, nhà hàng đạt tổng lợi nhuận trước thuế <strong>+6.229,9 triệu đ</strong> (biên 10,0% → 12,9%).
+              Nếu không chuyển đổi số, nhà hàng lỗ lũy kế <strong>-3.062,8 triệu đ</strong> giai đoạn 2027–2029 (năm 2025 đã lỗ -1.114,5 triệu đ, biên -8,1%). Khi triển khai TRẦM Reserve + chuẩn hóa BOM “Tiến Vua” + chuyển sang Tea pairing, nhà hàng đạt tổng lợi nhuận trước thuế <strong>+6.229,9 triệu đ</strong> (biên 10,0% → 12,9%).
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* ==================== MỤC 5.6: ĐỘ NHẠY & QUẢN TRỊ RỦI RO (TABLE 5.9 & 5.10) ==================== */}
+      {/* ==================== ĐỘ NHẠY & QUẢN TRỊ RỦI RO ==================== */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        {/* Table 5.9 Sensitivity */}
+        {/* Sensitivity */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden xl:col-span-5">
           <CardHeader className="border-b border-border/60 pb-3">
             <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4 text-[#b45309]" />
-              Mục 5.6 · Phân tích Độ nhạy 3 Kịch bản (Table 5.9)
+              Phân tích Độ nhạy 3 Kịch bản
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -1065,12 +878,12 @@ export function AdminRevenueView({ today, onNavigateTab }: RevenueViewProps) {
           </CardContent>
         </Card>
 
-        {/* Table 5.10 Risk Matrix */}
+        {/* Risk Matrix */}
         <Card className="border-border/80 bg-card shadow-xs overflow-hidden xl:col-span-7">
           <CardHeader className="border-b border-border/60 pb-3">
             <CardTitle className="font-heading text-base font-bold text-[#292524] flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-700" />
-              Mục 5.6 · Ma trận Rủi ro &amp; Biện pháp Giảm thiểu (Table 5.10 — R01 → R06)
+              Ma trận Rủi ro &amp; Biện pháp Giảm thiểu (R01 → R06)
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">

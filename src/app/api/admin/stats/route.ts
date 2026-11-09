@@ -32,26 +32,51 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const todayParam = searchParams.get("today");
-    const today =
+    let today =
       todayParam && /^\d{4}-\d{2}-\d{2}$/.test(todayParam)
         ? todayParam
         : toISODate(new Date());
 
-    const windowStart = addDays(today, -14); // 2 tuần quá khứ
-    const windowEnd = addDays(today, 14); // 2 tuần tương lai
-    const chartStart = addDays(today, -14); // 28 ngày (4 tuần quanh hôm nay)
+    let windowStart = addDays(today, -14); // 2 tuần quá khứ
+    let windowEnd = addDays(today, 14); // 2 tuần tương lai
+    let chartStart = addDays(today, -14); // 28 ngày (4 tuần quanh hôm nay)
 
-    const start = parseISODate(windowStart);
-    const end = parseISODate(windowEnd);
-    const todayStart = parseISODate(today);
+    let start = parseISODate(windowStart);
+    let end = parseISODate(windowEnd);
+    let todayStart = parseISODate(today);
 
-    const [windowReservations, waitlistAll, recentRaw, todayRaw, surveysRaw] = await Promise.all([
-      db.reservation.findMany({
-        where: {
-          date: { gte: start, lte: end },
-        },
-        include: { table: true },
-      }),
+    let windowReservations = await db.reservation.findMany({
+      where: {
+        date: { gte: start, lte: end },
+      },
+      include: { table: true },
+    });
+
+    // Tự động đồng bộ mốc ngày nếu DB hiện tại được seed ở mốc ngày khác (ví dụ trước khi chạy lại npm run db:seed)
+    if (windowReservations.length === 0) {
+      const allDates = await db.reservation.findMany({
+        select: { date: true },
+        orderBy: { date: "asc" },
+      });
+      if (allDates.length > 0) {
+        const midIdx = Math.floor(allDates.length * 0.6);
+        today = toISODate(allDates[midIdx].date);
+        windowStart = addDays(today, -14);
+        windowEnd = addDays(today, 14);
+        chartStart = addDays(today, -14);
+        start = parseISODate(windowStart);
+        end = parseISODate(windowEnd);
+        todayStart = parseISODate(today);
+        windowReservations = await db.reservation.findMany({
+          where: {
+            date: { gte: start, lte: end },
+          },
+          include: { table: true },
+        });
+      }
+    }
+
+    const [waitlistAll, recentRaw, todayRaw, surveysRaw] = await Promise.all([
       db.waitlistEntry.findMany({
         where: { date: { gte: start, lte: end } },
         orderBy: [{ date: "asc" }, { slot: "asc" }, { position: "asc" }],

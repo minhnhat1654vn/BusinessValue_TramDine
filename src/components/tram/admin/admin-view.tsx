@@ -72,8 +72,8 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     key: "revenue",
-    label: "Doanh thu & Tài chính",
-    description: "TCO · CBA · ROI (Chương 5)",
+    label: "Doanh thu",
+    description: "Báo cáo doanh thu",
     icon: TrendingUp,
   },
   {
