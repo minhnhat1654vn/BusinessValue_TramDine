@@ -134,11 +134,11 @@ const STATUS_OPTIONS = [
 ] as const;
 
 const ZONES = [
-  { name: "Khu cửa sổ", hint: "A01 - A05" },
-  { name: "Khu trung tâm", hint: "B01 - B05" },
+  { name: "Khu cửa sổ", hint: "A01 - A05 (5 bàn × 2 chỗ)" },
+  { name: "Khu trung tâm", hint: "B01 - B10 (10 bàn × 3 chỗ)" },
 ];
 
-// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng
+// Kích thước và tọa độ chính xác của các bàn trên bản vẽ thiết kế mặt bằng (15 bàn · 40 chỗ)
 const FLOORPLAN_COORDINATES: Record<
   string,
   { x: number; y: number; w: number; h: number; shape: "square" | "circle" }
@@ -150,12 +150,17 @@ const FLOORPLAN_COORDINATES: Record<
   A04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
   A05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
 
-  // KHU B - TRUNG TÂM (5 bàn tròn 4 chỗ quanh Bếp Mở: B01 - B05)
+  // KHU B - TRUNG TÂM (10 bàn tròn 3 chỗ quanh Bếp Mở: B01 - B10)
   B01: { x: 27.5, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
   B02: { x: 27.5, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
   B03: { x: 81.1, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
   B04: { x: 81.1, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
   B05: { x: 54.5, y: 64.5, w: 7.6, h: 7.6, shape: "circle" },
+  B06: { x: 41.0, y: 40.3, w: 7.2, h: 7.2, shape: "circle" },
+  B07: { x: 67.5, y: 40.3, w: 7.2, h: 7.2, shape: "circle" },
+  B08: { x: 41.0, y: 58.8, w: 7.2, h: 7.2, shape: "circle" },
+  B09: { x: 67.5, y: 58.8, w: 7.2, h: 7.2, shape: "circle" },
+  B10: { x: 54.5, y: 49.5, w: 7.2, h: 7.2, shape: "circle" },
 };
 
 function tableState(t: TableAvailability): "EMPTY" | "BOOKED" | "SEATED" | "COMPLETED" | "NO_SHOW" {

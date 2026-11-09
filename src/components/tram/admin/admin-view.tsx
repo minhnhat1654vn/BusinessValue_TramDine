@@ -72,8 +72,8 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   },
   {
     key: "revenue",
-    label: "Doanh thu",
-    description: "Báo cáo doanh thu",
+    label: "Doanh thu & Tài chính",
+    description: "TCO · CBA · ROI (Chương 5)",
     icon: TrendingUp,
   },
   {
@@ -85,7 +85,7 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
   {
     key: "booking",
     label: "Đặt bàn & Sơ đồ",
-    description: "10 bàn & danh sách",
+    description: "15 bàn (40 chỗ) & danh sách",
     icon: ClipboardList,
   },
   {
@@ -127,7 +127,7 @@ const ADMIN_NAV_ITEMS: AdminNavItem[] = [
       {
         key: "food-cost",
         label: "Phân tích Food Cost",
-        description: "Mục tiêu 28% (P&L 28%–35%) · Cơ cấu chi phí",
+        description: "Mục tiêu 34,7% (Khung 28%–35%) · Cơ cấu chi phí",
         icon: Calculator,
       },
     ],

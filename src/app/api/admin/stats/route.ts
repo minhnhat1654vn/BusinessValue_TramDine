@@ -23,7 +23,7 @@ import type {
   SourceShare,
 } from "@/lib/tram/types";
 
-const SEATS_PER_SLOT = 42; // 5×2 + 5×4 + 2×6
+const SEATS_PER_SLOT = 40; // 15 bàn: 5×2 + 10×3 = 40 chỗ/ca
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

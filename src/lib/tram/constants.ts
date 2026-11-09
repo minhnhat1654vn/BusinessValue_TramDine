@@ -6,15 +6,15 @@ export const RESTAURANT = {
   address: "Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh",
   hotline: "0901 234 567",
   email: "hello@tramreserve.vn",
-  totalSeats: 42,
-  totalTables: 12,
+  totalSeats: 40,
+  totalTables: 15,
 } as const;
 
 export const PRICES = {
-  menu: 1_290_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (Bảng B)
-  winePairing: 650_000, // đ/khách
-  teaPairing: 350_000, // đ/khách
-  deposit: 300_000, // đ/khách
+  menu: 1_440_000, // đ/khách — menu tasting "Tiến Vua · Bảy Báu Vật Việt" (1.440.000 đ)
+  winePairing: 650_000, // đ/khách – NGỪNG phục vụ từ 2027 (không hiển thị trên giao diện; giữ hằng số để dữ liệu cũ không lỗi)
+  teaPairing: 350_000, // đ/khách (duy nhất — trung bình hóa đơn 1.615.000 đ/khách với 50% khách chọn Tea Pairing)
+  deposit: 300_000, // đ/khách (20,8% giá menu, hoàn cọc trước 48h; miễn 100% cho hạng Nam Trầm)
 } as const;
 
 export const SLOT_LABELS: Record<string, string> = {
@@ -81,7 +81,7 @@ export const MENU_ITEMS: MenuItem[] = [
     image: "/concept2_TrungCaTam.png",
     story: "Khúc dạo đầu thanh tao với caviar trứng cá tầm Lâm Đồng, từng hạt bóng bẩy vỡ tan mang theo vị mặn mòi béo ngậy được mở nắp trang trọng ngay trước mắt thực khách.",
     ingredients: ["Trứng cá tầm Lâm Đồng", "Bánh giòn thảo mộc", "Kem chua vị sương mai"],
-    pairingNote: "Rượu vang sủi Sparkling / Champagne ướp lạnh sâu hoặc Trà sen sớm",
+    pairingNote: "Trà sen Tây Hồ ướp lạnh – thanh vị, làm nổi vị béo của caviar",
     options: [
       { id: "std", name: "Chuẩn vị Caviar mở lọ tại bàn", isDefault: true },
       { id: "extra_blini", name: "Dùng kèm bánh blini nóng giòn", desc: "Tăng độ ấm giòn kết hợp" },
@@ -96,7 +96,7 @@ export const MENU_ITEMS: MenuItem[] = [
     image: "/concept2_SaSung.png",
     story: "Sản vật trân quý ngàn năm từ bãi triều Vân Đồn, mang vị ngọt hậu tự nhiên sâu lắng của biển cả, hòa cùng hạt tiêu rừng cay dịu.",
     ingredients: ["Sá sùng đảo Vân Đồn", "Muối hầm thảo dược", "Tiêu rừng Phú Quốc"],
-    pairingNote: "Vang trắng Sauvignon Blanc thanh mát khoáng đạt",
+    pairingNote: "Trà xanh Thái Nguyên tôm nõn – chát nhẹ, cân vị mặn mòi của sá sùng",
     options: [
       { id: "std", name: "Nướng giòn muối tiêu truyền thống", isDefault: true },
       { id: "crispy_fried", name: "Chiên phồng giòn rụm", desc: "Vị bùi béo đậm đà hơn" },
@@ -111,7 +111,7 @@ export const MENU_ITEMS: MenuItem[] = [
     image: "/concept2_BaoNgu.png",
     story: "Bào ngư tươi giòn sần sật từ rạn san hô Nha Trang thẩm thấu vị ngọt thanh dịu dàng của men rượu nếp cổ truyền, ấm nồng và vương vấn.",
     ingredients: ["Bào ngư biển Nha Trang", "Rượu nếp cái hoa vàng", "Nước cốt gừng già và táo đỏ"],
-    pairingNote: "Trà Ô long thượng đỉnh hoặc Vang trắng Chardonnay ủ gỗ sồi",
+    pairingNote: "Trà Ô long thượng đỉnh – hương rang ấm, hợp men rượu nếp",
     options: [
       { id: "std", name: "Om rượu nếp sóng sánh chuẩn vị", isDefault: true },
       { id: "mild_wine", name: "Giảm độ nồng rượu (Thanh nhẹ)", desc: "Tôn vị ngọt tự nhiên của bào ngư" },
@@ -141,7 +141,7 @@ export const MENU_ITEMS: MenuItem[] = [
     image: "/concept2_ThitNgocApChao.png",
     story: "Tôn vinh triết lý trọn vẹn của ẩm thực đỉnh cao: sử dụng cùng một chú cá tầm quý giá từ phần trứng mở màn đến thớ thịt ngọc áp chảo thơm lừng, da giòn thịt mọng.",
     ingredients: ["Thăn cá tầm tươi", "Bơ thảo mộc núi rừng", "Sốt nhụy hoa nghệ tây và chanh vàng"],
-    pairingNote: "Vang trắng Riesling hoặc Vang cam (Orange Wine)",
+    pairingNote: "Trà Shan tuyết cổ thụ Tà Xùa – vị chát thanh, cắt béo của bơ áp chảo",
     options: [
       { id: "std", name: "Áp chảo da giòn thịt mọng", isDefault: true },
       { id: "herb_steamed", name: "Hấp thảo mộc thanh vị", desc: "Dành cho khách chuộng vị thanh đạm" },
@@ -156,7 +156,7 @@ export const MENU_ITEMS: MenuItem[] = [
     image: "/concept2_Ga.png",
     story: "Đặc sản gà Đông Tảo tiến vua trứ danh với thớ thịt săn ngọt giòn sần sật, hòa quyện hương thơm nồng nàn của hạt mắc khén Tây Bắc và hạt cơm cháy ST25 vàng ruộm.",
     ingredients: ["Gà Đông Tảo Hưng Yên", "Hạt mắc khén và hạt dổi rừng", "Cơm cháy gạo tiến vua ST25"],
-    pairingNote: "Vang đỏ Pinot Noir hoặc Syrah đậm đà",
+    pairingNote: "Hồng trà Shan tuyết lên men – đậm hậu, hợp hương mắc khén",
     options: [
       { id: "std", name: "Quay da giòn kèm cơm cháy ST25", isDefault: true },
       { id: "mild_spice", name: "Giảm độ nồng mắc khén", desc: "Vị cay thanh dịu nhẹ" },
@@ -198,7 +198,7 @@ export const REVIEWS = [
     name: "Lê Thu Hằng",
     title: "Food blogger",
     content:
-      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Wine pairing chọn rượu rất táo bạo và tinh tế.",
+      "Món Thịt Ngọc Áp Chảo và Canh Ngọc Yến là những đoản khúc thăng hoa nhất tôi được thưởng thức trong năm nay. Tea pairing chọn trà Shan tuyết cổ thụ rất táo bạo và tinh tế.",
     stars: 5,
   },
 ] as const;

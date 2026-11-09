@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         closeMessage: dateCheck.message,
         slots: (["SLOT_1730", "SLOT_1945"] as Slot[]).map((s) => ({
           slot: s,
-          capacity: 42,
+          capacity: 40,
           bookedSeats: 0,
           remainingSeats: 0,
         })),

@@ -1,5 +1,3 @@
-// Kiểu dữ liệu dùng chung cho TRẦM Reserve
-// Các "enum" ứng dụng (SQLite của Prisma không hỗ trợ enum thật)
 
 import type { FoodCostKpiSummary } from "./food-cost";
 
@@ -59,7 +57,7 @@ export interface WaitlistEntryDTO {
 
 export interface SlotSummary {
   slot: Slot;
-  capacity: number; // 42
+  capacity: number; // 40 (15 bàn)
   bookedSeats: number;
   remainingSeats: number;
 }
@@ -106,10 +104,10 @@ export interface OccupancyPoint {
   label: string; // vd "T6 24/10"
   weekday: number; // 0=CN..6=T7
   occupied: number; // tổng số chỗ đã đặt
-  capacity: number; // 84 (2 khung × 42) hoặc 0 nếu nghỉ
+  capacity: number; // 80 (2 khung × 40) hoặc 0 nếu nghỉ
   percent: number; // 0..100
   slot1730Occupied: number; // chỗ đặt khung 17:30
-  slot1730Percent: number; // % lấp chỗ khung 17:30 (trên 42 chỗ)
+  slot1730Percent: number; // % lấp chỗ khung 17:30 (trên 40 chỗ)
   slot1945Occupied: number; // chỗ đặt khung 19:45
   slot1945Percent: number;
   isToday?: boolean;

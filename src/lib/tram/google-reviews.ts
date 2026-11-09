@@ -4,10 +4,10 @@ import type { GoogleMapsReviewDTO, GoogleMapsSyncStats } from "./types";
 // Thống kê Places API đồng bộ cho TRẦM Reserve
 export const INITIAL_GOOGLE_MAPS_STATS: GoogleMapsSyncStats = {
   placeName: "TRẦM Reserve — Contemporary Fine Dining & Tea Pairing",
-  address: "Số 18 Đường Mạc Đĩnh Chi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+  address: "Số 12 Nguyễn Đình Chiểu, Quận 3, TP. Hồ Chí Minh",
   overallRating: 4.9,
   totalReviews: 128,
-  regionalAvgRating: 4.3, // Điểm trung bình các nhà hàng Fine Dining lân cận tại Quận 1
+  regionalAvgRating: 4.3, // Điểm trung bình các nhà hàng Fine Dining lân cận tại Quận 3
   ratingDifference: 0.6, // Vượt trội +0.6 sao so với khu vực
   starDistribution: [
     { star: 5, count: 118, percent: 92.2 },
@@ -17,11 +17,11 @@ export const INITIAL_GOOGLE_MAPS_STATS: GoogleMapsSyncStats = {
     { star: 1, count: 0, percent: 0 },
   ],
   highlightTags: [
-    { tag: "Bò Wagyu A5 mềm tan", count: 48 },
-    { tag: "Pairing trà độc bản", count: 35 },
+    { tag: "Tuyết Cá Tầm Lâm Đồng", count: 48 },
+    { tag: "Pairing trà Shan Tuyết", count: 35 },
     { tag: "Không gian ấm cúng", count: 29 },
     { tag: "Dịch vụ 5 sao chu đáo", count: 26 },
-    { tag: "Rượu vang chọn lọc", count: 19 },
+    { tag: "Đông Tảo Quay Mắc Khén", count: 19 },
     { tag: "Âm nhạc tinh tế riêng tư", count: 15 },
   ],
   lastSyncedAt: new Date().toISOString(),
@@ -36,15 +36,15 @@ export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
     rating: 5,
     relativeTime: "2 ngày trước",
     content:
-      "Trải nghiệm ẩm thực hoàn hảo nhất từng có tại Sài Gòn. Từng món trong set menu 7 món đều là một tác phẩm nghệ thuật, đặc biệt là Bò Wagyu A5 mềm tan như bơ quyện cùng sốt tiêu đen thượng hạng. Set trà pairing làm tôi vô cùng bất ngờ vì độ hòa quyện thanh tao. Phục vụ chu đáo, tinh tế từng cử chỉ.",
+      "Trải nghiệm ẩm thực hoàn hảo nhất từng có tại Sài Gòn. Từng món trong set menu 7 món Tiến Vua đều là một tác phẩm nghệ thuật, đặc biệt là Tuyết Cá Tầm Lâm Đồng mở hộp tại bàn và Đông Tảo Quay Mắc Khén da giòn thơm lừng. Set trà pairing làm tôi vô cùng bất ngờ vì độ hòa quyện thanh tao. Phục vụ chu đáo, tinh tế từng cử chỉ.",
     depositPhone: "0912345678",
     customerName: "Nguyễn Minh Anh",
     reservationCode: "TR-8921",
-    tags: ["Bò Wagyu A5 mềm tan", "Pairing trà độc bản", "Dịch vụ 5 sao chu đáo"],
+    tags: ["Tuyết Cá Tầm Lâm Đồng", "Pairing trà Shan Tuyết", "Dịch vụ 5 sao chu đáo"],
     pointsAwarded: true,
     reply: {
       content:
-        "TRẦM Reserve xin chân thành cảm ơn chị Minh Anh đã dành những lời khen ngợi quý giá cho set menu và trà pairing độc bản. Đội ngũ bếp trưởng và nhân viên luôn sẵn sàng chào đón chị trở lại trong những dịp đặc biệt tiếp theo!",
+        "TRẦM Reserve xin chân thành cảm ơn chị Minh Anh đã dành những lời khen ngợi quý giá cho set menu Tiến Vua và trà pairing độc bản. Đội ngũ bếp trưởng và nhân viên luôn sẵn sàng chào đón chị trở lại trong những dịp đặc biệt tiếp theo!",
       repliedAt: "1 ngày trước",
       repliedBy: "Quản lý nhà hàng TRẦM Reserve",
     },
@@ -57,7 +57,7 @@ export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
     rating: 5,
     relativeTime: "4 ngày trước",
     content:
-      "Một không gian ấm cúng sang trọng hiếm có giữa lòng Quận 1. Ánh sáng vàng dịu, mùi hương trầm nhẹ thoang thoảng mang lại cảm giác thư thái tuyệt đối. Món cá tuyết nướng miso và tráng miệng sô-cô-la nấm truffle rất ấn tượng. Rất khuyến khích các cặp đôi đặt bàn khu cửa sổ cho kỷ niệm ngày cưới.",
+      "Một không gian ấm cúng sang trọng hiếm có giữa lòng Quận 3. Ánh sáng vàng dịu, mùi hương trầm nhẹ thoang thoảng mang lại cảm giác thư thái tuyệt đối. Món Thịt Ngọc Áp Chảo và tráng miệng Trầm và Sen cung đình rất ấn tượng. Rất khuyến khích các cặp đôi đặt bàn khu cửa sổ cho kỷ niệm ngày cưới.",
     depositPhone: "0938765432",
     customerName: "Trần Quốc Bảo",
     reservationCode: "TR-4712",
@@ -73,11 +73,11 @@ export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
     rating: 5,
     relativeTime: "1 tuần trước",
     content:
-      "Bộ sưu tập trà Shan Tuyết cổ thụ ghép đôi với ẩm thực cao cấp là một đột phá xuất sắc. Sommelier giải thích cặn kẽ nguồn gốc từng búp trà Tây Bắc. Khâu đặt cọc qua web nhanh gọn, xác nhận SMS tức thì. Sẽ đưa đối tác quay lại thường xuyên.",
+      "Bộ sưu tập trà Shan Tuyết cổ thụ ghép đôi với ẩm thực cao cấp là một đột phá xuất sắc. Sommelier giải thích cặn kẽ nguồn gốc từng búp trà Tây Bắc. Khâu đặt cọc qua web nhanh gọn, xác nhận Zalo ZNS tức thì. Sẽ đưa đối tác quay lại thường xuyên.",
     depositPhone: "0909112233",
     customerName: "Lê Thu Hằng",
     reservationCode: "TR-5633",
-    tags: ["Pairing trà độc bản", "Dịch vụ 5 sao chu đáo"],
+    tags: ["Pairing trà Shan Tuyết", "Dịch vụ 5 sao chu đáo"],
     pointsAwarded: true,
     reply: {
       content:
@@ -97,7 +97,7 @@ export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
     depositPhone: "0987654321",
     customerName: "Vũ Thanh Tùng",
     reservationCode: "TR-3108",
-    tags: ["Không gian ấm cúng", "Bò Wagyu A5 mềm tan"],
+    tags: ["Không gian ấm cúng", "Tuyết Cá Tầm Lâm Đồng"],
     pointsAwarded: false,
     reply: null,
   },
@@ -129,11 +129,11 @@ export const INITIAL_GOOGLE_REVIEWS: GoogleMapsReviewDTO[] = [
     rating: 5,
     relativeTime: "3 tuần trước",
     content:
-      "Rượu vang tự chọn theo tư vấn của chuyên viên rất vừa miệng với món thịt bồ câu Pháp. Phục vụ chuyên nghiệp theo đúng chuẩn fine dining quốc tế nhưng vẫn giữ được nét ấm áp Việt Nam.",
+      "Trà Ô long thượng đỉnh và trà hoa cúc tiến vua theo tư vấn của chuyên viên rất vừa miệng với món Bào Ngư Om Rượu Nếp và Canh Ngọc Yến. Phục vụ chuyên nghiệp theo đúng chuẩn fine dining quốc tế nhưng vẫn giữ được nét ấm áp Việt Nam.",
     depositPhone: "0903334455",
     customerName: "Hoàng Ngọc Mai",
     reservationCode: "TR-2245",
-    tags: ["Rượu vang chọn lọc", "Dịch vụ 5 sao chu đáo"],
+    tags: ["Pairing trà Shan Tuyết", "Dịch vụ 5 sao chu đáo"],
     pointsAwarded: false,
     reply: null,
   },

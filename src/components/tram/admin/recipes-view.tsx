@@ -110,7 +110,7 @@ const GROUP_STYLES: Record<IngredientGroup, { badge: string; dot: string }> = {
   AROMATIC: { badge: "border-violet-200 bg-violet-50 text-violet-800", dot: "bg-violet-500" },
 };
 
-const QUICK_GUESTS = [1, 4, 10, 42];
+const QUICK_GUESTS = [1, 4, 10, 40];
 const COMMON_QTY_PILLS = [5, 10, 15, 20, 30, 40, 50, 60, 80, 120];
 const COMMON_PREP_SUGGESTIONS = [
   "Lọ ướp lạnh, mở tại bàn",
@@ -407,8 +407,8 @@ export function AdminRecipes({
     () => concepts.find((c) => c.id === selectedConceptId),
     [concepts, selectedConceptId]
   );
-  const MENU_SELLING_PRICE = selectedConcept?.sellingPrice || 1190000;
-  const TARGET_FOOD_COST_PCT = selectedConcept?.targetFoodCostPct || 28.0;
+  const MENU_SELLING_PRICE = selectedConcept?.sellingPrice || 1440000;
+  const TARGET_FOOD_COST_PCT = selectedConcept?.targetFoodCostPct || 34.7;
   const TARGET_FOOD_COST_VND = Math.round((MENU_SELLING_PRICE * TARGET_FOOD_COST_PCT) / 100);
 
   // 1. Giá vốn từng món theo định lượng BOM
@@ -449,9 +449,9 @@ export function AdminRecipes({
   const grossProfit = Math.max(0, MENU_SELLING_PRICE - totalFoodCost);
   const grossProfitPct = Math.round((grossProfit / MENU_SELLING_PRICE) * 1000) / 10;
 
-  // 5. Chi phí ca 42 khách
-  const shift42Cost = totalFoodCost * 42;
-  const shift42Revenue = MENU_SELLING_PRICE * 42;
+  // 5. Chi phí ca 40 khách (15 bàn)
+  const shift42Cost = totalFoodCost * 40;
+  const shift42Revenue = MENU_SELLING_PRICE * 40;
 
   // 6. Món có chi phí cao nhất
   const highestDish = useMemo(() => {
@@ -1160,9 +1160,9 @@ export function AdminRecipes({
               },
               {
                 id: "shift-capacity",
-                label: "Giá vốn ca 42 khách",
+                label: "Giá vốn ca 40 khách",
                 value: formatVND(shift42Cost),
-                sub: `Doanh thu ca 42 khách: ${formatVND(shift42Revenue)}`,
+                sub: `Doanh thu ca 40 khách: ${formatVND(shift42Revenue)}`,
                 tone: "default",
                 icon: Users,
               },
@@ -1428,7 +1428,7 @@ export function AdminRecipes({
                                 : "border-stone-300 bg-transparent text-stone-700 hover:border-[#7c2d12]",
                             )}
                           >
-                            {n === 1 ? "1 suất" : n === 42 ? "42 (Đầy ca)" : `${n} khách`}
+                            {n === 1 ? "1 suất" : n === 40 ? "40 (Đầy ca)" : `${n} khách`}
                           </button>
                         ))}
                       </div>
@@ -2012,9 +2012,9 @@ export function AdminRecipes({
                   <span className="font-bold font-heading">{formatVND(estimatedLineCost)}</span>
                 </div>
                 <div className="flex justify-between text-stone-600 text-[11px]">
-                  <span>Tổng định lượng cho 42 khách (đủ ca):</span>
+                  <span>Tổng định lượng cho 40 khách (đủ ca):</span>
                   <span className="font-semibold">
-                    {formatQty(Number((editingLine.qtyPerGuest * 42).toFixed(1)), editingLine.unit as any)}
+                    {formatQty(Number((editingLine.qtyPerGuest * 40).toFixed(1)), editingLine.unit as any)}
                   </span>
                 </div>
               </div>

@@ -110,17 +110,12 @@ export function getPersonalizedVoucherForCustomer(customer: {
     return SYSTEM_VOUCHERS.WELCOME10;
   }
 
-  // Khách cũ: Phân tích thói quen đồ uống & món ăn từ FR-36
+  // Khách cũ: Phân tích thói quen đồ uống & món ăn từ FR-36 (tập trung Tea Pairing từ 2027)
   const pastPairings = customer.pastPairings ?? [];
   const teaCount = pastPairings.filter((p) => p === "TEA").length;
-  const wineCount = pastPairings.filter((p) => p === "WINE").length;
 
-  if (teaCount > 0 && teaCount >= wineCount) {
+  if (teaCount > 0) {
     return SYSTEM_VOUCHERS["COMBO-TEA15"];
-  }
-
-  if (wineCount > 0) {
-    return SYSTEM_VOUCHERS["COMBO-WINE15"];
   }
 
   // Mặc định khách cũ
@@ -180,7 +175,7 @@ export function calculateVoucherDiscount(params: {
 
   switch (voucher.type) {
     case "PERCENT_MENU": {
-      // Giảm % trên phần Menu Tasting (1.190k)
+      // Giảm % trên phần Menu Tasting (1.440k)
       const pct = voucher.discountPercent ?? 10;
       discountAmount = Math.round(menuBaseTotal * (pct / 100));
       discountSummary = `Giảm ${pct}% Menu Tasting (${formatVND(discountAmount)})`;

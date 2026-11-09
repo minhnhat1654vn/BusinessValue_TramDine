@@ -348,12 +348,17 @@ const FLOORPLAN_COORDINATES: Record<
   A04: { x: 71.4, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
   A05: { x: 89.6, y: 19.8, w: 7.2, h: 7.2, shape: "square" },
 
-  // KHU B - TRUNG TÂM (5 bàn tròn 4 chỗ bố trí quanh Bếp Mở: B01 - B05)
+  // KHU B - TRUNG TÂM (10 bàn tròn 3 chỗ bố trí quanh Bếp Mở: B01 - B10 · Tổng 15 bàn / 40 chỗ)
   B01: { x: 27.5, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
   B02: { x: 27.5, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
   B03: { x: 81.1, y: 40.3, w: 7.6, h: 7.6, shape: "circle" },
   B04: { x: 81.1, y: 58.8, w: 7.6, h: 7.6, shape: "circle" },
   B05: { x: 54.5, y: 64.5, w: 7.6, h: 7.6, shape: "circle" },
+  B06: { x: 41.0, y: 40.3, w: 7.2, h: 7.2, shape: "circle" },
+  B07: { x: 67.5, y: 40.3, w: 7.2, h: 7.2, shape: "circle" },
+  B08: { x: 41.0, y: 58.8, w: 7.2, h: 7.2, shape: "circle" },
+  B09: { x: 67.5, y: 58.8, w: 7.2, h: 7.2, shape: "circle" },
+  B10: { x: 54.5, y: 49.5, w: 7.2, h: 7.2, shape: "circle" },
 };
 
 // ---------- Bước 2: SƠ ĐỒ MẶT BẰNG TƯƠNG TÁC TINH TẾ (ARCHITECTURAL FLOOR PLAN) ----------
@@ -814,8 +819,8 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                   1. Ngày &amp; khung giờ
                 </h2>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  TRẦM mở cửa tối Thứ Ba → Chủ Nhật (nghỉ thứ Hai), mỗi tối 2
-                  khung.
+                  TRẦM mở cửa tối Thứ Tư → Chủ Nhật (nghỉ Thứ Hai &amp; Thứ Ba), mỗi tối 2
+                  khung (15 bàn · 40 chỗ/ca).
                 </p>
 
                 {bookingSettings && !bookingSettings.programEnabled && (
@@ -926,7 +931,7 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
                           </span>
                         ) : (
                           <span className="text-xs text-muted-foreground">
-                            42 chỗ
+                            40 chỗ
                           </span>
                         )}
                       </button>
@@ -1428,20 +1433,14 @@ export function BookingWizard({ onGoHome }: BookingWizardProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Gói Pairing đi kèm thực đơn</Label>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <Label>Gói Pairing đi kèm thực đơn “Tiến Vua”</Label>
+                <div className="grid gap-2 sm:grid-cols-2">
                   {(
                     [
                       { value: "NONE", label: "Không pairing", price: 0, icon: Ban },
                       {
-                        value: "WINE",
-                        label: "Wine pairing",
-                        price: PRICES.winePairing,
-                        icon: Wine,
-                      },
-                      {
                         value: "TEA",
-                        label: "Tea pairing",
+                        label: "Tea pairing (Trà Việt cổ thụ)",
                         price: PRICES.teaPairing,
                         icon: Coffee,
                       },

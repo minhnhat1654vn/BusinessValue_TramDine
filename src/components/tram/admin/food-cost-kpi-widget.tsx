@@ -110,9 +110,9 @@ function WhatIfChartTooltip({
           </div>
         </div>
         <div className="pt-1.5 text-[10px] border-t border-stone-100 flex items-center justify-between font-semibold">
-          <span>Trần mục tiêu 50%:</span>
-          <span className={d.foodCostPct <= 50 ? "text-emerald-700" : "text-rose-700 font-bold"}>
-            {d.foodCostPct <= 50 ? "✓ Đạt yêu cầu (≤ 50%)" : "⚠️ Vượt trần 50%"}
+          <span>Trần duyệt 35%:</span>
+          <span className={d.foodCostPct <= TARGET_FOOD_COST_CEILING_PCT ? "text-emerald-700" : "text-rose-700 font-bold"}>
+            {d.foodCostPct <= TARGET_FOOD_COST_CEILING_PCT ? "✓ Đạt khung (28–35%)" : "⚠️ Vượt trần 35%"}
           </span>
         </div>
       </div>
@@ -166,28 +166,28 @@ export function FoodCostKpiWidget({
   const deltaCost = simulatedCostPerGuest - baselineCostPerGuest;
   const deltaGrossProfit = simulatedGrossProfit - baselineGrossProfit;
   const deltaFoodCostPct = Number((simulatedFoodCostPct - baselineFoodCostPct).toFixed(1));
-  const shiftImpact = deltaGrossProfit * 42; // Tác động 1 ca 42 khách chuẩn
+  const shiftImpact = deltaGrossProfit * 40; // Tác động 1 ca 40 khách chuẩn (15 bàn)
 
   const bufferPct = Number((TARGET_FOOD_COST_CEILING_PCT - simulatedFoodCostPct).toFixed(1));
-  const bufferVND = Math.round(simMenuPrice * 0.5 - simulatedCostPerGuest);
+  const bufferVND = Math.round(simMenuPrice * (TARGET_FOOD_COST_CEILING_PCT / 100) - simulatedCostPerGuest);
 
   // Dữ liệu cho Biểu đồ Cột Chồng What-if (Recharts BarChart)
   // Luôn đảm bảo có 4 cột so sánh trực quan, trong đó 1 cột luôn đại diện cho simMenuPrice đang kéo
   const scenarioChartData = useMemo(() => {
-    const basePillars = [1_000_000, 1_190_000, 1_350_000, 1_600_000];
+    const basePillars = [1_200_000, 1_440_000, 1_615_000, 1_800_000];
     let chartPrices: number[];
     if (basePillars.includes(simMenuPrice)) {
       chartPrices = basePillars;
     } else {
-      // Thay thế cột đối chiếu tương ứng để bảo toàn mốc gốc 1.190k và giữ đúng 4 cột đều đẹp
-      if (simMenuPrice < 1_190_000) {
-        chartPrices = [simMenuPrice, 1_190_000, 1_350_000, 1_600_000];
-      } else if (simMenuPrice < 1_350_000) {
-        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_500_000];
-      } else if (simMenuPrice < 1_600_000) {
-        chartPrices = [1_000_000, 1_190_000, simMenuPrice, 1_800_000];
+      // Thay thế cột đối chiếu tương ứng để bảo toàn mốc gốc 1.440k và giữ đúng 4 cột đều đẹp
+      if (simMenuPrice < 1_440_000) {
+        chartPrices = [simMenuPrice, 1_440_000, 1_615_000, 1_800_000];
+      } else if (simMenuPrice < 1_615_000) {
+        chartPrices = [1_200_000, 1_440_000, simMenuPrice, 1_800_000];
+      } else if (simMenuPrice < 1_800_000) {
+        chartPrices = [1_200_000, 1_440_000, simMenuPrice, 1_900_000];
       } else {
-        chartPrices = [1_000_000, 1_190_000, 1_400_000, simMenuPrice];
+        chartPrices = [1_200_000, 1_440_000, 1_615_000, simMenuPrice];
       }
     }
 
@@ -203,7 +203,7 @@ export function FoodCostKpiWidget({
 
       return {
         label: `${(price / 1000).toLocaleString("vi-VN")}k`,
-        scenario: price === MENU_PRICE_PER_GUEST ? "Gốc (1.190k)" : `${formatVND(price)}/khách`,
+        scenario: price === MENU_PRICE_PER_GUEST ? "Gốc (1.440k)" : `${formatVND(price)}/khách`,
         price,
         cost,
         profit,
@@ -217,7 +217,7 @@ export function FoodCostKpiWidget({
   }, [simMenuPrice, liveKpi.costPerGuest, simCostDelta]);
 
   const isSafe = liveKpi.isWithinTarget;
-  const ceilingPct = liveKpi.targetCeilingPct; // 50%
+  const ceilingPct = liveKpi.targetCeilingPct; // 35%
   const currentPct = liveKpi.foodCostPct;
 
   // Thanh đo phần trăm (tối đa hiển thị 100%)
@@ -245,21 +245,21 @@ export function FoodCostKpiWidget({
             </span>
             <div>
               <CardTitle className="font-heading text-base font-bold text-[#292524] sm:text-lg flex items-center gap-2">
-                Food cost / doanh thu menu · Mục tiêu 50%
+                Food cost / doanh thu menu “Tiến Vua” · Khung duyệt 28–35%
                 {isSafe ? (
                   <Badge className="border-emerald-300 bg-emerald-100/90 text-emerald-800 text-[10.5px] font-semibold gap-1 hover:bg-emerald-100">
                     <CheckCircle2 className="h-3 w-3 text-emerald-700" />
-                    Đạt mục tiêu (≤ 50%)
+                    Đạt khung duyệt (≤ 35% · Mục tiêu 2027: 34,7%)
                   </Badge>
                 ) : (
                   <Badge className="border-rose-300 bg-rose-100 text-rose-800 text-[10.5px] font-bold gap-1 hover:bg-rose-100 animate-pulse">
                     <AlertTriangle className="h-3 w-3 text-rose-700" />
-                    Vượt trần mục tiêu 50%
+                    Vượt trần mục tiêu 35%
                   </Badge>
                 )}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Tính trên doanh thu phần menu (chưa gồm pairing) · Đồng bộ thời gian thực từ đơn giá kho
+                Tính trên doanh thu phần menu 1.440.000 đ/khách (chưa gồm Tea pairing 350.000 đ) · Clean BOM 32,85% (472.975 đ/khách)
               </p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export function FoodCostKpiWidget({
                 </span>
                 Tầng 1: Giá vốn nguyên liệu / khách
               </span>
-              <span className="text-xs text-stone-500 font-medium">BOM 7 món</span>
+              <span className="text-xs text-stone-500 font-medium">BOM 7 món “Tiến Vua”</span>
             </div>
 
             <div className="mt-3 flex items-baseline justify-between gap-2">
@@ -309,12 +309,9 @@ export function FoodCostKpiWidget({
                 <p className="font-heading text-2xl font-bold tabular-nums text-[#292524] sm:text-3xl">
                   {formatVND(liveKpi.costPerGuest)}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  = Σ(định lượng × đơn giá) trên 7 món suất chuẩn
-                </p>
               </div>
               <div className="text-right">
-                <span className="text-xs text-stone-500">Trần 50% cho phép</span>
+                <span className="text-xs text-stone-500">Trần 35% cho phép</span>
                 <p className="font-heading text-base font-semibold tabular-nums text-stone-700">
                   {formatVND(CEILING_FOOD_COST_PER_GUEST)}
                 </p>
@@ -365,7 +362,7 @@ export function FoodCostKpiWidget({
                 Tầng 2: Food cost % / Giá menu
               </span>
               <span className="text-xs font-semibold tabular-nums text-stone-600">
-                Mục tiêu: ≤ 50%
+                Khung duyệt: 28–35% (Mục tiêu 34,7%)
               </span>
             </div>
 
@@ -379,9 +376,6 @@ export function FoodCostKpiWidget({
                 >
                   {formatPercent(currentPct, 1)}
                 </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  = {formatVND(liveKpi.costPerGuest)} ÷ {formatVND(liveKpi.menuPricePerGuest)} × 100
-                </p>
               </div>
               <div className="text-right">
                 <span className="text-xs text-stone-500">Lãi gộp / khách</span>
@@ -394,7 +388,7 @@ export function FoodCostKpiWidget({
               </div>
             </div>
 
-            {/* Thanh đo trực quan (Progress Gauge vs 50% ceiling) */}
+            {/* Thanh đo trực quan (Progress Gauge vs 35% ceiling) */}
             <div className="mt-3.5 space-y-1">
               <div className="relative h-3 w-full overflow-hidden rounded-full bg-stone-200">
                 <motion.div
@@ -410,17 +404,17 @@ export function FoodCostKpiWidget({
                         : "bg-rose-600",
                   )}
                 />
-                {/* Vạch mốc trần 50% */}
+                {/* Vạch mốc trần 35% */}
                 <div
                   className="absolute top-0 bottom-0 w-0.5 bg-rose-900 z-10"
-                  style={{ left: "50%" }}
-                  title="Ngưỡng trần tối đa 50%"
+                  style={{ left: "35%" }}
+                  title="Ngưỡng trần tối đa 35%"
                 />
               </div>
               <div className="flex justify-between text-[10px] tabular-nums text-stone-500 font-medium">
                 <span>0%</span>
-                <span className="text-emerald-700">Mục tiêu ≤ {TARGET_FOOD_COST_PCT}%</span>
-                <span className="font-bold text-rose-700">Trần 50%</span>
+                <span className="text-emerald-700">Mục tiêu {TARGET_FOOD_COST_PCT}% (2027)</span>
+                <span className="font-bold text-rose-700">Trần 35% (2025: 44%)</span>
                 <span>100%</span>
               </div>
             </div>
@@ -523,7 +517,7 @@ export function FoodCostKpiWidget({
             <div className="flex items-center gap-2 text-rose-900">
               <AlertTriangle className="h-5 w-5 text-rose-700 shrink-0" />
               <h4 className="font-heading text-sm font-bold">
-                Ý nghĩa quản trị: Food cost vượt trần 50% → 3 Lựa chọn hành động
+                Ý nghĩa quản trị: Food cost vượt trần 35% → 3 Lựa chọn hành động
               </h4>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
@@ -535,7 +529,7 @@ export function FoodCostKpiWidget({
                   Tăng giá menu
                 </p>
                 <p className="mt-1 text-stone-600 leading-relaxed">
-                  Tăng giá bán suất tasting "Hành trình vị Việt" (từ {formatVND(liveKpi.menuPricePerGuest)}) để bù đắp chi phí nguyên liệu đầu vào.
+                  Tăng giá bán suất tasting “Tiến Vua” (từ {formatVND(liveKpi.menuPricePerGuest)}) để bù đắp chi phí nguyên liệu đầu vào.
                 </p>
               </div>
 
@@ -560,7 +554,7 @@ export function FoodCostKpiWidget({
                   Đổi nguyên liệu (BOM)
                 </p>
                 <p className="mt-1 text-stone-600 leading-relaxed">
-                  Thay thế hoặc điều chỉnh định lượng nguyên liệu đắt đỏ sang phương án thay thế trong công thức BOM 7 món.
+                  Thay thế hoặc điều chỉnh định lượng nguyên liệu đắt đỏ sang phương án thay thế trong công thức BOM 7 món “Tiến Vua”.
                 </p>
               </div>
             </div>
@@ -629,16 +623,16 @@ export function FoodCostKpiWidget({
                   <div className="pt-1 px-1">
                     <Slider
                       value={[simMenuPrice]}
-                      min={800_000}
-                      max={2_000_000}
+                      min={1_000_000}
+                      max={2_200_000}
                       step={10_000}
                       onValueChange={(vals) => setSimMenuPrice(vals[0])}
                       className="py-2.5 cursor-grab active:cursor-grabbing [&_[data-slot=slider-track]]:h-2.5 [&_[data-slot=slider-track]]:bg-stone-200 [&_[data-slot=slider-range]]:bg-gradient-to-r [&_[data-slot=slider-range]]:from-amber-600 [&_[data-slot=slider-range]]:to-[#b45309] [&_[data-slot=slider-thumb]]:size-5 [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#b45309] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:shadow-md [&_[data-slot=slider-thumb]]:hover:scale-110"
                     />
                     <div className="flex justify-between text-[10px] text-stone-500 font-medium pt-1">
-                      <span>800.000 đ</span>
-                      <span className="text-[#92400e] font-semibold">1.190.000 đ (Gốc)</span>
-                      <span>2.000.000 đ</span>
+                      <span>1.000.000 đ</span>
+                      <span className="text-[#92400e] font-semibold">1.440.000 đ (Gốc)</span>
+                      <span>2.200.000 đ</span>
                     </div>
                   </div>
                 </div>
@@ -715,11 +709,11 @@ export function FoodCostKpiWidget({
                     </span>
                     {isSimulatedSafe ? (
                       <Badge className="border-emerald-300 bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                        ✓ Trong mục tiêu ≤ 50%
+                        ✓ Trong khung duyệt ≤ 35%
                       </Badge>
                     ) : (
                       <Badge className="border-rose-300 bg-rose-100 text-rose-800 text-[10px] font-bold">
-                        ⚠️ Vượt trần 50%
+                        ⚠️ Vượt trần 35%
                       </Badge>
                     )}
                   </div>
@@ -798,12 +792,12 @@ export function FoodCostKpiWidget({
                         />
                         <RechartsTooltip content={<WhatIfChartTooltip />} />
                         <ReferenceLine
-                          y={Math.round(simMenuPrice * 0.5)}
+                          y={Math.round(simMenuPrice * (TARGET_FOOD_COST_CEILING_PCT / 100))}
                           stroke="#e11d48"
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: `Trần 50% (${formatVND(Math.round(simMenuPrice * 0.5))})`,
+                            value: `Trần 35% (${formatVND(Math.round(simMenuPrice * (TARGET_FOOD_COST_CEILING_PCT / 100)))})`,
                             position: "right",
                             fill: "#be123c",
                             fontSize: 10,
@@ -820,7 +814,7 @@ export function FoodCostKpiWidget({
                             <Cell
                               key={`cell-cost-${index}`}
                               fill={
-                                entry.foodCostPct > 50
+                                entry.foodCostPct > TARGET_FOOD_COST_CEILING_PCT
                                   ? "#e11d48"
                                   : entry.isCurrent
                                     ? "#92400e"
@@ -871,7 +865,7 @@ export function FoodCostKpiWidget({
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="h-0.5 w-4 bg-rose-600 border-b border-dashed border-rose-600" />
-                      <span className="font-semibold text-rose-700">Ngưỡng trần tối đa 50%</span>
+                      <span className="font-semibold text-rose-700">Ngưỡng trần tối đa 35%</span>
                     </span>
                     <span className="text-[10.5px] text-stone-400 italic">
                       * Cột có dấu ★ là mức giá đang chọn
@@ -966,7 +960,7 @@ export function FoodCostKpiWidget({
                         </strong>
                       </div>
                       <div className="flex justify-between pt-1 border-t border-amber-200">
-                        <span className="text-stone-600">Δ 1 ca (42 khách):</span>
+                        <span className="text-stone-600">Δ 1 ca (40 khách):</span>
                         <strong
                           className={cn(
                             "font-bold",
@@ -998,7 +992,7 @@ export function FoodCostKpiWidget({
                             : "bg-rose-100 text-rose-800 border-rose-300",
                         )}
                       >
-                        {isSimulatedSafe ? "✓ ≤ 50%" : "⚠️ > 50%"}
+                        {isSimulatedSafe ? "✓ ≤ 35%" : "⚠️ > 35%"}
                       </Badge>
                     </div>
                     <div className="space-y-1 text-xs">

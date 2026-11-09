@@ -10,8 +10,8 @@
       "weekLabel": "Đã lưu trữ",
       "startDate": "2026-11-02",
       "endDate": "2026-11-08",
-      "sellingPrice": 1290000,
-      "targetFoodCostPct": 36.7,
+      "sellingPrice": 1440000,
+      "targetFoodCostPct": 34.7,
       "dishes": [
         {
           "id": "cmw37mib30000voiczxp9p8py",
@@ -682,8 +682,8 @@
       "description": "Thực đơn Tasting chuẩn bị áp dụng (09/11 - 15/11/2026)",
       "status": "ACTIVE",
       "weekLabel": "Tuần này (Đang phục vụ)",
-      "sellingPrice": 1290000,
-      "targetFoodCostPct": 36.7,
+      "sellingPrice": 1440000,
+      "targetFoodCostPct": 34.7,
       "dishes": [
         {
           "id": "cmw37mib30000voiczxp9p8py",

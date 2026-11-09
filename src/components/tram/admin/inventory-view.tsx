@@ -590,16 +590,16 @@ export function AdminInventory({
             tone:
               report.maxStandardGuests === 0 || report.needsReorderCount > 0
                 ? ("warn" as const)
-                : report.maxStandardGuests >= 42
+                : report.maxStandardGuests >= 40
                   ? ("good" as const)
                   : ("default" as const),
           },
           {
             id: "food-cost-kpi",
-            label: "Food cost (Mục tiêu 50%)",
+            label: "Food cost (Khung 28–35%)",
             value: formatPercent(foodCostKpi.foodCostPct, 1),
             sub: `${formatVND(foodCostKpi.costPerGuest)}/khách · ${
-              foodCostKpi.isWithinTarget ? "✓ Đạt mục tiêu" : "⚠️ Vượt trần 50%"
+              foodCostKpi.isWithinTarget ? "✓ Đạt trần 35%" : "⚠️ Vượt trần 35%"
             }`,
             icon: Calculator,
             tone: foodCostKpi.isWithinTarget ? ("good" as const) : ("warn" as const),

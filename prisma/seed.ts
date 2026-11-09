@@ -34,20 +34,23 @@ const pick = <T>(arr: T[]): T => arr[Math.floor(rng() * arr.length)];
 const randInt = (min: number, max: number) =>
   min + Math.floor(rng() * (max - min + 1));
 
-// ---------- Bảng 12 bàn theo spec ----------
+// ---------- Bảng 15 bàn theo spec (40 chỗ/ca) ----------
 const TABLES = [
   { code: "A01", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A02", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A03", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A04", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
   { code: "A05", seats: 2, zone: "Khu cửa sổ (Dãy A)" },
-  { code: "B01", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B02", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B03", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B04", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B05", seats: 4, zone: "Khu trung tâm (Khu B)" },
-  { code: "B11", seats: 6, zone: "Khu sân sau" },
-  { code: "B12", seats: 6, zone: "Khu sân sau" },
+  { code: "B01", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B02", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B03", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B04", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B05", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B06", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B07", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B08", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B09", seats: 3, zone: "Khu trung tâm (Khu B)" },
+  { code: "B10", seats: 3, zone: "Khu trung tâm (Khu B)" },
 ];
 
 // ---------- Khách hàng giả lập ----------
@@ -749,24 +752,24 @@ async function main() {
     where: { id: "default" },
     update: {
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2026-10-15",
       programEndDate: "2026-11-30",
       closedDates: "[]",
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
     },
     create: {
       id: "default",
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2026-10-15",
       programEndDate: "2026-11-30",
       closedDates: "[]",
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
     },
   });
 
@@ -775,14 +778,14 @@ async function main() {
     const backupPath = path.resolve(process.cwd(), "db/booking-settings.json");
     const jsonContent = {
       programEnabled: true,
-      programName: "Hành trình vị Việt - Tasting Menu 7 món",
+      programName: "Thực đơn “Tiến Vua” - Tasting Menu 7 món (1.440.000 đ/khách)",
       programMode: "range",
       programStartDate: "2026-10-15",
       programEndDate: "2026-11-30",
       programDays: [],
       closedDates: [],
       allowMonday: false,
-      notes: "Chương trình thực đơn mùa đặc sắc của TRẦM",
+      notes: "Chương trình thực đơn “Tiến Vua” 7 món · 15 bàn (40 chỗ/ca) · Mở cửa Thứ Tư → Chủ Nhật",
       updatedAt: new Date().toISOString(),
     };
     fs.writeFileSync(backupPath, JSON.stringify(jsonContent, null, 2), "utf8");

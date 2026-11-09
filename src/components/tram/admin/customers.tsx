@@ -382,7 +382,7 @@ export function AdminCustomers() {
             {stats.repeatRate}%
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Khách đến từ 2 lần trở lên
+            Mục tiêu 2029 (Mục 5.3.2): ≥ 45% (+5% giữ chân tăng 25–95% lợi nhuận · Gallo, 2014)
           </p>
         </motion.div>
       </motion.div>

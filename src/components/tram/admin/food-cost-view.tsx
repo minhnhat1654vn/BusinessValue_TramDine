@@ -1,7 +1,7 @@
 "use client";
 
 // FR-28 — Giá vốn nguyên liệu: tự tính giá vốn mỗi khách từ đơn giá nhập kho,
-// giao diện bếp & đối chiếu trực tiếp với giá menu tasting (1.190.000 đ/khách, mục tiêu 33,5%).
+// giao diện bếp & đối chiếu trực tiếp với giá menu tasting “Tiến Vua” (1.440.000 đ/khách, mục tiêu 34,7% · trần 35%).
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -160,7 +160,7 @@ const GROUP_SECTION_STYLES: Record<
   },
 };
 
-const QUICK_GUESTS = [1, 4, 10, 42];
+const QUICK_GUESTS = [1, 4, 10, 40];
 
 type WarehouseScope = "ALL" | "STANDARD" | "CUSTOM";
 
@@ -220,7 +220,7 @@ export function AdminFoodCost({
 } = {}) {
   const [guests, setGuests] = useState(1);
   const [guestsInput, setGuestsInput] = useState("1");
-  const [selectedDish, setSelectedDish] = useState(5); // Mặc định mở món chính có tỷ trọng cao nhất hoặc món 1
+  const [selectedDish, setSelectedDish] = useState(6); // Mặc định mở món 6 (Đông Tảo Quay Mắc Khén · Top Cost Driver)
   const [variantByDish, setVariantByDish] = useState<Record<number, string>>({});
 
   // Đơn giá nhập kho tùy chỉnh (đồng bộ từ server + chỉnh sửa trực tiếp)
@@ -463,7 +463,7 @@ export function AdminFoodCost({
                       : "border-border bg-background text-stone-600 hover:border-[#b45309]/50 hover:text-[#92400e]",
                   )}
                 >
-                  {n === 42 ? "42 · đủ ca" : `${n} khách`}
+                  {n === 40 ? "40 · đủ ca" : `${n} khách`}
                 </button>
               ))}
             </div>
@@ -514,8 +514,8 @@ export function AdminFoodCost({
             label: scaled ? `Doanh thu menu (${guests} khách)` : "Giá bán menu / khách",
             value: formatVND(scaled ? report.menuRevenueTotal : report.menuPricePerGuest),
             sub: scaled
-              ? `${formatVND(report.menuPricePerGuest)} / khách · 7 món tasting`
-              : "Menu “Hành trình vị Việt” · 7 món",
+              ? `${formatVND(report.menuPricePerGuest)} / khách · 7 món “Tiến Vua”`
+              : "Menu “Tiến Vua” · 7 món",
             icon: UtensilsCrossed,
             tone: "default" as const,
           },
@@ -604,12 +604,12 @@ export function AdminFoodCost({
                 {formatPercent(report.foodCostPct, 1)} giá menu)
               </div>
               <div className="text-[11px] font-normal text-muted-foreground">
-                Trần an toàn FR-33: ≤ 50% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
+                Khung duyệt 28–35% · Trần tối đa: 35% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
               </div>
             </div>
 
             <div className="relative pt-5 pb-1">
-              {/* Nhãn mốc mục tiêu chuẩn 33,5% */}
+              {/* Nhãn mốc mục tiêu chuẩn 34,7% */}
               <div
                 style={{ left: `${report.targetFoodCostPct}%` }}
                 className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-semibold text-emerald-800"
@@ -617,12 +617,12 @@ export function AdminFoodCost({
                 Mục tiêu {formatPercent(report.targetFoodCostPct, 1)} ({formatVND(report.targetFoodCostPerGuest)})
               </div>
 
-              {/* Nhãn mốc trần 50% (FR-33) */}
+              {/* Nhãn mốc trần 35% (FR-33) */}
               <div
-                style={{ left: "50%" }}
-                className="pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold text-rose-700"
+                style={{ left: "35%" }}
+                className="pointer-events-none absolute top-0 translate-x-2 whitespace-nowrap text-[10px] font-bold text-rose-700"
               >
-                Mục tiêu trần 50% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
+                Trần 35% ({formatVND(CEILING_FOOD_COST_PER_GUEST)})
               </div>
 
               <div className="relative h-4 w-full overflow-hidden rounded-full border border-border/80 bg-[#f5efe4]">
@@ -635,16 +635,16 @@ export function AdminFoodCost({
                 />
               </div>
 
-              {/* Vạch dọc mốc 33,5% */}
+              {/* Vạch dọc mốc 34,7% */}
               <div
                 style={{ left: `${report.targetFoodCostPct}%` }}
                 aria-hidden
                 className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-emerald-700"
               />
 
-              {/* Vạch dọc mốc 50% */}
+              {/* Vạch dọc mốc 35% */}
               <div
-                style={{ left: "50%" }}
+                style={{ left: "35%" }}
                 aria-hidden
                 className="pointer-events-none absolute top-4 h-6 w-0.5 -translate-x-1/2 bg-rose-700"
               />

@@ -354,19 +354,19 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
           icon={Percent}
           label="Tỷ lệ lấp chỗ TB"
           value={formatPercent(data.occupancyRate)}
-          sub="Các khung giờ có khách · 42 chỗ/khung"
+          sub="Các khung giờ có khách · 40 chỗ/khung (15 bàn) · Mục tiêu 2029: 56%"
         />
         <KpiCard
           icon={UserX}
           label="Tỷ lệ no-show"
           value={formatPercent(data.noShowRate)}
-          sub="Trong các tối đã phục vụ (quá khứ)"
+          sub="Baseline 2025: 18,0% → Mục tiêu 2027: 9,5% · 2029: 6,2%"
         />
         <KpiCard
           icon={Banknote}
           label="Doanh thu dự thu"
           value={formatVND(data.expectedRevenue)}
-          sub="Từ đặt bàn tương lai còn hiệu lực"
+          sub="Menu “Tiến Vua” 1.440k + Tea Pairing 350k (TB 1.615k/khách)"
         />
       </div>
 
@@ -468,7 +468,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                   </span>
                   <span className="inline-flex items-center gap-1.5 font-medium text-rose-600">
                     <span className="inline-block w-4 border-b-2 border-dashed border-rose-500" />
-                    Mục tiêu 36 chỗ (85%)
+                    Mục tiêu 34 chỗ (85% của 40 chỗ)
                   </span>
                 </div>
               </div>
@@ -542,14 +542,14 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                           tickLine={false}
                         />
                         <YAxis domain={[0, 48]} hide />
-                        {/* Đường mục tiêu 36 chỗ (85% của 42 chỗ) */}
+                        {/* Đường mục tiêu 34 chỗ (85% của 40 chỗ) */}
                         <ReferenceLine
-                          y={36}
+                          y={34}
                           stroke="#dc2626"
                           strokeDasharray="4 4"
                           strokeWidth={1.5}
                           label={{
-                            value: "36 chỗ (85%)",
+                            value: "34 chỗ (85%)",
                             position: "right",
                             fill: "#dc2626",
                             fontSize: 10,
@@ -593,7 +593,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 17:30:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1730Occupied}/42 khách ({p.bar1730}%)
+                                        {p.slot1730Occupied}/40 khách ({p.bar1730}%)
                                       </span>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -602,29 +602,29 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
                                         Khung 19:45:
                                       </span>
                                       <span className="font-semibold text-stone-900">
-                                        {p.slot1945Occupied}/42 khách ({p.bar1945}%)
+                                        {p.slot1945Occupied}/40 khách ({p.bar1945}%)
                                       </span>
                                     </div>
                                     <div className="mt-1 pt-1 border-t border-dashed border-stone-200 flex items-center justify-between text-[10px]">
-                                      <span className="text-stone-500">Mục tiêu 36 chỗ:</span>
+                                      <span className="text-stone-500">Mục tiêu 34 chỗ:</span>
                                       <span
-                                        className={`font-bold ${p.slot1730Occupied >= 36 || p.slot1945Occupied >= 36
+                                        className={`font-bold ${p.slot1730Occupied >= 34 || p.slot1945Occupied >= 34
                                             ? "text-emerald-700"
                                             : "text-amber-700"
                                           }`}
                                       >
-                                        {p.slot1730Occupied >= 36 && p.slot1945Occupied >= 36
+                                        {p.slot1730Occupied >= 34 && p.slot1945Occupied >= 34
                                           ? "✓ Đạt cả 2 khung"
-                                          : p.slot1945Occupied >= 36
+                                          : p.slot1945Occupied >= 34
                                             ? "✓ Đạt khung 19:45"
-                                            : p.slot1730Occupied >= 36
+                                            : p.slot1730Occupied >= 34
                                               ? "✓ Đạt khung 17:30"
                                               : "Chưa đạt"}
                                       </span>
                                     </div>
                                   </div>
                                 ) : (
-                                  <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ thứ Hai</p>
+                                  <p className="text-[11px] text-stone-400 italic">Đóng cửa định kỳ Thứ Hai &amp; Thứ Ba</p>
                                 )}
                               </div>
                             );
@@ -938,7 +938,7 @@ export function AdminDashboard({ today, onNavigateTab }: DashboardProps) {
               </div>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món (1.190.000 đ) kèm Wine / Tea Pairing của các đơn đặt bàn có hiệu lực.
+              Doanh thu được tính tự động từ thực đơn Tasting Menu 7 món “Tiến Vua” (1.440.000 đ/khách) kèm gói Tea Pairing (+350.000 đ/khách · hóa đơn trung bình 1.615.000 đ/khách) của các đơn đặt bàn có hiệu lực.
             </p>
           </CardContent>
         </Card>
